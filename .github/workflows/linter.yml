@@ -1,0 +1,13 @@
+name: linter
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run lint formater
+      run: gradlew klintFormat
+    - name: Run linter
+      run: gradlew klintCheck
