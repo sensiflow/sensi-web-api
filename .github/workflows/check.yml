@@ -17,5 +17,7 @@ jobs:
           cache: gradle
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
+      - name: Run linter formatter
+        run: ./gradlew ktlintFormat
       - name: Run Gradle Check (build, test, lint)
         run: ./gradlew check

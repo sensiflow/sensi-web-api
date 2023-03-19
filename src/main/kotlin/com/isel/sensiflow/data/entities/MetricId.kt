@@ -1,11 +1,11 @@
 package com.isel.sensiflow.data.entities
 
+import jakarta.persistence.Column
+import jakarta.persistence.Embeddable
 import org.hibernate.Hibernate
 import java.io.Serializable
 import java.time.Instant
-import java.util.*
-import jakarta.persistence.Column
-import jakarta.persistence.Embeddable
+import java.util.Objects
 
 @Embeddable
 class MetricId : Serializable {
@@ -23,7 +23,6 @@ class MetricId : Serializable {
         other as MetricId
 
         return deviceid == other.deviceid &&
-                startTime == other.startTime
+            startTime == other.startTime
     }
-
 }

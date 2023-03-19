@@ -1,10 +1,10 @@
 package com.isel.sensiflow.data.entities
 
-import org.hibernate.Hibernate
-import java.io.Serializable
-import java.util.*
 import jakarta.persistence.Column
 import jakarta.persistence.Embeddable
+import org.hibernate.Hibernate
+import java.io.Serializable
+import java.util.Objects
 
 @Embeddable
 class DeviceGroupLinkId : Serializable {
@@ -22,7 +22,6 @@ class DeviceGroupLinkId : Serializable {
         other as DeviceGroupLinkId
 
         return deviceid == other.deviceid &&
-                groupid == other.groupid
+            groupid == other.groupid
     }
-
 }

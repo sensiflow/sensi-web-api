@@ -6,13 +6,10 @@ import org.springframework.transaction.annotation.Isolation
 import org.springframework.transaction.annotation.Transactional
 
 @Service
-class UserService(private val userRepository : UserRepository) {
+class UserService(private val userRepository: UserRepository) {
 
-    @Transactional( isolation = Isolation.DEFAULT)
+    @Transactional(isolation = Isolation.DEFAULT)
     fun example(): Long {
         return userRepository.count()
-
     }
-
-
 }

@@ -11,5 +11,4 @@ class UserController(private val userService: UserService) {
     fun example1(): Long {
         return userService.example()
     }
-
 }
