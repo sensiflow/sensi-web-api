@@ -1,18 +1,23 @@
 begin;
 
-create table if not exists "User" (
+create table if not exists "user" (
     id serial primary key,
-    firstName varchar(20) not null,
-    lastName varchar(20) not null,
-    "password" varchar(200) not null,
-    salt varchar(32) not null
+    first_name varchar(20) not null,
+    last_name varchar(20) not null,
+    password_hash varchar(200) not null,
+    password_salt varchar(32) not null
 );
 
+create table if not exists Email(
+    userID int,
+    email varchar(100) constraint email_invalid check(email ~* '^[A-Z0-9._%-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$') primary key,
+    foreign key (userID) references "user"(id)
+);
 
 create table if not exists Token(
     token varchar(255) primary key,
     userID int,
-    foreign key(userID) references "User"(id)
+    foreign key(userID) references "user"(id)
 );
 
 create table if not exists DeviceGroup(
@@ -27,18 +32,24 @@ create table if not exists Device(
     streamURL varchar(200) not null, --The max length of a RTSP URL is 200 bytes
     description varchar(255) not null,
     userID int,
-    groupID int,
-    foreign key (userID) references "User"(id),
-    foreign key (groupID) references DeviceGroup(id)
+    foreign key (userID) references "user"(id)
+);
+
+create table if not exists DeviceGroupLink(
+      deviceID int,
+      groupID int,
+      foreign key (deviceID) references Device(id),
+      foreign key (groupID) references  DeviceGroup(id),
+      primary key (deviceID,groupID)
 );
 
 create table if not exists Metric(
     deviceID int,
-    startTime timestamp not null,
-    endTime timestamp not null,
+    start_time timestamp not null,
+    end_time timestamp not null,
     peopleCount int not null default 0,
     foreign key (deviceID) references Device(id),
-    primary key (deviceID, startTime, endTime)
+    primary key (deviceID, start_time)
 );
 
 create table if not exists ProcessedStream(
