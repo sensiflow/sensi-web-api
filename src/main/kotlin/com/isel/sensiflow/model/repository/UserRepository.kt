@@ -1,6 +1,6 @@
-package com.isel.sensiflow.data.repository
+package com.isel.sensiflow.model.repository
 
-import com.isel.sensiflow.data.entities.User
+import com.isel.sensiflow.model.entities.User
 import org.springframework.data.repository.CrudRepository
 import org.springframework.stereotype.Repository
 

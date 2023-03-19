@@ -1,7 +1,7 @@
-package com.isel.sensiflow.data.repository
+package com.isel.sensiflow.model.repository
 
-import com.isel.sensiflow.data.entities.Metric
-import com.isel.sensiflow.data.entities.MetricId
+import com.isel.sensiflow.model.entities.Metric
+import com.isel.sensiflow.model.entities.MetricId
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 

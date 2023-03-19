@@ -1,6 +1,6 @@
 package com.isel.sensiflow.services
 
-import com.isel.sensiflow.data.repository.UserRepository
+import com.isel.sensiflow.model.repository.UserRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Isolation
 import org.springframework.transaction.annotation.Transactional

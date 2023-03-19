@@ -1,4 +1,4 @@
-package com.isel.sensiflow.data.entities
+package com.isel.sensiflow.model.entities
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
