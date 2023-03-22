@@ -1,4 +1,4 @@
-package com.isel.sensiflow.model.entities
+package com.isel.sensiflow.model.dao
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -7,27 +7,39 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
+import jakarta.persistence.ManyToMany
 import jakarta.persistence.ManyToOne
+import jakarta.persistence.OneToMany
+import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 
 @Entity
 @Table(name = "device")
-class Device {
+class Device(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
-    var id: Int? = null
+    val id: Int,
 
     @Column(name = "name", nullable = false, length = 20)
-    var name: String? = null
-
+    val name: String,
     @Column(name = "streamurl", nullable = false, length = 200)
-    var streamurl: String? = null
+    val streamURL: String,
 
-    @Column(name = "description", nullable = false)
-    var description: String? = null
+    @Column(name = "description", nullable = true)
+    val description: String?,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "userid")
-    var userid: User? = null
+    val user: User? = null
+) {
+
+    @OneToOne(mappedBy = "device")
+    var processedStream: ProcessedStream? = null
+
+    @OneToMany(mappedBy = "deviceID")
+    val metrics: MutableSet<Metric> = mutableSetOf()
+
+    @ManyToMany(mappedBy = "devices")
+    val deviceGroups: MutableSet<DeviceGroup> = mutableSetOf()
 }

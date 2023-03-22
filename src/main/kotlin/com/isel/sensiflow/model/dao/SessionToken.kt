@@ -1,4 +1,4 @@
-package com.isel.sensiflow.model.entities
+package com.isel.sensiflow.model.dao
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -7,15 +7,19 @@ import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
+import java.sql.Timestamp
 
 @Entity
-@Table(name = "token")
-class Token {
+@Table(name = "sessiontoken")
+class SessionToken(
     @Id
     @Column(name = "token", nullable = false)
-    var id: String? = null
+    val token: String,
+
+    @Column(name = "expiration", nullable = false)
+    val expiration: Timestamp,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "userid")
-    var userid: User? = null
-}
+    val user: User
+)

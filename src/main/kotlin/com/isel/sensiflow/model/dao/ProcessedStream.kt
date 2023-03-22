@@ -1,4 +1,4 @@
-package com.isel.sensiflow.model.entities
+package com.isel.sensiflow.model.dao
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -11,16 +11,16 @@ import jakarta.persistence.Table
 
 @Entity
 @Table(name = "processedstream")
-class ProcessedStream {
+class ProcessedStream(
     @Id
     @Column(name = "deviceid", nullable = false)
-    var id: Int? = null
+    val id: Int? = null,
+
+    @Column(name = "streamurl", nullable = false, length = 200)
+    val streamURL: String? = null,
 
     @MapsId
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "deviceid", nullable = false)
-    var device: Device? = null
-
-    @Column(name = "streamurl", nullable = false, length = 200)
-    var streamurl: String? = null
-}
+    val device: Device
+)

@@ -9,13 +9,14 @@ create table if not exists "user" (
 );
 
 create table if not exists Email(
-    userID int,
+    userID int not null,
     email varchar(100) constraint email_invalid check(email ~* '^[A-Z0-9._%-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$') primary key,
     foreign key (userID) references "user"(id)
 );
 
-create table if not exists Token(
+create table if not exists SessionToken(
     token varchar(255) primary key,
+    expiration timestamp not null,
     userID int,
     foreign key(userID) references "user"(id)
 );
@@ -23,14 +24,14 @@ create table if not exists Token(
 create table if not exists DeviceGroup(
     id serial primary key,
     name varchar(30) not null,
-    description varchar(255) not null
+    description varchar(255)
 );
 
 create table if not exists Device(
     id serial primary key,
     name varchar(20) not null,
     streamURL varchar(200) not null, --The max length of a RTSP URL is 200 bytes
-    description varchar(255) not null,
+    description varchar(255),
     userID int,
     foreign key (userID) references "user"(id)
 );
