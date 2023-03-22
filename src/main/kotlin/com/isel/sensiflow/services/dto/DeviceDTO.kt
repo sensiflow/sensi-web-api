@@ -1,7 +1,7 @@
 package com.isel.sensiflow.services.dto
 
 import com.isel.sensiflow.Constants
-import com.isel.sensiflow.model.entities.Device
+import com.isel.sensiflow.model.dao.Device
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
@@ -12,7 +12,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException
  * Device input data transfer object
  * @param name The device name
  * @param description The device description
- * @param streamUrl The device stream url
+ * @param streamURL The device stream url
  *
  * @throws MethodArgumentNotValidException if the input constraints are not met
  */
@@ -39,14 +39,14 @@ data class DeviceInputDTO(
         value = Constants.Device.STREAM_URL_MAX_LENGTH.toLong(),
         message = Constants.Error.DEVICE_STREAM_URL_INVALID_LENGTH
     )
-    val streamUrl: String,
+    val streamURL: String,
 )
 
 /**
  * Device update data transfer object
  * @param name The device name
  * @param description The device description
- * @param streamUrl The device stream url
+ * @param streamURL The device stream url
  */
 data class DeviceUpdateDTO(
     @field:Size(
@@ -68,7 +68,7 @@ data class DeviceUpdateDTO(
         max = Constants.Device.STREAM_URL_MAX_LENGTH,
         message = Constants.Error.DEVICE_STREAM_URL_INVALID_LENGTH
     )
-    val streamUrl: String? = null,
+    val streamURL: String? = null,
 )
 
 /**
@@ -81,7 +81,7 @@ data class DeviceUpdateDTO(
 fun DeviceUpdateDTO.isEmpty(): Boolean =
     this.name == null &&
         this.description == null &&
-        this.streamUrl == null
+        this.streamURL == null
 
 /**
  * Checks if the device is equal to the input
@@ -89,4 +89,4 @@ fun DeviceUpdateDTO.isEmpty(): Boolean =
 fun Device.isEqual(input: DeviceUpdateDTO): Boolean =
     this.name == input.name &&
         this.description == input.description &&
-        this.streamurl == input.streamUrl
+        this.streamURL == input.streamURL

@@ -1,7 +1,7 @@
 package com.isel.sensiflow.services
 
 import com.isel.sensiflow.Constants
-import com.isel.sensiflow.model.entities.Device
+import com.isel.sensiflow.model.dao.Device
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.model.repository.UserRepository
 import com.isel.sensiflow.services.dto.DeviceInputDTO
@@ -36,7 +36,7 @@ class DeviceService(
             .orElseThrow { UserNotFoundException(userId) }
         val newDevice = Device(
             name = deviceInput.name,
-            streamurl = deviceInput.streamUrl,
+            streamURL = deviceInput.streamURL,
             description = deviceInput.description ?: "",
             user = user
         )
@@ -88,7 +88,7 @@ class DeviceService(
         val updatedDevice = Device(
             id = device.id,
             name = deviceInput.name ?: device.name,
-            streamurl = deviceInput.streamUrl ?: device.streamurl,
+            streamURL = deviceInput.streamURL ?: device.streamURL,
             description = deviceInput.description ?: device.description,
             user = device.user
         )

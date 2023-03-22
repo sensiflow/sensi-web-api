@@ -1,7 +1,7 @@
 package com.isel.sensiflow.services
 
-import com.isel.sensiflow.model.entities.Device
-import com.isel.sensiflow.model.entities.User
+import com.isel.sensiflow.model.dao.Device
+import com.isel.sensiflow.model.dao.User
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.model.repository.UserRepository
 import com.isel.sensiflow.services.dto.DeviceInputDTO
@@ -56,14 +56,14 @@ class DeviceServiceTests {
     private val fakeDevice = Device(
         id = 1,
         name = "Device 1",
-        streamurl = "https://example.com/device1/stream",
+        streamURL = "https://example.com/device1/stream",
         description = "Device 1 description",
         user = fakeUser
     )
 
     private val fakeDeviceInput = DeviceInputDTO(
         name = fakeDevice.name,
-        streamUrl = fakeDevice.streamurl,
+        streamURL = fakeDevice.streamURL,
         description = fakeDevice.description
     )
 
@@ -103,7 +103,7 @@ class DeviceServiceTests {
         val device = Device(
             id = fakeDevice.id,
             name = fakeDevice.name,
-            streamurl = fakeDevice.streamurl,
+            streamURL = fakeDevice.streamURL,
             description = "",
             user = fakeUser
         )
@@ -129,7 +129,7 @@ class DeviceServiceTests {
         val expected = DeviceSimpleOutputDTO(
             id = fakeDevice.id,
             name = fakeDevice.name,
-            streamUrl = fakeDevice.streamurl,
+            streamURL = fakeDevice.streamURL,
             description = fakeDevice.description
         )
         assertEquals(expected, retrievedDevice)
@@ -143,7 +143,7 @@ class DeviceServiceTests {
             Device(
                 id = 1,
                 name = "Device 1",
-                streamurl = "https://example.com/device1/stream",
+                streamURL = "https://example.com/device1/stream",
                 description = "Device 1 description",
                 user = User(
                     id = 1,
@@ -156,7 +156,7 @@ class DeviceServiceTests {
             Device(
                 id = 2,
                 name = "Device 2",
-                streamurl = "https://example.com/device2/stream",
+                streamURL = "https://example.com/device2/stream",
                 description = "Device 2 description",
                 user = User(
                     id = 2,
@@ -194,12 +194,12 @@ class DeviceServiceTests {
             id = 1,
             name = "Updated Test Device",
             description = "This is an updated test device.",
-            streamurl = "https://example.com/device1/stream",
+            streamURL = "https://example.com/device1/stream",
             user = fakeDevice.user
         )
         val deviceDto = DeviceUpdateDTO(
             name = updatedDevice.name,
-            streamUrl = updatedDevice.streamurl,
+            streamURL = updatedDevice.streamURL,
             description = updatedDevice.description
         )
 
@@ -222,7 +222,7 @@ class DeviceServiceTests {
 
         val deviceDto = DeviceUpdateDTO(
             name = "Updated Test Device",
-            streamUrl = "https://example.com/device1/stream",
+            streamURL = "https://example.com/device1/stream",
             description = "description"
         )
 
@@ -244,7 +244,7 @@ class DeviceServiceTests {
 
         val updater = DeviceUpdateDTO(
             name = "Updated Test Device",
-            streamUrl = "https://example.com/device1/stream",
+            streamURL = "https://example.com/device1/stream",
             description = "description"
         )
 

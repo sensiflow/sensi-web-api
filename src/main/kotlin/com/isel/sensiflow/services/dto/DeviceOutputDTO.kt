@@ -1,12 +1,12 @@
 package com.isel.sensiflow.services.dto
 
-import com.isel.sensiflow.model.entities.Device
+import com.isel.sensiflow.model.dao.Device
 
 interface DeviceOutputDTO {
     val id: Int
     val name: String
     val description: String?
-    val streamUrl: String
+    val streamURL: String
 }
 
 /**
@@ -14,13 +14,13 @@ interface DeviceOutputDTO {
  * @param id The device id
  * @param name The device name
  * @param description The device description
- * @param streamUrl The device stream url
+ * @param streamURL The device stream url
  */
 data class DeviceSimpleOutputDTO(
     override val id: Int,
     override val name: String,
     override val description: String?,
-    override val streamUrl: String,
+    override val streamURL: String,
     // TODO: Add UserId
     // TODO: Add DeviceGroupId
 ) : DeviceOutputDTO
@@ -32,7 +32,7 @@ data class DeviceExpandedOutputDTO(
     override val id: Int,
     override val name: String,
     override val description: String?,
-    override val streamUrl: String,
+    override val streamURL: String,
     // TODO : val user: UserOutputDTO Adiciona aqui o teu,
     // TODO e: val deviceGroup: DeviceGroupOutputDTO Adiciona aqui o teu,
 ) : DeviceOutputDTO
@@ -43,7 +43,7 @@ fun Device.toDTO(expanded: Boolean): DeviceOutputDTO {
             id = this.id,
             name = this.name,
             description = this.description,
-            streamUrl = this.streamurl,
+            streamURL = this.streamURL,
             // TODO : user = this.user.toDTO(expanded = false)
             // TODO : deviceGroup = this.deviceGroup.toDTO(expanded = false)
         )
@@ -52,7 +52,7 @@ fun Device.toDTO(expanded: Boolean): DeviceOutputDTO {
             id = this.id,
             name = this.name,
             description = this.description,
-            streamUrl = this.streamurl,
+            streamURL = this.streamURL,
             // TODO : userId = this.user.id,
             // TODO : deviceGroupId = this.deviceGroup.id,
         )

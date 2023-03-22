@@ -15,7 +15,7 @@ class User(
     @Id
     @Column(name = "id", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Int,
+    val id: Int = -1,
 
     @Column(name = "first_name", nullable = false, length = 20)
     val firstName: String,

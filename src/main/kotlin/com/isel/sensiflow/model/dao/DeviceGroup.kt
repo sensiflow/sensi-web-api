@@ -13,7 +13,7 @@ import jakarta.persistence.Table
 class DeviceGroup(
     @Id
     @Column(name = "id", nullable = false)
-    val id: Int,
+    val id: Int = -1,
 
     @Column(name = "name", nullable = false, length = 30)
     val name: String,

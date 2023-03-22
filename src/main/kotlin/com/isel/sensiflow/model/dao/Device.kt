@@ -19,7 +19,7 @@ class Device(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
-    val id: Int,
+    val id: Int = -1,
 
     @Column(name = "name", nullable = false, length = 20)
     val name: String,
@@ -31,7 +31,7 @@ class Device(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "userid")
-    val user: User? = null
+    val user: User
 ) {
 
     @OneToOne(mappedBy = "device")
