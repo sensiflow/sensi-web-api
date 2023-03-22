@@ -6,12 +6,13 @@ object Constants {
         const val NAME_MAX_LENGTH = 20
         const val DESCRIPTION_MAX_LENGTH = 100
         const val STREAM_URL_MAX_LENGTH = 200
+        const val NAME_MIN_LENGTH = 3
     }
 
     object Pagination {
         const val DEFAULT_PAGE = 1
-        const val DEFAULT_SIZE = 10
-        const val MAX_SIZE = 50
+        const val DEFAULT_PAGE_SIZE = 10
+        const val MAX_PAGE_SIZE = 50
     }
 
     object Error {
