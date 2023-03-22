@@ -10,8 +10,8 @@ object Constants {
 
     object Pagination {
         const val DEFAULT_PAGE = 1
-        const val DEFAULT_SIZE = 10
-        const val MAX_SIZE = 50
+        const val DEFAULT_PAGE_SIZE = 10
+        const val MAX_PAGE_SIZE = 50
     }
 
     object Error {
