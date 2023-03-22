@@ -32,5 +32,4 @@ fun <T> Page<T>.toDTO(): PageDTO<T> {
         isLast = this.isLast,
         items = this.content
     )
-
 }
