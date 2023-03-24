@@ -1,14 +1,17 @@
 package com.isel.sensiflow.services
 
 import com.isel.sensiflow.model.dao.Device
+import com.isel.sensiflow.model.dao.Metric
+import com.isel.sensiflow.model.dao.MetricID
 import com.isel.sensiflow.model.dao.User
 import com.isel.sensiflow.model.repository.DeviceRepository
+import com.isel.sensiflow.model.repository.MetricRepository
 import com.isel.sensiflow.model.repository.UserRepository
-import com.isel.sensiflow.services.dto.DeviceInputDTO
-import com.isel.sensiflow.services.dto.DeviceSimpleOutputDTO
-import com.isel.sensiflow.services.dto.DeviceUpdateDTO
 import com.isel.sensiflow.services.dto.PaginationInfo
-import com.isel.sensiflow.services.dto.toDTO
+import com.isel.sensiflow.services.dto.input.DeviceInputDTO
+import com.isel.sensiflow.services.dto.input.DeviceUpdateDTO
+import com.isel.sensiflow.services.dto.output.DeviceSimpleOutputDTO
+import com.isel.sensiflow.services.dto.output.toDTO
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -26,6 +29,7 @@ import org.mockito.MockitoAnnotations
 import org.mockito.junit.MockitoJUnitRunner
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
+import java.sql.Timestamp
 import java.util.Optional
 
 @RunWith(MockitoJUnitRunner::class)
@@ -39,6 +43,9 @@ class DeviceServiceTests {
 
     @Mock
     private lateinit var userRepository: UserRepository
+
+    @Mock
+    private lateinit var metricRepository: MetricRepository
 
     @BeforeEach
     fun initMocks() {
@@ -65,6 +72,13 @@ class DeviceServiceTests {
         name = fakeDevice.name,
         streamURL = fakeDevice.streamURL,
         description = fakeDevice.description
+    )
+
+    private val fakeDeviceStats = Metric(
+        id = MetricID(1, Timestamp.valueOf("2021-01-01 00:00:00")),
+        endTime = Timestamp.valueOf("2021-01-01 00:00:01"),
+        peopleCount = 1,
+        deviceID = fakeDevice
     )
 
     @Test
@@ -288,5 +302,77 @@ class DeviceServiceTests {
         // Assert
         verify(deviceRepository, times(1)).findById(nonExistingDevice)
         verify(deviceRepository, times(0)).deleteById(anyInt())
+    }
+
+    @Test
+    fun `get device stats successfully`() {
+        // Arrange
+        val deviceId = 1
+        val paginationInfo = PaginationInfo(page = 1, size = 10)
+
+        val expectedPageItems = listOf<Metric>(
+            Metric(
+                id = fakeDeviceStats.id,
+                endTime = fakeDeviceStats.endTime,
+                peopleCount = fakeDeviceStats.peopleCount,
+                deviceID = fakeDevice
+            )
+        )
+
+        val page = PageImpl(
+            expectedPageItems,
+            PageRequest.of(paginationInfo.page, paginationInfo.size),
+            expectedPageItems.size.toLong()
+        )
+
+        `when`(deviceRepository.findById(deviceId)).thenReturn(Optional.of(fakeDevice))
+        `when`(metricRepository.findAllByDeviceID(deviceId, PageRequest.of(paginationInfo.page, paginationInfo.size)))
+            .thenReturn(page)
+
+        val expected = expectedPageItems.map { it.toDTO() }
+
+        // Act
+        val retrievedStats = deviceService.getDeviceStats(paginationInfo, deviceId, fakeUser.id)
+
+        // Assert
+        assertEquals(expected, retrievedStats.items)
+        verify(metricRepository, times(1))
+            .findAllByDeviceID(deviceId, PageRequest.of(paginationInfo.page, paginationInfo.size))
+    }
+
+    @Test
+    fun `get device stats when device does not exist`() {
+        // Arrange
+        val deviceId = 1
+        val paginationInfo = PaginationInfo(page = 1, size = 10)
+
+        `when`(deviceRepository.findById(deviceId)).thenReturn(Optional.empty())
+
+        // Act
+        assertThrows<DeviceNotFoundException> {
+            deviceService.getDeviceStats(paginationInfo, deviceId, fakeUser.id)
+        }
+
+        // Assert
+        verify(metricRepository, times(0))
+            .findAllByDeviceID(deviceId, PageRequest.of(paginationInfo.page, paginationInfo.size))
+    }
+
+    @Test
+    fun `get device stats when user is not the owner`() {
+        // Arrange
+        val deviceId = 1
+        val paginationInfo = PaginationInfo(page = 1, size = 10)
+
+        `when`(deviceRepository.findById(deviceId)).thenReturn(Optional.of(fakeDevice))
+
+        // Act
+        assertThrows<OwnerMismatchException> {
+            deviceService.getDeviceStats(paginationInfo, deviceId, fakeUser.id + 1)
+        }
+
+        // Assert
+        verify(metricRepository, times(0))
+            .findAllByDeviceID(deviceId, PageRequest.of(paginationInfo.page, paginationInfo.size))
     }
 }

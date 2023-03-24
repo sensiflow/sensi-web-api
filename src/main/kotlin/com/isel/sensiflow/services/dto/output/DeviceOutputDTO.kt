@@ -1,4 +1,4 @@
-package com.isel.sensiflow.services.dto
+package com.isel.sensiflow.services.dto.output
 
 import com.isel.sensiflow.model.dao.Device
 
