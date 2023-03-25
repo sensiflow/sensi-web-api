@@ -99,7 +99,6 @@ class ProcessedStreamTests {
         val expanded = true
 
         val expandedProcessedStream = ProcessedStreamExpandedOutputDTO(
-            deviceId = fakeDevice.id,
             streamUrl = fakeProcessedStream.streamURL,
             device = DeviceSimpleOutputDTO(
                 id = fakeDevice.id,
