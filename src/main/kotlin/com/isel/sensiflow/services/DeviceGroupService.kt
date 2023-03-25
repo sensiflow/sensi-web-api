@@ -71,7 +71,7 @@ class DeviceGroupService(
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    fun getDevicesFromGroup(groupID: Int, expanded: Boolean, paginationInfo: PaginationInfo): PageDTO<DeviceOutputDTO> {
+    fun getDevicesFromGroup(groupID: Int, paginationInfo: PaginationInfo): PageDTO<DeviceOutputDTO> {
         val pageable: Pageable = PageRequest.of(paginationInfo.page, paginationInfo.size)
 
         deviceGroupRepository.findById(groupID)
@@ -79,7 +79,7 @@ class DeviceGroupService(
 
         return deviceGroupRepository
             .findAllDevicesByGroupId(groupID, pageable)
-            .map { it.toDTO(expanded) }
+            .map { it.toDTO(expanded = false) }
             .toDTO()
     }
 }

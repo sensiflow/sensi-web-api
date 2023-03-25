@@ -59,8 +59,7 @@ class DeviceGroupController(val deviceGroupService: DeviceGroupService) {
         @PathVariable id: Int,
         @RequestParam page: Int,
         @RequestParam size: Int,
-        @RequestParam expanded: Boolean = false,
     ): PageDTO<DeviceOutputDTO> =
         deviceGroupService
-            .getDevicesFromGroup(id, expanded, PaginationInfo(page, size))
+            .getDevicesFromGroup(id, PaginationInfo(page, size))
 }

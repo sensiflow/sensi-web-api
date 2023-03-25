@@ -275,7 +275,7 @@ class DeviceGroupTests {
 
         val expected = expectedPageItems.map { it.toDTO(expanded = false) }
         val retrievedStats = deviceGroupService
-            .getDevicesFromGroup(deviceGroupID, expanded = false, paginationInfo = paginationInfo)
+            .getDevicesFromGroup(deviceGroupID, paginationInfo = paginationInfo)
 
         // Assert
         assertEquals(expected, retrievedStats.items)
@@ -292,7 +292,7 @@ class DeviceGroupTests {
         `when`(deviceGroupRepository.findById(nonExistingGroup)).thenReturn(Optional.empty())
 
         assertThrows<DeviceGroupNotFoundException> {
-            deviceGroupService.getDevicesFromGroup(nonExistingGroup, expanded = false, paginationInfo = paginationInfo)
+            deviceGroupService.getDevicesFromGroup(nonExistingGroup, paginationInfo = paginationInfo)
         }
 
         // Assert
