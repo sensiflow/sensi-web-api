@@ -23,3 +23,10 @@ class SessionToken(
     @JoinColumn(name = "userid")
     val user: User
 )
+
+/**
+ * Checks if the session token has expired.
+ */
+fun SessionToken.hasExpired(): Boolean {
+    return expiration.before(Timestamp(System.currentTimeMillis()))
+}

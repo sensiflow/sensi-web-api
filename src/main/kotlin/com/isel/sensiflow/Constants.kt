@@ -21,6 +21,7 @@ object Constants {
     }
 
     object InputValidation {
+        const val EMAIL_MAX_LENGTH = 100
         const val NAME_MIN_LENGTH = 3
         const val NAME_MAX_LENGTH = 20
         const val PASSWORD_MIN_SIZE = 3
