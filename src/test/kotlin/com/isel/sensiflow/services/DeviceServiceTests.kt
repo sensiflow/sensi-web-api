@@ -1,9 +1,9 @@
 package com.isel.sensiflow.services
 
 import com.isel.sensiflow.model.dao.Device
+import com.isel.sensiflow.model.dao.DeviceProcessingState
 import com.isel.sensiflow.model.dao.Metric
 import com.isel.sensiflow.model.dao.MetricID
-import com.isel.sensiflow.model.dao.DeviceProcessingState
 import com.isel.sensiflow.model.dao.User
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.model.repository.MetricRepository

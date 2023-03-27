@@ -1,19 +1,15 @@
 package com.isel.sensiflow.http.controller
 
 import com.isel.sensiflow.services.DeviceService
-import com.isel.sensiflow.services.dto.DeviceInputDTO
-import com.isel.sensiflow.services.dto.DeviceOutputDTO
-import com.isel.sensiflow.services.dto.DeviceStateInputDTO
-import com.isel.sensiflow.services.dto.DeviceUpdateDTO
-import com.isel.sensiflow.services.dto.PageDTO
 import com.isel.sensiflow.services.dto.PaginationInfo
-import jakarta.validation.Valid
-import org.springframework.http.HttpStatus
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
+import com.isel.sensiflow.services.dto.input.DeviceStateInputDTO
 import com.isel.sensiflow.services.dto.input.DeviceUpdateDTO
 import com.isel.sensiflow.services.dto.output.DeviceOutputDTO
 import com.isel.sensiflow.services.dto.output.MetricOutputDTO
 import com.isel.sensiflow.services.dto.output.PageDTO
+import jakarta.validation.Valid
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
