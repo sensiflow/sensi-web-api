@@ -14,10 +14,10 @@ import jakarta.persistence.Table
 class ProcessedStream(
     @Id
     @Column(name = "deviceid", nullable = false)
-    val id: Int? = null,
+    val id: Int = -1,
 
     @Column(name = "streamurl", nullable = false, length = 200)
-    val streamURL: String? = null,
+    val streamURL: String,
 
     @MapsId
     @OneToOne(fetch = FetchType.LAZY, optional = false)

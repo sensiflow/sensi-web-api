@@ -1,4 +1,4 @@
-package com.isel.sensiflow.services.dto
+package com.isel.sensiflow.services.dto.output
 
 import org.springframework.data.domain.Page
 

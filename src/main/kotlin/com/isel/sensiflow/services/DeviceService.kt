@@ -3,15 +3,17 @@ package com.isel.sensiflow.services
 import com.isel.sensiflow.Constants
 import com.isel.sensiflow.model.dao.Device
 import com.isel.sensiflow.model.repository.DeviceRepository
+import com.isel.sensiflow.model.repository.MetricRepository
 import com.isel.sensiflow.model.repository.UserRepository
-import com.isel.sensiflow.services.dto.DeviceInputDTO
-import com.isel.sensiflow.services.dto.DeviceOutputDTO
-import com.isel.sensiflow.services.dto.DeviceUpdateDTO
-import com.isel.sensiflow.services.dto.PageDTO
 import com.isel.sensiflow.services.dto.PaginationInfo
-import com.isel.sensiflow.services.dto.isEmpty
-import com.isel.sensiflow.services.dto.isEqual
-import com.isel.sensiflow.services.dto.toDTO
+import com.isel.sensiflow.services.dto.input.DeviceInputDTO
+import com.isel.sensiflow.services.dto.input.DeviceUpdateDTO
+import com.isel.sensiflow.services.dto.input.isEmpty
+import com.isel.sensiflow.services.dto.input.isEqual
+import com.isel.sensiflow.services.dto.output.DeviceOutputDTO
+import com.isel.sensiflow.services.dto.output.MetricOutputDTO
+import com.isel.sensiflow.services.dto.output.PageDTO
+import com.isel.sensiflow.services.dto.output.toDTO
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -21,7 +23,8 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class DeviceService(
     private val deviceRepository: DeviceRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val metricRepository: MetricRepository
 ) {
 
     /**
@@ -72,6 +75,14 @@ class DeviceService(
             .toDTO()
     }
 
+    /**
+     * Updates a device.
+     * @param deviceId The id of the device.
+     * @param deviceInput The input data for the device to update.
+     * @param userId The id of the user that owns the device.
+     * @throws OwnerMismatchException If the user does not own the device.
+     * @return The updated [Device].
+     */
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     fun updateDevice(deviceId: Int, deviceInput: DeviceUpdateDTO, userId: Int): Device {
 
@@ -113,5 +124,30 @@ class DeviceService(
             )
 
         deviceRepository.deleteById(deviceId)
+    }
+
+    /**
+     * Gets the stats of a device.
+     * @param paginationInfo The pagination information.
+     * @param deviceId The id of the device.
+     * @param userId The id of the user that owns the device.
+     * @throws DeviceNotFoundException If the device does not exist.
+     * @throws OwnerMismatchException If the user does not own the device.
+     * @return A [PageDTO] of [MetricOutputDTO].
+     */
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    fun getDeviceStats(paginationInfo: PaginationInfo, deviceId: Int, userId: Int): PageDTO<MetricOutputDTO> {
+        val pageable: Pageable = PageRequest.of(paginationInfo.page, paginationInfo.size)
+
+        val device = deviceRepository.findById(deviceId)
+            .orElseThrow { DeviceNotFoundException(deviceId) }
+
+        if (device.user.id != userId)
+            throw OwnerMismatchException(Constants.Error.DEVICE_OWNER_MISMATCH.format(deviceId, userId))
+
+        return metricRepository
+            .findAllByDeviceID(deviceId, pageable)
+            .map { it.toDTO() }
+            .toDTO()
     }
 }
