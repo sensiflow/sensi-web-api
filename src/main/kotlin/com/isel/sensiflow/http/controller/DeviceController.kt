@@ -9,6 +9,11 @@ import com.isel.sensiflow.services.dto.PageDTO
 import com.isel.sensiflow.services.dto.PaginationInfo
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
+import com.isel.sensiflow.services.dto.input.DeviceInputDTO
+import com.isel.sensiflow.services.dto.input.DeviceUpdateDTO
+import com.isel.sensiflow.services.dto.output.DeviceOutputDTO
+import com.isel.sensiflow.services.dto.output.MetricOutputDTO
+import com.isel.sensiflow.services.dto.output.PageDTO
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -23,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController
 import java.net.URI
 
 @RestController
-@RequestMapping("/devices")
+@RequestMapping(RequestPaths.Device.DEVICE)
 class DeviceController(
     val deviceService: DeviceService
 ) {
@@ -83,5 +88,17 @@ class DeviceController(
         userID: Int?/* TODO: Injected by auth */
     ) {
         deviceService.updateProcessingState(id, deviceStateInputDTO.state, userID ?: 0)
+    }
+
+    @GetMapping(RequestPaths.Device.DEVICE_STATS)
+    // TODO: @Authentication
+    fun getDeviceStats(
+        @PathVariable id: Int,
+        @RequestParam page: Int,
+        @RequestParam size: Int,
+        userID: Int /* TODO Injected by auth */
+    ): PageDTO<MetricOutputDTO> {
+        return deviceService
+            .getDeviceStats(PaginationInfo(page, size), id, userID)
     }
 }

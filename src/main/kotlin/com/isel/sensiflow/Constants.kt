@@ -21,6 +21,7 @@ object Constants {
     }
 
     object InputValidation {
+        const val EMAIL_MAX_LENGTH = 100
         const val NAME_MIN_LENGTH = 3
         const val NAME_MAX_LENGTH = 20
         const val PASSWORD_MIN_SIZE = 3
@@ -46,6 +47,8 @@ object Constants {
             "Description must be between 1 and ${Device.DESCRIPTION_MAX_LENGTH} characters"
         const val DEVICE_STREAM_URL_INVALID_LENGTH =
             "Stream URL must be between 1 and ${Device.STREAM_URL_MAX_LENGTH} characters"
+        const val PROCESSED_STREAM_NOT_FOUND = "Processed stream with id %d not found"
+        const val DEVICE_GROUP_NOT_FOUND = "Device group with id %d not found"
         const val DEVICE_STATE_REQUIRED = "Processing state is required"
     }
 }

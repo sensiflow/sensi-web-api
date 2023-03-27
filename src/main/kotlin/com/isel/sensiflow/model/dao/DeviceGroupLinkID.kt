@@ -4,25 +4,24 @@ import jakarta.persistence.Column
 import jakarta.persistence.Embeddable
 import org.hibernate.Hibernate
 import java.io.Serializable
-import java.sql.Timestamp
 import java.util.Objects
 
 @Embeddable
-class MetricId(
-    @Column(name = "deviceid", nullable = false)
-    val deviceID: Int,
+class DeviceGroupLinkID(
+    @Column(name = "deviceID", nullable = false)
+    val deviceID: Int = -1,
 
-    @Column(name = "start_time", nullable = false)
-    val startTime: Timestamp
+    @Column(name = "groupID", nullable = false)
+    val groupID: Int = -1
 ) : Serializable {
-    override fun hashCode(): Int = Objects.hash(deviceID, startTime)
+    override fun hashCode(): Int = Objects.hash(deviceID, groupID)
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || Hibernate.getClass(this) != Hibernate.getClass(other)) return false
 
-        other as MetricId
+        other as DeviceGroupLinkID
 
         return deviceID == other.deviceID &&
-            startTime == other.startTime
+            groupID == other.groupID
     }
 }

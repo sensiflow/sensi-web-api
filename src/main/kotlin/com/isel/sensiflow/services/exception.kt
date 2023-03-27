@@ -16,3 +16,5 @@ class InvalidProcessingStateException(state: String) : ServiceException(
 )
 class InvalidProcessingStateTransitionException(from: DeviceProcessingState, to: DeviceProcessingState) :
     ServiceException("Invalid transition from $from to $to")
+class DeviceGroupNotFoundException(id: Int) : ServiceException(Constants.Error.DEVICE_GROUP_NOT_FOUND.format(id))
+class ProcessedStreamNotFoundException(id: Int) : ServiceException(Constants.Error.PROCESSED_STREAM_NOT_FOUND.format(id))
