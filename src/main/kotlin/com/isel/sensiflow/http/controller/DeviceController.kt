@@ -3,9 +3,12 @@ package com.isel.sensiflow.http.controller
 import com.isel.sensiflow.services.DeviceService
 import com.isel.sensiflow.services.dto.DeviceInputDTO
 import com.isel.sensiflow.services.dto.DeviceOutputDTO
+import com.isel.sensiflow.services.dto.DeviceStateInputDTO
 import com.isel.sensiflow.services.dto.DeviceUpdateDTO
 import com.isel.sensiflow.services.dto.PageDTO
 import com.isel.sensiflow.services.dto.PaginationInfo
+import jakarta.validation.Valid
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -15,6 +18,7 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import java.net.URI
 
@@ -26,20 +30,19 @@ class DeviceController(
 
     @GetMapping
     fun getDevices(
-        @RequestParam page: Int,
-        @RequestParam size: Int,
+        @RequestParam page: Int?,
+        @RequestParam size: Int?,
         @RequestParam expanded: Boolean = false
     ): PageDTO<DeviceOutputDTO> {
-        return deviceService
-            .getAllDevices(PaginationInfo(page, size), expanded = expanded)
+        return deviceService.getAllDevices(PaginationInfo(page, size), expanded = expanded)
     }
 
     @PostMapping
     fun createDevice(
-        @RequestBody deviceInputDTO: DeviceInputDTO,
-        userID: Int = 0/* TODO Injected by auth */
+        @Valid @RequestBody deviceInputDTO: DeviceInputDTO,
+        userID: Int?/* TODO Injected by auth */
     ): ResponseEntity<Unit> {
-        val createdDevice = deviceService.createDevice(deviceInputDTO, userID)
+        val createdDevice = deviceService.createDevice(deviceInputDTO, userID ?: 0)
 
         val locationPath = (RequestPaths.Device.DEVICE + "/%d").format(createdDevice.id)
 
@@ -57,24 +60,28 @@ class DeviceController(
     }
 
     @PutMapping(RequestPaths.Device.DEVICE_ID)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     fun updateDevice(
         @PathVariable id: Int,
-        @RequestBody deviceInputDTO: DeviceUpdateDTO,
-        userID: Int = 0/* TODO: Injected by auth */
-    ): ResponseEntity<Unit> {
-        deviceService.updateDevice(id, deviceInputDTO, userID)
-
-        return ResponseEntity
-            .noContent()
-            .build()
+        @Valid @RequestBody deviceInputDTO: DeviceUpdateDTO,
+        userID: Int?/* TODO: Injected by auth */
+    ) {
+        deviceService.updateDevice(id, deviceInputDTO, userID ?: 0)
     }
 
     @DeleteMapping(RequestPaths.Device.DEVICE_ID)
-    fun deleteDevice(@PathVariable id: Int, userID: Int = 0/* TODO: Injected by auth */): ResponseEntity<Unit> {
-        deviceService.deleteDevice(id, userID)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun deleteDevice(@PathVariable id: Int, userID: Int?/* TODO: Injected by auth */) {
+        deviceService.deleteDevice(id, userID ?: 0)
+    }
 
-        return ResponseEntity
-            .noContent()
-            .build()
+    @PutMapping(RequestPaths.Device.PROCESSING_STATE)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun updateProcessingState(
+        @PathVariable id: Int,
+        @RequestBody deviceStateInputDTO: DeviceStateInputDTO,
+        userID: Int?/* TODO: Injected by auth */
+    ) {
+        deviceService.updateProcessingState(id, deviceStateInputDTO.state, userID ?: 0)
     }
 }

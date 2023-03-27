@@ -31,6 +31,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("io.hypersistence:hypersistence-utils-hibernate-60:3.3.0")
 
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
@@ -39,6 +40,7 @@ dependencies {
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("com.h2database:h2")
     testImplementation("org.springframework.amqp:spring-rabbit-test")
 }
 
@@ -52,6 +54,6 @@ tasks.withType<KotlinCompile> {
 tasks.withType<Test> {
     useJUnitPlatform()
     this.environment(
-        "DATABASE_URL" to "jdbc:postgresql://localhost:5432/postgres",
+        "DATABASE_URL" to "jdbc:postgresql://localhost:5432/postgres?user=postgres&password=postgres"
     )
 }

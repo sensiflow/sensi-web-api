@@ -2,7 +2,6 @@ package com.isel.sensiflow.services.dto
 
 import com.isel.sensiflow.Constants
 import com.isel.sensiflow.model.dao.Device
-import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
@@ -27,16 +26,18 @@ data class DeviceInputDTO(
     val name: String,
 
     @field:NotBlank
-    @field:Max(
-        value = Constants.Device.DESCRIPTION_MAX_LENGTH.toLong(),
+    @field:Size(
+        min = 1,
+        max = Constants.Device.DESCRIPTION_MAX_LENGTH,
         message = Constants.Error.DEVICE_DESCRIPTION_INVALID_LENGTH
     )
     val description: String?,
 
     @field:NotBlank(message = Constants.Error.DEVICE_STREAM_URL_EMPTY)
     @field:NotNull(message = Constants.Error.DEVICE_STREAM_URL_EMPTY)
-    @field:Max(
-        value = Constants.Device.STREAM_URL_MAX_LENGTH.toLong(),
+    @field:Size(
+        min = 1,
+        max = Constants.Device.STREAM_URL_MAX_LENGTH,
         message = Constants.Error.DEVICE_STREAM_URL_INVALID_LENGTH
     )
     val streamURL: String,
@@ -63,12 +64,21 @@ data class DeviceUpdateDTO(
     )
     val description: String? = null,
 
-    @Size(
+    @field:Size(
         min = 1,
         max = Constants.Device.STREAM_URL_MAX_LENGTH,
         message = Constants.Error.DEVICE_STREAM_URL_INVALID_LENGTH
     )
     val streamURL: String? = null,
+)
+
+/**
+ * Device state input data transfer object
+ */
+data class DeviceStateInputDTO(
+    @field:NotBlank(message = Constants.Error.DEVICE_STATE_REQUIRED)
+    @field:NotNull(message = Constants.Error.DEVICE_STATE_REQUIRED)
+    val state: String?
 )
 
 /**

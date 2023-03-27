@@ -29,12 +29,13 @@ object Constants {
     }
 
     object Pagination {
-        const val DEFAULT_PAGE = 1
+        const val DEFAULT_PAGE = 0
         const val DEFAULT_PAGE_SIZE = 10
         const val MAX_PAGE_SIZE = 50
     }
 
     object Error {
+        const val PROCESSING_STATE_INVALID = "Invalid processing state: '%s' please use one of the following: %s"
         const val USER_NOT_FOUND = "User with id %d not found"
         const val DEVICE_NOT_FOUND = "Device with id %d not found"
         const val DEVICE_OWNER_MISMATCH = "Device with id %d does not belong to user with id %d"
@@ -45,5 +46,6 @@ object Constants {
             "Description must be between 1 and ${Device.DESCRIPTION_MAX_LENGTH} characters"
         const val DEVICE_STREAM_URL_INVALID_LENGTH =
             "Stream URL must be between 1 and ${Device.STREAM_URL_MAX_LENGTH} characters"
+        const val DEVICE_STATE_REQUIRED = "Processing state is required"
     }
 }

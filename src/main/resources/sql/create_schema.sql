@@ -27,11 +27,15 @@ create table if not exists DeviceGroup(
     description varchar(255)
 );
 
+drop type if exists device_processing_state cascade;
+create type device_processing_state as enum ('INACTIVE', 'ACTIVE', 'PAUSED');
+
 create table if not exists Device(
     id serial primary key,
     name varchar(20) not null,
     streamURL varchar(200) not null, --The max length of a RTSP URL is 200 bytes
     description varchar(255),
+    processingState device_processing_state not null default 'INACTIVE',
     userID int,
     foreign key (userID) references "user"(id)
 );
