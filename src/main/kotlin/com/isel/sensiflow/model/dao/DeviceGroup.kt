@@ -2,6 +2,7 @@ package com.isel.sensiflow.model.dao
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.FetchType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.JoinTable
@@ -22,7 +23,7 @@ class DeviceGroup(
     val description: String?
 ) {
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "devicegrouplink",
         joinColumns = [JoinColumn(name = "groupid")],

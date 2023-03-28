@@ -2,6 +2,7 @@ package com.isel.sensiflow.services
 
 import com.isel.sensiflow.Constants
 import com.isel.sensiflow.model.dao.Device
+import com.isel.sensiflow.model.dao.DeviceProcessingState
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.model.repository.MetricRepository
 import com.isel.sensiflow.model.repository.UserRepository
@@ -77,6 +78,9 @@ class DeviceService(
 
     /**
      * Updates a device.
+     *
+     * All provided fields are overwritten, except if in the input the field is null.
+     *
      * @param deviceId The id of the device.
      * @param deviceInput The input data for the device to update.
      * @param userId The id of the user that owns the device.
@@ -124,6 +128,37 @@ class DeviceService(
             )
 
         deviceRepository.deleteById(deviceId)
+    }
+
+    /**
+     * Changes the processing state of a device.
+     */
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    fun updateProcessingState(deviceID: Int, state: String?, userID: Int) {
+
+        val safeState = state ?: throw InvalidProcessingStateException("null")
+        val newProcessingState = DeviceProcessingState.fromString(safeState)
+            ?: throw InvalidProcessingStateException(safeState)
+
+        val device = deviceRepository.findById(deviceID)
+            .orElseThrow { DeviceNotFoundException(deviceID) }
+
+        if (device.user.id != userID)
+            throw OwnerMismatchException(Constants.Error.DEVICE_OWNER_MISMATCH.format(deviceID, userID))
+
+        if (!device.processingState.isValidTransition(newProcessingState))
+            throw InvalidProcessingStateTransitionException(from = device.processingState, to = newProcessingState)
+
+        val newDevice = Device( // Preserve immutability
+            id = device.id,
+            name = device.name,
+            streamURL = device.streamURL,
+            description = device.description,
+            user = device.user,
+            processingState = newProcessingState
+        )
+
+        deviceRepository.save(newDevice)
     }
 
     /**

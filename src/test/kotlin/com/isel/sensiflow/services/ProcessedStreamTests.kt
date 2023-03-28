@@ -105,7 +105,8 @@ class ProcessedStreamTests {
                 name = fakeDevice.name,
                 streamURL = fakeDevice.streamURL,
                 description = fakeDevice.description,
-                userID = fakeDevice.user.id
+                userID = fakeDevice.user.id,
+                processingState = fakeDevice.processingState.name
             )
         )
 

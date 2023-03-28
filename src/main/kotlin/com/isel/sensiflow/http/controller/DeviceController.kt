@@ -4,10 +4,13 @@ import com.isel.sensiflow.http.pipeline.authentication.Authentication
 import com.isel.sensiflow.services.DeviceService
 import com.isel.sensiflow.services.dto.PaginationInfo
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
+import com.isel.sensiflow.services.dto.input.DeviceStateInputDTO
 import com.isel.sensiflow.services.dto.input.DeviceUpdateDTO
 import com.isel.sensiflow.services.dto.output.DeviceOutputDTO
 import com.isel.sensiflow.services.dto.output.MetricOutputDTO
 import com.isel.sensiflow.services.dto.output.PageDTO
+import jakarta.validation.Valid
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -17,6 +20,7 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import java.net.URI
 
@@ -28,18 +32,17 @@ class DeviceController(
 
     @GetMapping
     fun getDevices(
-        @RequestParam page: Int,
-        @RequestParam size: Int,
+        @RequestParam page: Int?,
+        @RequestParam size: Int?,
         @RequestParam expanded: Boolean = false
     ): PageDTO<DeviceOutputDTO> {
-        return deviceService
-            .getAllDevices(PaginationInfo(page, size), expanded = expanded)
+        return deviceService.getAllDevices(PaginationInfo(page, size), expanded = expanded)
     }
 
     @Authentication
     @PostMapping
     fun createDevice(
-        @RequestBody deviceInputDTO: DeviceInputDTO,
+        @Valid @RequestBody deviceInputDTO: DeviceInputDTO,
         userID: Int
     ): ResponseEntity<Unit> {
         val createdDevice = deviceService.createDevice(deviceInputDTO, userID)
@@ -61,26 +64,30 @@ class DeviceController(
 
     @Authentication
     @PutMapping(RequestPaths.Device.DEVICE_ID)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     fun updateDevice(
         @PathVariable id: Int,
-        @RequestBody deviceInputDTO: DeviceUpdateDTO,
+        @Valid @RequestBody deviceInputDTO: DeviceUpdateDTO,
         userID: Int
-    ): ResponseEntity<Unit> {
-        deviceService.updateDevice(id, deviceInputDTO, userID)
-
-        return ResponseEntity
-            .noContent()
-            .build()
+    ) {
+        deviceService.updateDevice(id, deviceInputDTO, userID ?: 0)
     }
 
     @Authentication
     @DeleteMapping(RequestPaths.Device.DEVICE_ID)
-    fun deleteDevice(@PathVariable id: Int, userID: Int): ResponseEntity<Unit> {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun deleteDevice(@PathVariable id: Int, userID: Int) {
         deviceService.deleteDevice(id, userID)
+    }
 
-        return ResponseEntity
-            .noContent()
-            .build()
+    @PutMapping(RequestPaths.Device.PROCESSING_STATE)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun updateProcessingState(
+        @PathVariable id: Int,
+        @RequestBody deviceStateInputDTO: DeviceStateInputDTO,
+        userID: Int?/* TODO: Injected by auth */
+    ) {
+        deviceService.updateProcessingState(id, deviceStateInputDTO.state, userID ?: 0)
     }
 
     @GetMapping(RequestPaths.Device.DEVICE_STATS)

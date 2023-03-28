@@ -2,6 +2,7 @@ package com.isel.sensiflow.services
 
 import com.isel.sensiflow.model.dao.Device
 import com.isel.sensiflow.model.dao.Email
+import com.isel.sensiflow.model.dao.DeviceProcessingState
 import com.isel.sensiflow.model.dao.Metric
 import com.isel.sensiflow.model.dao.MetricID
 import com.isel.sensiflow.model.dao.User
@@ -24,6 +25,7 @@ import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.doNothing
+import org.mockito.Mockito.reset
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
@@ -154,7 +156,8 @@ class DeviceServiceTests {
             name = fakeDevice.name,
             streamURL = fakeDevice.streamURL,
             description = fakeDevice.description,
-            userID = fakeDevice.user.id
+            userID = fakeDevice.user.id,
+            processingState = "INACTIVE"
         )
         assertEquals(expected, retrievedDevice)
         verify(deviceRepository, times(1)).findById(deviceId)
@@ -317,6 +320,131 @@ class DeviceServiceTests {
         // Assert
         verify(deviceRepository, times(1)).findById(nonExistingDevice)
         verify(deviceRepository, times(0)).deleteById(anyInt())
+    }
+
+    /* State transition tests */
+
+    /**
+     * Helper function to test valid and invalid state transitions. This function just performs the transition
+     * and verifies the things that should happen when a transition is made with valid provided states.
+     */
+    private fun updateStateTransition(from: DeviceProcessingState, to: DeviceProcessingState) {
+
+        val existingDevice = Device(
+            id = fakeDevice.id,
+            name = fakeDevice.name,
+            streamURL = fakeDevice.streamURL,
+            description = fakeDevice.description,
+            processingState = from,
+            user = fakeDevice.user
+        )
+
+        `when`(deviceRepository.findById(existingDevice.id)).thenReturn(Optional.of(existingDevice))
+
+        deviceService.updateProcessingState(fakeDevice.id, to.name, fakeDevice.user.id)
+
+        verify(deviceRepository, times(1)).findById(existingDevice.id)
+    }
+
+    @Test
+    fun `simple update state for a device`() {
+        val device = fakeDevice.id
+        `when`(deviceRepository.findById(device)).thenReturn(Optional.of(fakeDevice))
+
+        updateStateTransition(DeviceProcessingState.INACTIVE, DeviceProcessingState.ACTIVE)
+
+        verify(deviceRepository, times(1)).save(any(Device::class.java))
+    }
+
+    @Test
+    fun `update state with a user that does not own the device`() {
+
+        val notOwnerID = fakeDevice.user.id + 1
+        `when`(deviceRepository.findById(fakeDevice.id)).thenReturn(Optional.of(fakeDevice))
+
+        assertThrows<OwnerMismatchException> {
+            deviceService.updateProcessingState(fakeDevice.id, DeviceProcessingState.ACTIVE.name, notOwnerID)
+        }
+
+        verify(deviceRepository, times(0)).save(any(Device::class.java))
+    }
+
+    @Test
+    fun `update state for a device that does not exist`() {
+        val nonExistantDevice = fakeDevice.id + 1
+        `when`(deviceRepository.findById(nonExistantDevice)).thenReturn(Optional.empty())
+
+        assertThrows<DeviceNotFoundException> {
+            deviceService.updateProcessingState(nonExistantDevice, DeviceProcessingState.ACTIVE.name, fakeUser.id)
+        }
+
+        verify(deviceRepository, times(1)).findById(nonExistantDevice)
+        verify(deviceRepository, times(0)).save(any(Device::class.java))
+    }
+
+    @Test
+    fun `update a state with a state that doesn't exist fails`() {
+        val nonExistantState = "nonExistantState"
+
+        assertThrows<InvalidProcessingStateException> {
+            deviceService.updateProcessingState(fakeDevice.id, nonExistantState, fakeUser.id)
+        }
+
+        verify(deviceRepository, times(0)).findById(fakeDevice.id)
+        verify(deviceRepository, times(0)).save(any(Device::class.java))
+    }
+
+    @Test
+    fun `update a state with a null state fails`() {
+        val nonExistantState = null
+
+        assertThrows<InvalidProcessingStateException> {
+            deviceService.updateProcessingState(fakeDevice.id, nonExistantState, fakeUser.id)
+        }
+
+        verify(deviceRepository, times(0)).findById(fakeDevice.id)
+        verify(deviceRepository, times(0)).save(any(Device::class.java))
+    }
+
+    @Test
+    fun `valid transitions test`() {
+
+        val possibleStates = DeviceProcessingState.values().toList()
+
+        // Every single enum value list combination
+        val allPossibleTransitions = possibleStates.map { state ->
+            state to possibleStates
+        }.flatMap { (state, possibleStates) ->
+            possibleStates.map {
+                state to it
+            }
+        }
+
+        val (validTransitions, invalidTransitions) = allPossibleTransitions.partition { (from, to) ->
+            from.isValidTransition(to)
+        }
+
+        validTransitions.forEach { (fromState, toState) ->
+
+            updateStateTransition(fromState, toState)
+
+            verify(deviceRepository, times(1)).save(any(Device::class.java))
+
+            // Reset mock
+            reset(deviceRepository)
+        }
+
+        invalidTransitions.forEach { (fromState, toState) ->
+
+            assertThrows<InvalidProcessingStateTransitionException> {
+                updateStateTransition(fromState, toState)
+            }
+
+            verify(deviceRepository, times(0)).save(any(Device::class.java))
+
+            // Reset mock
+            reset(deviceRepository)
+        }
     }
 
     @Test
