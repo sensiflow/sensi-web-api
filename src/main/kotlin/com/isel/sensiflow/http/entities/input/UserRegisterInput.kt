@@ -22,7 +22,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException
  * @param password Password of the user
  * @throws MethodArgumentNotValidException if any of the fields is not valid.
  */
-class UserRegisterInput(
+data class UserRegisterInput(
     @field:NotBlank()
     @field:Email()
     @field:Size(
@@ -30,16 +30,25 @@ class UserRegisterInput(
     )
     val email: String,
 
-    @field:Size(min = NAME_MIN_LENGTH, max = NAME_MAX_LENGTH)
     @field:NotBlank
+    @field:Size(
+        min = NAME_MIN_LENGTH,
+        max = NAME_MAX_LENGTH
+    )
     val firstName: String,
 
-    @field:Size(min = NAME_MIN_LENGTH, max = NAME_MAX_LENGTH)
     @field:NotBlank
+    @field:Size(
+        min = NAME_MIN_LENGTH,
+        max = NAME_MAX_LENGTH
+    )
     val lastName: String,
 
     @field:NotBlank
-    @field:Size(min = PASSWORD_MIN_SIZE, max = PASSWORD_MAX_SIZE)
     @field:Pattern(regexp = PASSWORD_REGEX)
+    @field:Size(
+        min = PASSWORD_MIN_SIZE,
+        max = PASSWORD_MAX_SIZE
+    )
     val password: String
 )

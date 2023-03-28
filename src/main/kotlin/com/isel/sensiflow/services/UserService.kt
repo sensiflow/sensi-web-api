@@ -4,6 +4,7 @@ import com.isel.sensiflow.Constants.User.SESSION_EXPIRATION_TIME
 import com.isel.sensiflow.http.entities.input.UserLoginInput
 import com.isel.sensiflow.http.entities.input.UserRegisterInput
 import com.isel.sensiflow.http.entities.output.UserOutput
+import com.isel.sensiflow.http.entities.output.toDTO
 import com.isel.sensiflow.model.dao.Email
 import com.isel.sensiflow.model.dao.SessionToken
 import com.isel.sensiflow.model.dao.User
@@ -24,7 +25,7 @@ class UserService(
     private val emailRepository: EmailRepository
 ) {
 
-    @Transactional(isolation = Isolation.DEFAULT) // TODO: VER TODOS OS CASOS DE ERRO DO COOKIE EM RELAÇAO AO TOKEN
+    @Transactional(isolation = Isolation.REPEATABLE_READ) // TODO: VER TODOS OS CASOS DE ERRO DO COOKIE EM RELAÇAO AO TOKEN
     fun createUser(userInput: UserRegisterInput): AuthInformationDTO {
 
         emailRepository
@@ -68,20 +69,16 @@ class UserService(
      * @param userID the user's id to be searched
      * @throws Exception if the user is not found     TODO: change commment
      */
-    @Transactional(isolation = Isolation.DEFAULT)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     fun getUser(userID: UserID): UserOutput {
         val user = userRepository.findById(userID).orElseThrow { Exception("User not found") } // TODO: criar exceção
-        return UserOutput(
-            firstName = user.firstName,
-            lastName = user.lastName,
-            email = user.email?.email ?: throw Exception("never happens") // TODO: usar dto de user
-        )
+        return user.toDTO()
     }
 
     /**
      * Invalidates a session token, removing it from the database
      */
-    @Transactional(isolation = Isolation.DEFAULT)
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     fun invalidateSessionToken(token: String) {
         sessionTokenRepository
             .findByToken(token)
@@ -95,7 +92,7 @@ class UserService(
      * @param token the session token to be validated
      * @throws Exception if the token is invalid //TODO: change comment
      */
-    @Transactional(isolation = Isolation.DEFAULT)
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     fun validateSessionToken(token: String): UserID {
         val sessionToken = sessionTokenRepository
             .findByToken(token) ?: throw Exception("Invalid token") // TODO: criar exceção
@@ -114,6 +111,7 @@ class UserService(
      * @param userInput the user's login credentials
      * @returns a [AuthInformationDTO] object containing a session token and the user's id
      */
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     fun authenticateUser(userInput: UserLoginInput): AuthInformationDTO {
         val email = emailRepository.findByEmail(userInput.email)
             .ifNotPresent {
@@ -141,11 +139,12 @@ class UserService(
                 )
                 return AuthInformationDTO(sessionToken.token, user.id)
             } else {
-                val timeToExpire = token.expiration.toInstant()
-                    .minusMillis(SESSION_EXPIRATION_TIME)
+                val timeUntilExpire = token.expiration
+                    .toInstant()
                     .toMillis()
+                    .minus(System.currentTimeMillis())
 
-                return AuthInformationDTO(token.token, user.id, timeToExpire)
+                return AuthInformationDTO(token.token, user.id, timeUntilExpire)
             }
         } else {
             val sessionToken = sessionTokenRepository.save(

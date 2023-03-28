@@ -1,5 +1,6 @@
 package com.isel.sensiflow.http.controller
 
+import com.isel.sensiflow.http.pipeline.authentication.Authentication
 import com.isel.sensiflow.services.DeviceService
 import com.isel.sensiflow.services.dto.PaginationInfo
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
@@ -35,10 +36,11 @@ class DeviceController(
             .getAllDevices(PaginationInfo(page, size), expanded = expanded)
     }
 
+    @Authentication
     @PostMapping
     fun createDevice(
         @RequestBody deviceInputDTO: DeviceInputDTO,
-        userID: Int = 0/* TODO Injected by auth */
+        userID: Int
     ): ResponseEntity<Unit> {
         val createdDevice = deviceService.createDevice(deviceInputDTO, userID)
 
@@ -57,11 +59,12 @@ class DeviceController(
         return deviceService.getDeviceById(id, expanded)
     }
 
+    @Authentication
     @PutMapping(RequestPaths.Device.DEVICE_ID)
     fun updateDevice(
         @PathVariable id: Int,
         @RequestBody deviceInputDTO: DeviceUpdateDTO,
-        userID: Int = 0/* TODO: Injected by auth */
+        userID: Int
     ): ResponseEntity<Unit> {
         deviceService.updateDevice(id, deviceInputDTO, userID)
 
@@ -70,8 +73,9 @@ class DeviceController(
             .build()
     }
 
+    @Authentication
     @DeleteMapping(RequestPaths.Device.DEVICE_ID)
-    fun deleteDevice(@PathVariable id: Int, userID: Int = 0/* TODO: Injected by auth */): ResponseEntity<Unit> {
+    fun deleteDevice(@PathVariable id: Int, userID: Int): ResponseEntity<Unit> {
         deviceService.deleteDevice(id, userID)
 
         return ResponseEntity
@@ -80,12 +84,12 @@ class DeviceController(
     }
 
     @GetMapping(RequestPaths.Device.DEVICE_STATS)
-    // TODO: @Authentication
+    @Authentication
     fun getDeviceStats(
         @PathVariable id: Int,
         @RequestParam page: Int,
         @RequestParam size: Int,
-        userID: Int /* TODO Injected by auth */
+        userID: Int
     ): PageDTO<MetricOutputDTO> {
         return deviceService
             .getDeviceStats(PaginationInfo(page, size), id, userID)

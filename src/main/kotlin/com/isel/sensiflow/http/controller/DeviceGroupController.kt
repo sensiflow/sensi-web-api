@@ -1,9 +1,12 @@
 package com.isel.sensiflow.http.controller
 
+import com.isel.sensiflow.http.pipeline.authentication.Authentication
 import com.isel.sensiflow.services.DeviceGroupService
+import com.isel.sensiflow.services.UserID
 import com.isel.sensiflow.services.dto.PaginationInfo
 import com.isel.sensiflow.services.dto.input.DevicesGroupInputDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupUpdateDTO
+import com.isel.sensiflow.services.dto.output.DeviceGroupOutputDTO
 import com.isel.sensiflow.services.dto.output.DeviceOutputDTO
 import com.isel.sensiflow.services.dto.output.PageDTO
 import jakarta.validation.Valid
@@ -21,10 +24,20 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping(RequestPaths.DeviceGroups.GROUP)
 class DeviceGroupController(val deviceGroupService: DeviceGroupService) {
 
+    @GetMapping(RequestPaths.DeviceGroups.GROUP_ID)
+    fun getGroup(
+        @PathVariable id: Int,
+        @RequestParam expanded: Boolean = false
+    ): DeviceGroupOutputDTO {
+        return deviceGroupService.getGroup(id, expanded)
+    }
+
+    @Authentication
     @PutMapping(RequestPaths.DeviceGroups.GROUP_ID)
     fun updateGroup(
         @PathVariable id: Int,
-        @RequestBody @Valid inputDTO: DevicesGroupUpdateDTO
+        @RequestBody @Valid inputDTO: DevicesGroupUpdateDTO,
+        userID: UserID
     ): ResponseEntity<Unit> {
         deviceGroupService.updateGroup(id, inputDTO)
 
@@ -33,8 +46,12 @@ class DeviceGroupController(val deviceGroupService: DeviceGroupService) {
             .build()
     }
 
+    @Authentication
     @DeleteMapping(RequestPaths.DeviceGroups.GROUP_ID)
-    fun deleteGroup(@PathVariable id: Int): ResponseEntity<Unit> {
+    fun deleteGroup(
+        @PathVariable id: Int,
+        userID: UserID
+    ): ResponseEntity<Unit> {
         deviceGroupService.deleteGroup(id)
 
         return ResponseEntity
@@ -42,10 +59,12 @@ class DeviceGroupController(val deviceGroupService: DeviceGroupService) {
             .build()
     }
 
+    @Authentication
     @PutMapping(RequestPaths.DeviceGroups.GROUPS_DEVICES)
     fun updateDevicesGroup(
         @PathVariable id: Int,
-        @RequestBody inputDTO: DevicesGroupInputDTO
+        @RequestBody inputDTO: DevicesGroupInputDTO,
+        userID: UserID
     ): ResponseEntity<Unit> {
         deviceGroupService.updateDevicesGroup(id, inputDTO)
 
@@ -59,7 +78,8 @@ class DeviceGroupController(val deviceGroupService: DeviceGroupService) {
         @PathVariable id: Int,
         @RequestParam page: Int,
         @RequestParam size: Int,
+        @RequestParam expanded: Boolean = false
     ): PageDTO<DeviceOutputDTO> =
         deviceGroupService
-            .getDevicesFromGroup(id, PaginationInfo(page, size))
+            .getDevicesFromGroup(id, PaginationInfo(page, size), expanded)
 }

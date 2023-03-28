@@ -1,11 +1,12 @@
 package com.isel.sensiflow.services.dto.input
 
 import com.isel.sensiflow.Constants
+import com.isel.sensiflow.services.ID
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 
 data class DevicesGroupInputDTO(
-    val deviceIDs: List<Int> = emptyList()
+    val deviceIDs: List<ID> = emptyList()
 )
 
 data class DevicesGroupUpdateDTO(

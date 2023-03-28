@@ -73,7 +73,12 @@ fun <T : Any?> T.ifNotPresent(function: () -> Nothing): T {
  * Converts the given [Instant] into a [Long] representing milliseconds.
  */
 fun Instant.toMillis(): Long {
-    val timeEpoch = this.toEpochMilli()
-    val now = System.currentTimeMillis()
-    return now - timeEpoch
+    return this.toEpochMilli()
+}
+
+/**
+ * Verifies whether the given [String] is blank or not.
+ */
+fun String.check(): String? {
+    return this.ifBlank { null }
 }

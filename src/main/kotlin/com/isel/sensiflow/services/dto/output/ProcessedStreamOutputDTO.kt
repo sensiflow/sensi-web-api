@@ -1,13 +1,14 @@
 package com.isel.sensiflow.services.dto.output
 
 import com.isel.sensiflow.model.dao.ProcessedStream
+import com.isel.sensiflow.services.ID
 
 interface ProcessedStreamOutputDTO {
     val streamUrl: String
 }
 
 data class ProcessedStreamSimpleOutputDTO(
-    val deviceID: Int,
+    val deviceID: ID,
     override val streamUrl: String
 ) : ProcessedStreamOutputDTO
 

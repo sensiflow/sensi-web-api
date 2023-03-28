@@ -275,7 +275,7 @@ class DeviceGroupTests {
 
         val expected = expectedPageItems.map { it.toDTO(expanded = false) }
         val retrievedStats = deviceGroupService
-            .getDevicesFromGroup(deviceGroupID, paginationInfo = paginationInfo)
+            .getDevicesFromGroup(deviceGroupID, paginationInfo = paginationInfo, expanded = false)
 
         // Assert
         assertEquals(expected, retrievedStats.items)
@@ -292,11 +292,34 @@ class DeviceGroupTests {
         `when`(deviceGroupRepository.findById(nonExistingGroup)).thenReturn(Optional.empty())
 
         assertThrows<DeviceGroupNotFoundException> {
-            deviceGroupService.getDevicesFromGroup(nonExistingGroup, paginationInfo = paginationInfo)
+            deviceGroupService.getDevicesFromGroup(nonExistingGroup, paginationInfo = paginationInfo, expanded = false)
         }
 
         // Assert
         verify(deviceGroupRepository, times(0))
             .findAllDevicesByGroupId(nonExistingGroup, PageRequest.of(paginationInfo.page, paginationInfo.size))
+    }
+
+    @Test
+    fun `get a device group`() {
+
+        `when`(deviceGroupRepository.findById(fakeDeviceGroup.id)).thenReturn(Optional.of(fakeDeviceGroup))
+
+        val result = deviceGroupService.getGroup(fakeDeviceGroup.id, expanded = false)
+
+        assertEquals(fakeDeviceGroup.toDTO(expanded = false), result)
+        verify(deviceGroupRepository, times(1)).findById(fakeDeviceGroup.id)
+    }
+
+    @Test
+    fun `get a device group that does not exist`() {
+
+        `when`(deviceGroupRepository.findById(fakeDeviceGroup.id)).thenReturn(Optional.empty())
+
+        assertThrows<DeviceGroupNotFoundException> {
+            deviceGroupService.getGroup(fakeDeviceGroup.id, expanded = false)
+        }
+
+        verify(deviceGroupRepository, times(1)).findById(fakeDeviceGroup.id)
     }
 }

@@ -59,10 +59,12 @@ class UserServiceTests {
         user = fakeUser,
         email = "johnDoe@email.com"
     )
+
+    private val timeNow = System.currentTimeMillis()
     private val fakeToken = SessionToken(
         token = "token",
         user = fakeUser,
-        expiration = (System.currentTimeMillis() + SESSION_EXPIRATION_TIME).toTimeStamp()
+        expiration = (timeNow + SESSION_EXPIRATION_TIME).toTimeStamp()
     )
 
     private val fakeUserInput = UserRegisterInput(
@@ -136,9 +138,90 @@ class UserServiceTests {
     }
 
     @Test
-    fun `logout sucessfully`() {
+    fun `login a user that already had a sessionToken`() {
+        `when`(emailRepository.findByEmail(fakeUserEmail.email)).thenReturn(fakeUserEmail)
+        `when`(tokenRepository.findByUser(fakeUser)).thenReturn(fakeToken)
+        `when`(tokenRepository.save(ArgumentMatchers.any(SessionToken::class.java))).thenReturn(fakeToken)
+
+        val result = userService.authenticateUser(userLoginInput)
+
+        assertEquals(fakeToken.token, result.token)
+        assertEquals(fakeUser.id, result.userID)
+        assertTrue(result.timeUntilExpire > 0) // Future time
+
+        verify(tokenRepository, times(0)).save(ArgumentMatchers.any())
+    }
+
+    @Test
+    fun `login a user with a wrong password`() {
+        `when`(emailRepository.findByEmail(fakeUserEmail.email)).thenReturn(fakeUserEmail)
+        assertThrows<Exception> {
+            userService.authenticateUser(userLoginInput.copy(password = "wrongPassword"))
+        }
+    }
+
+    @Test
+    fun `login a user with an expired token`() {
+        val fakeExpiredToken = SessionToken(
+            token = "token",
+            user = fakeUser,
+            expiration = (timeNow - SESSION_EXPIRATION_TIME).toTimeStamp()
+        )
+
+        `when`(emailRepository.findByEmail(fakeUserEmail.email)).thenReturn(fakeUserEmail)
+        `when`(tokenRepository.findByUser(fakeUser)).thenReturn(fakeExpiredToken)
+        `when`(tokenRepository.save(ArgumentMatchers.any(SessionToken::class.java))).thenReturn(fakeToken)
+
+        val result = userService.authenticateUser(userLoginInput)
+
+        assertEquals(fakeToken.token, result.token)
+        assertEquals(fakeUser.id, result.userID)
+
+        verify(tokenRepository, times(1)).delete(fakeExpiredToken)
+        verify(tokenRepository, times(1)).save(ArgumentMatchers.any())
+    }
+
+    @Test
+    fun `try to login a user with an invalid email`() {
+        `when`(emailRepository.findByEmail(fakeUserEmail.email)).thenReturn(null)
+        assertThrows<Exception> {
+            userService.authenticateUser(userLoginInput)
+        }
+    }
+
+    @Test
+    fun `logout successfully`() {
         `when`(tokenRepository.findByToken(fakeToken.token)).thenReturn(fakeToken)
         userService.invalidateSessionToken(fakeToken.token)
         verify(tokenRepository, times(1)).delete(fakeToken)
+    }
+
+    @Test
+    fun `validate successfully a given valid token`() {
+        `when`(tokenRepository.findByToken(fakeToken.token)).thenReturn(fakeToken)
+        val result = userService.validateSessionToken(fakeToken.token)
+        assertEquals(fakeUser.id, result)
+    }
+
+    @Test
+    fun `validate a given invalid token`() {
+        `when`(tokenRepository.findByToken(fakeToken.token)).thenReturn(null)
+        assertThrows<Exception> {
+            userService.validateSessionToken(fakeToken.token)
+        }
+    }
+
+    @Test
+    fun `validate a given expired token`() {
+        val expiredToken = SessionToken(
+            token = "token",
+            user = fakeUser,
+            expiration = (System.currentTimeMillis() - SESSION_EXPIRATION_TIME).toTimeStamp()
+        )
+
+        `when`(tokenRepository.findByToken(fakeToken.token)).thenReturn(expiredToken)
+        assertThrows<Exception> {
+            userService.validateSessionToken(fakeToken.token)
+        }
     }
 }

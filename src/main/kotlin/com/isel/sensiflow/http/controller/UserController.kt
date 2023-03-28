@@ -43,7 +43,6 @@ class UserController(private val userService: UserService) {
         return UserIDOutput(authInfo.userID)
     }
 
-    @Authentication
     @ResponseStatus(HttpStatus.OK)
     @GetMapping(RequestPaths.Users.GET_USER)
     fun getUserHandler(@PathVariable userID: UserID): UserOutput {
@@ -78,5 +77,3 @@ class UserController(private val userService: UserService) {
         response.removeCookie(authCookie)
     }
 }
-
-// use HTTPOnly on cookie  // explain why there is no need of hmac

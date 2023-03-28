@@ -38,3 +38,8 @@ class User(
     @OneToMany(mappedBy = "user")
     val sessionTokens: MutableSet<SessionToken> = mutableSetOf()
 }
+
+fun User.addEmail(email: Email): User {
+    this.email = email
+    return this
+}
