@@ -6,6 +6,7 @@ import com.isel.sensiflow.model.dao.User
 import com.isel.sensiflow.model.repository.DeviceGroupRepository
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.services.dto.PaginationInfo
+import com.isel.sensiflow.services.dto.input.DevicesGroupCreateDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupInputDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupUpdateDTO
 import com.isel.sensiflow.services.dto.output.toDTO
@@ -275,7 +276,7 @@ class DeviceGroupTests {
 
         val expected = expectedPageItems.map { it.toDTO(expanded = false) }
         val retrievedStats = deviceGroupService
-            .getDevicesFromGroup(deviceGroupID, paginationInfo = paginationInfo)
+            .getDevicesFromGroup(deviceGroupID, paginationInfo = paginationInfo, expanded = false)
 
         // Assert
         assertEquals(expected, retrievedStats.items)
@@ -292,11 +293,79 @@ class DeviceGroupTests {
         `when`(deviceGroupRepository.findById(nonExistingGroup)).thenReturn(Optional.empty())
 
         assertThrows<DeviceGroupNotFoundException> {
-            deviceGroupService.getDevicesFromGroup(nonExistingGroup, paginationInfo = paginationInfo)
+            deviceGroupService.getDevicesFromGroup(nonExistingGroup, paginationInfo = paginationInfo, expanded = false)
         }
 
         // Assert
         verify(deviceGroupRepository, times(0))
             .findAllDevicesByGroupId(nonExistingGroup, PageRequest.of(paginationInfo.page, paginationInfo.size))
+    }
+
+    @Test
+    fun `get a device group`() {
+
+        `when`(deviceGroupRepository.findById(fakeDeviceGroup.id)).thenReturn(Optional.of(fakeDeviceGroup))
+
+        val result = deviceGroupService.getGroup(fakeDeviceGroup.id)
+
+        assertEquals(fakeDeviceGroup.toDTO(), result)
+        verify(deviceGroupRepository, times(1)).findById(fakeDeviceGroup.id)
+    }
+
+    @Test
+    fun `get a device group that does not exist`() {
+
+        `when`(deviceGroupRepository.findById(fakeDeviceGroup.id)).thenReturn(Optional.empty())
+
+        assertThrows<DeviceGroupNotFoundException> {
+            deviceGroupService.getGroup(fakeDeviceGroup.id)
+        }
+
+        verify(deviceGroupRepository, times(1)).findById(fakeDeviceGroup.id)
+    }
+
+    @Test
+    fun `create a device group with no description and no devices`() {
+        // Arrange
+        val groupDTO = DevicesGroupCreateDTO(
+            name = "Test group",
+        )
+
+        val fakeDeviceGroup = DeviceGroup(
+            name = groupDTO.name,
+            description = null
+        )
+
+        `when`(deviceGroupRepository.save(any(DeviceGroup::class.java))).thenReturn(fakeDeviceGroup)
+
+        // Act
+        val result = deviceGroupService.createDevicesGroup(groupDTO)
+
+        // Assert
+        assertEquals(fakeDeviceGroup, result)
+        verify(deviceGroupRepository, times(1)).save(any(DeviceGroup::class.java))
+    }
+
+    @Test
+    fun `create a device group with devices`() {
+
+        val groupDTO = DevicesGroupCreateDTO(
+            name = "Test group",
+        )
+
+        val fakeDeviceGroup = DeviceGroup(
+            name = groupDTO.name,
+            description = null
+        )
+        fakeDeviceGroup.devices.addAll(listOf(fakeDevice))
+
+        `when`(deviceGroupRepository.save(any(DeviceGroup::class.java))).thenReturn(fakeDeviceGroup)
+
+        // Act
+        val result = deviceGroupService.createDevicesGroup(groupDTO, listOf(fakeDevice.id))
+
+        // Assert
+        assertEquals(fakeDeviceGroup, result)
+        verify(deviceGroupRepository, times(1)).save(any(DeviceGroup::class.java))
     }
 }

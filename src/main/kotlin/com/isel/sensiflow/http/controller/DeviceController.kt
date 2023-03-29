@@ -1,5 +1,6 @@
 package com.isel.sensiflow.http.controller
 
+import com.isel.sensiflow.http.pipeline.authentication.Authentication
 import com.isel.sensiflow.services.DeviceService
 import com.isel.sensiflow.services.dto.PaginationInfo
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
@@ -38,12 +39,13 @@ class DeviceController(
         return deviceService.getAllDevices(PaginationInfo(page, size), expanded = expanded)
     }
 
+    @Authentication
     @PostMapping
     fun createDevice(
         @Valid @RequestBody deviceInputDTO: DeviceInputDTO,
-        userID: Int?/* TODO Injected by auth */
+        userID: Int
     ): ResponseEntity<Unit> {
-        val createdDevice = deviceService.createDevice(deviceInputDTO, userID ?: 0)
+        val createdDevice = deviceService.createDevice(deviceInputDTO, userID)
 
         val locationPath = (RequestPaths.Device.DEVICE + "/%d").format(createdDevice.id)
 
@@ -60,20 +62,22 @@ class DeviceController(
         return deviceService.getDeviceById(id, expanded)
     }
 
+    @Authentication
     @PutMapping(RequestPaths.Device.DEVICE_ID)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun updateDevice(
         @PathVariable id: Int,
         @Valid @RequestBody deviceInputDTO: DeviceUpdateDTO,
-        userID: Int?/* TODO: Injected by auth */
+        userID: Int
     ) {
-        deviceService.updateDevice(id, deviceInputDTO, userID ?: 0)
+        deviceService.updateDevice(id, deviceInputDTO, userID)
     }
 
+    @Authentication
     @DeleteMapping(RequestPaths.Device.DEVICE_ID)
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun deleteDevice(@PathVariable id: Int, userID: Int?/* TODO: Injected by auth */) {
-        deviceService.deleteDevice(id, userID ?: 0)
+    fun deleteDevice(@PathVariable id: Int, userID: Int) {
+        deviceService.deleteDevice(id, userID)
     }
 
     @PutMapping(RequestPaths.Device.PROCESSING_STATE)
@@ -87,12 +91,12 @@ class DeviceController(
     }
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @GetMapping(RequestPaths.Device.DEVICE_STATS)
-    // TODO: @Authentication
+    @Authentication
     fun getDeviceStats(
         @PathVariable id: Int,
         @RequestParam page: Int,
         @RequestParam size: Int,
-        userID: Int /* TODO Injected by auth */
+        userID: Int
     ): PageDTO<MetricOutputDTO> {
         return deviceService
             .getDeviceStats(PaginationInfo(page, size), id, userID)

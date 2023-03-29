@@ -2,9 +2,11 @@ package com.isel.sensiflow.services
 
 import com.isel.sensiflow.model.dao.Device
 import com.isel.sensiflow.model.dao.DeviceProcessingState
+import com.isel.sensiflow.model.dao.Email
 import com.isel.sensiflow.model.dao.Metric
 import com.isel.sensiflow.model.dao.MetricID
 import com.isel.sensiflow.model.dao.User
+import com.isel.sensiflow.model.dao.addEmail
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.model.repository.MetricRepository
 import com.isel.sensiflow.model.repository.UserRepository
@@ -51,6 +53,9 @@ class DeviceServiceTests {
 
     @BeforeEach
     fun initMocks() {
+        fakeUser.devices.add(fakeDevice)
+        fakeUser.email = fakeUserEmail
+
         MockitoAnnotations.openMocks(this)
     }
 
@@ -60,6 +65,10 @@ class DeviceServiceTests {
         lastName = "Doe",
         passwordHash = "hash",
         passwordSalt = "salt"
+    )
+    private val fakeUserEmail = Email(
+        user = fakeUser,
+        email = "johnDoe@email.com"
     )
 
     private val fakeDevice = Device(
@@ -147,6 +156,7 @@ class DeviceServiceTests {
             name = fakeDevice.name,
             streamURL = fakeDevice.streamURL,
             description = fakeDevice.description,
+            userID = fakeDevice.user.id,
             processingState = "INACTIVE"
         )
         assertEquals(expected, retrievedDevice)
@@ -168,7 +178,7 @@ class DeviceServiceTests {
                     lastName = "Doe",
                     passwordHash = "hash",
                     passwordSalt = "salt"
-                )
+                ).addEmail(fakeUserEmail)
             ),
             Device(
                 id = 2,
@@ -181,6 +191,11 @@ class DeviceServiceTests {
                     lastName = "Doe",
                     passwordHash = "hash",
                     passwordSalt = "salt"
+                ).addEmail(
+                    Email(
+                        user = fakeUser,
+                        email = "janeDoe@email.com"
+                    )
                 )
             )
         )
