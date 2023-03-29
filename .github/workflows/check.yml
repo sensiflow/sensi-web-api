@@ -7,25 +7,12 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
-          POSTGRES_INITDB_ARGS: "-U postgres"
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     steps:
       - uses: actions/checkout@v3
-      - name: Run initialization script
-        run: docker exec -i postgres psql -U postgres -d postgres < ./src/main/resources/sql/create_schema.sql
+      - name: Setup PostgreSQL With Init Scripts
+        uses: m4nu56/postgresql-action@1.0
+        with:
+          postgresql init scripts: "./src/main/resources/sql/create_schema.sql"
       - name: Set up JDK 17
         uses: actions/setup-java@v2
         with:
