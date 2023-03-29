@@ -12,7 +12,7 @@ jobs:
       - name: Setup PostgreSQL With Init Scripts
         uses: m4nu56/postgresql-action@1.0
         with:
-          postgresql init scripts: "./src/main/resources/sql/create_schema.sql"
+          postgresql init scripts: "./src/main/resources/sql/init"
       - name: Set up JDK 17
         uses: actions/setup-java@v2
         with:
