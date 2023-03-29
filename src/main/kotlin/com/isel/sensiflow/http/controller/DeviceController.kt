@@ -7,11 +7,11 @@ import com.isel.sensiflow.services.dto.input.DeviceInputDTO
 import com.isel.sensiflow.services.dto.input.DeviceStateInputDTO
 import com.isel.sensiflow.services.dto.input.DeviceUpdateDTO
 import com.isel.sensiflow.services.dto.output.DeviceOutputDTO
+import com.isel.sensiflow.services.dto.output.IDOutputDTO
 import com.isel.sensiflow.services.dto.output.MetricOutputDTO
 import com.isel.sensiflow.services.dto.output.PageDTO
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
-import java.net.URI
 
 @RestController
 @RequestMapping(RequestPaths.Device.DEVICE)
@@ -41,17 +40,16 @@ class DeviceController(
 
     @Authentication
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     fun createDevice(
         @Valid @RequestBody deviceInputDTO: DeviceInputDTO,
         userID: Int
-    ): ResponseEntity<Unit> {
-        val createdDevice = deviceService.createDevice(deviceInputDTO, userID)
+    ): IDOutputDTO {
+        val deviceID = deviceService
+            .createDevice(deviceInputDTO, userID)
+            .id
 
-        val locationPath = (RequestPaths.Device.DEVICE + "/%d").format(createdDevice.id)
-
-        return ResponseEntity
-            .created(URI(locationPath))
-            .build()
+        return IDOutputDTO(deviceID)
     }
 
     @GetMapping(RequestPaths.Device.DEVICE_ID)

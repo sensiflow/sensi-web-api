@@ -270,7 +270,7 @@ class DeviceGroupTests {
         `when`(deviceGroupRepository.findById(deviceGroupID)).thenReturn(Optional.of(fakeDeviceGroup))
         `when`(
             deviceGroupRepository
-                .findAllDevicesByGroupId(deviceGroupID, PageRequest.of(paginationInfo.page, paginationInfo.size))
+                .findPaginatedByEntityDeviceId(deviceGroupID, PageRequest.of(paginationInfo.page, paginationInfo.size))
         )
             .thenReturn(page)
 
@@ -281,7 +281,7 @@ class DeviceGroupTests {
         // Assert
         assertEquals(expected, retrievedStats.items)
         verify(deviceGroupRepository, times(1))
-            .findAllDevicesByGroupId(deviceGroupID, PageRequest.of(paginationInfo.page, paginationInfo.size))
+            .findPaginatedByEntityDeviceId(deviceGroupID, PageRequest.of(paginationInfo.page, paginationInfo.size))
     }
 
     @Test
@@ -298,7 +298,7 @@ class DeviceGroupTests {
 
         // Assert
         verify(deviceGroupRepository, times(0))
-            .findAllDevicesByGroupId(nonExistingGroup, PageRequest.of(paginationInfo.page, paginationInfo.size))
+            .findPaginatedByEntityDeviceId(nonExistingGroup, PageRequest.of(paginationInfo.page, paginationInfo.size))
     }
 
     @Test

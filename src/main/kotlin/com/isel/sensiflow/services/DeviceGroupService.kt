@@ -87,7 +87,7 @@ class DeviceGroupService(
             .orElseThrow { DeviceGroupNotFoundException(groupID) }
 
         return deviceGroupRepository
-            .findAllDevicesByGroupId(groupID, pageable)
+            .findPaginatedByEntityDeviceId(groupID, pageable)
             .map { it.toDTO(expanded = expanded) }
             .toDTO()
     }
@@ -117,7 +117,7 @@ class DeviceGroupService(
     fun createDevicesGroup(inputDTO: DevicesGroupCreateDTO, devices: List<ID>? = null): DeviceGroup {
         try {
             val group = DeviceGroup(name = inputDTO.name, description = inputDTO.description)
-            if(devices != null){
+            if (devices != null) {
                 val foundDevices = deviceRepository.findAllById(devices)
                 group.devices.addAll(foundDevices)
             }

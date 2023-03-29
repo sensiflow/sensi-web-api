@@ -3,7 +3,7 @@ package com.isel.sensiflow.services.dto.output
 import com.isel.sensiflow.model.dao.DeviceGroup
 import com.isel.sensiflow.services.ID
 
-data class DeviceGroupOutputDTO (
+data class DeviceGroupOutputDTO(
     val id: ID,
     val name: String,
     val description: String?
@@ -11,9 +11,8 @@ data class DeviceGroupOutputDTO (
 
 fun DeviceGroup.toDTO(): DeviceGroupOutputDTO {
     return DeviceGroupOutputDTO(
-            id = this.id,
-            name = this.name,
-            description = this.description
-        )
+        id = this.id,
+        name = this.name,
+        description = this.description
+    )
 }
-

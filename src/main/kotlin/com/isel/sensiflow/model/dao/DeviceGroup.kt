@@ -3,6 +3,8 @@ package com.isel.sensiflow.model.dao
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.JoinTable
@@ -13,6 +15,7 @@ import jakarta.persistence.Table
 @Table(name = "devicegroup")
 class DeviceGroup(
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     val id: Int = -1,
 
@@ -22,7 +25,6 @@ class DeviceGroup(
     @Column(name = "description", nullable = true)
     val description: String?
 ) {
-
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "devicegrouplink",
