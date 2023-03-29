@@ -70,7 +70,7 @@ class DeviceController(
         @Valid @RequestBody deviceInputDTO: DeviceUpdateDTO,
         userID: Int
     ) {
-        deviceService.updateDevice(id, deviceInputDTO, userID ?: 0)
+        deviceService.updateDevice(id, deviceInputDTO, userID)
     }
 
     @Authentication

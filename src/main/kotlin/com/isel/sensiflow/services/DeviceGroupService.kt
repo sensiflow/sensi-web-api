@@ -4,6 +4,7 @@ import com.isel.sensiflow.model.dao.DeviceGroup
 import com.isel.sensiflow.model.repository.DeviceGroupRepository
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.services.dto.PaginationInfo
+import com.isel.sensiflow.services.dto.input.DevicesGroupCreateDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupInputDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupUpdateDTO
 import com.isel.sensiflow.services.dto.output.DeviceGroupOutputDTO
@@ -94,15 +95,35 @@ class DeviceGroupService(
     /**
      * Gets a device group.
      * @param groupID The id of the group to get
-     * @param expanded If the group should be expanded or not
      * @return The device group as [DeviceGroupOutputDTO]
      * @throws DeviceGroupNotFoundException If the group does not exist
      */
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    fun getGroup(groupID: ID, expanded: Boolean): DeviceGroupOutputDTO {
+    fun getGroup(groupID: ID): DeviceGroupOutputDTO {
         return deviceGroupRepository
             .findById(groupID)
             .orElseThrow { DeviceGroupNotFoundException(groupID) }
-            .toDTO(expanded)
+            .toDTO()
+    }
+
+    /**
+     * Creates a device group.
+     * If a device in the given devices list does not exist, an exception is thrown.
+     * @param inputDTO The input data to create the group
+     * @param devices The list of devices to add to the group
+     * @return The id of the created group
+     */
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    fun createDevicesGroup(inputDTO: DevicesGroupCreateDTO, devices: List<ID>? = null): DeviceGroup {
+        try {
+            val group = DeviceGroup(name = inputDTO.name, description = inputDTO.description)
+            if(devices != null){
+                val foundDevices = deviceRepository.findAllById(devices)
+                group.devices.addAll(foundDevices)
+            }
+            return deviceGroupRepository.save(group)
+        } catch (e: IllegalArgumentException) {
+            throw Exception(e.message) // TODO: Change exception
+        }
     }
 }

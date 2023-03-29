@@ -12,14 +12,15 @@ object RequestPaths {
 
     object DeviceGroups {
         const val GROUP = "/groups"
-        const val GROUP_ID = "$/{id}"
+        const val GROUP_ID = "/{id}"
         const val GROUPS_DEVICES = "$GROUP_ID/devices"
     }
 
     object Users {
-        const val LOGIN = "/users/login"
-        const val REGISTER = "/users"
-        const val LOGOUT = "/users/logout"
-        const val GET_USER = "/users/{userID}"
+        const val USERS = "/users"
+        const val LOGIN = "/login"
+        const val REGISTER = "/"
+        const val LOGOUT = "/logout"
+        const val GET_USER = "/ {userID}"
     }
 }
