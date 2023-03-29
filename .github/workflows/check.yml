@@ -36,4 +36,4 @@ jobs:
       - name: Run Gradle Check (build, test, lint)
         run: ./gradlew check
         env:
-          JDBC_DATABASE_URL=jdbc:postgresql://localhost:5432/postgres?user=postgres&password=postgres
+          JDBC_DATABASE_URL: jdbc:postgresql://localhost:5432/postgres?user=postgres&password=postgres
