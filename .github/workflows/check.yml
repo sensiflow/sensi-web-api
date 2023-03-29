@@ -14,8 +14,6 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: postgres
-          POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C -T template0 -U postgres -D /var/lib/postgresql/data/pgdata -e"
-          POSTGRES_INITDB_WALDIR: /var/lib/postgresql/data/pgwal
         ports:
           - 5432:5432
         options: >-
