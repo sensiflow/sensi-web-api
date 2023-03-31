@@ -18,7 +18,7 @@ inline fun <reified T, reified R> MockMvc.request(
     method: HTTPMethod,
     uri: String,
     body: T? = null,
-    cookie: Cookie? = null,
+    authorization: Cookie? = null,
     mapper: ObjectMapper,
     assertions: ResultActions.() -> ResultActions = { this }
 ): R? {
@@ -33,7 +33,7 @@ inline fun <reified T, reified R> MockMvc.request(
         requestBuilder
             .contentType(MediaType.APPLICATION_JSON)
             .addIfExists(body, mapper)
-            .addIfExists(cookie)
+            .addIfExists(authorization)
     )
         .assertions()
         .andReturn().response.contentAsString
@@ -51,5 +51,5 @@ inline fun <reified T> MockHttpServletRequestBuilder.addIfExists(
     return this.content(json)
 }
 
-fun MockHttpServletRequestBuilder.addIfExists(cookie: Cookie?): MockHttpServletRequestBuilder =
-    if (cookie != null) this.cookie(cookie) else this
+fun MockHttpServletRequestBuilder.addIfExists(authorization: Cookie?): MockHttpServletRequestBuilder =
+    if (authorization != null) this.cookie(authorization) else this

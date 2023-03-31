@@ -2,7 +2,6 @@ package com.isel.sensiflow.integration
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.isel.sensiflow.Constants.User.AUTH_COOKIE_NAME
-import com.isel.sensiflow.http.controller.RequestPaths
 import com.isel.sensiflow.http.entities.input.UserRegisterInput
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupCreateDTO
@@ -20,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
+import org.springframework.http.ProblemDetail
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
@@ -48,7 +48,7 @@ class DevicesGroupControllerTests {
             method = HTTPMethod.POST,
             uri = "/groups",
             body = DevicesGroupCreateDTO("Test", "Test"),
-            cookie = cookie,
+            authorization = cookie,
             mapper = mapper,
             assertions = {
                 andExpect(status().isCreated)
@@ -61,7 +61,7 @@ class DevicesGroupControllerTests {
             method = HTTPMethod.PUT,
             uri = "/groups/$id",
             body = DevicesGroupUpdateDTO("Test2", "Test2"),
-            cookie = cookie,
+            authorization = cookie,
             mapper = mapper,
             assertions = {
                 andExpect(status().isNoContent)
@@ -71,7 +71,7 @@ class DevicesGroupControllerTests {
         mockMvc.request<Unit, DeviceGroupOutputDTO>(
             method = HTTPMethod.GET,
             uri = "/groups/$id",
-            cookie = cookie,
+            authorization = cookie,
             mapper = mapper,
             assertions = {
                 andExpect(status().isOk)
@@ -87,11 +87,11 @@ class DevicesGroupControllerTests {
         val createResponse = createTestGroup(cookie)
         val id = createResponse?.id ?: fail("Failed to create test group")
 
-        mockMvc.request<RandomInput, Unit>(
+        mockMvc.request<RandomInput, ProblemDetail>(
             method = HTTPMethod.PUT,
             uri = "/groups/$id",
-            body = RandomInput("Test"),
-            cookie = cookie,
+            body = RandomInput("BadRequest"),
+            authorization = cookie,
             mapper = mapper,
             assertions = {
                 andExpect(status().isBadRequest)
@@ -124,7 +124,7 @@ class DevicesGroupControllerTests {
         mockMvc.request<IDOutputDTO, Unit>(
             method = HTTPMethod.DELETE,
             uri = "/groups/$id",
-            cookie = cookie,
+            authorization = cookie,
             mapper = mapper,
             assertions = {
                 andExpect(status().isNoContent)
@@ -181,7 +181,7 @@ class DevicesGroupControllerTests {
             method = HTTPMethod.PUT,
             uri = "/groups/$id/devices",
             body = DevicesGroupInputDTO(listOf(id1, id2)),
-            cookie = cookie,
+            authorization = cookie,
             mapper = mapper,
             assertions = {
                 andExpect(status().isNoContent)
@@ -244,11 +244,11 @@ class DevicesGroupControllerTests {
         val createResponse = createTestGroup(cookie)
         val id = createResponse?.id ?: fail("Failed to create test group")
 
-        mockMvc.request<RandomInput, Unit>(
+        mockMvc.request<RandomInput, ProblemDetail>(
             method = HTTPMethod.PUT,
             uri = "/groups/$id/devices",
             body = RandomInput("Test"),
-            cookie = cookie,
+            authorization = cookie,
             mapper = mapper,
             assertions = {
                 andExpect(status().isBadRequest)
@@ -274,7 +274,7 @@ class DevicesGroupControllerTests {
             method = HTTPMethod.POST,
             uri = "/devices",
             body = input,
-            cookie = cookie,
+            authorization = cookie,
             mapper = mapper,
             assertions = {
                 andExpect(status().isCreated)
@@ -288,7 +288,7 @@ class DevicesGroupControllerTests {
             method = HTTPMethod.POST,
             uri = "/groups",
             body = DevicesGroupCreateDTO("Test", "Test"),
-            cookie = cookie,
+            authorization = cookie,
             mapper = mapper,
             assertions = {
                 andExpect(status().isCreated)
@@ -308,7 +308,7 @@ class DevicesGroupControllerTests {
         val json = mapper.writeValueAsString(user)
 
         val result = mockMvc.perform(
-            post(RequestPaths.Users.REGISTER)
+            post("/users")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json)
         ).andExpect(status().isCreated)

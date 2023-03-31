@@ -22,7 +22,7 @@ import org.springframework.web.servlet.NoHandlerFoundException
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
 import java.net.URI
 
-//@RestControllerAdvice because all handlers expect a response body
+// @RestControllerAdvice because all handlers expect a response body
 @RestControllerAdvice
 class ErrorHandler : ResponseEntityExceptionHandler() {
 
