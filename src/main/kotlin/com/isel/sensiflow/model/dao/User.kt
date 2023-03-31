@@ -13,8 +13,8 @@ import jakarta.persistence.Table
 @Table(name = "\"user\"")
 class User(
     @Id
-    @Column(name = "id", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
     val id: Int = -1,
 
     @Column(name = "first_name", nullable = false, length = 20)

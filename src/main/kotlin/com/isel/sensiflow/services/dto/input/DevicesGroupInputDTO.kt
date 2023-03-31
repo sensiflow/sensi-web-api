@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 
 data class DevicesGroupInputDTO(
-    val deviceIDs: List<ID> = emptyList()
+    val deviceIDs: List<ID>
 )
 
 data class DevicesGroupUpdateDTO(

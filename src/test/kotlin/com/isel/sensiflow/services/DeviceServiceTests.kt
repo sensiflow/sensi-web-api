@@ -101,7 +101,7 @@ class DeviceServiceTests {
 
         val createdDevice = deviceService.createDevice(fakeDeviceInput, userId)
 
-        assertEquals(fakeDevice, createdDevice)
+        assertEquals(fakeDevice.toDTO(expanded = false), createdDevice)
 
         verify(userRepository, times(1)).findById(userId)
         verify(deviceRepository, times(1)).save(any(Device::class.java))
@@ -138,7 +138,7 @@ class DeviceServiceTests {
 
         val createdDevice = deviceService.createDevice(deviceInputNoDescription, userId)
 
-        assertEquals(device, createdDevice)
+        assertEquals(device.toDTO(expanded = false), createdDevice)
 
         verify(userRepository, times(1)).findById(userId)
         verify(deviceRepository, times(1)).save(any(Device::class.java))

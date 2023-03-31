@@ -63,6 +63,4 @@ create table if not exists ProcessedStream(
     foreign key (deviceID) references Device(id)
 );
 
-
-
 commit;

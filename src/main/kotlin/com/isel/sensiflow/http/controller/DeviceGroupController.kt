@@ -90,8 +90,8 @@ class DeviceGroupController(val deviceGroupService: DeviceGroupService) {
     @GetMapping(RequestPaths.DeviceGroups.GROUPS_DEVICES)
     fun getDevicesFromGroup(
         @PathVariable id: Int,
-        @RequestParam page: Int,
-        @RequestParam size: Int,
+        @RequestParam page: Int? = null,
+        @RequestParam size: Int? = null,
         @RequestParam expanded: Boolean = false
     ): PageDTO<DeviceOutputDTO> =
         deviceGroupService

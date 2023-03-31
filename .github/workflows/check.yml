@@ -9,6 +9,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Setup PostgreSQL With Init Scripts
+        uses: m4nu56/postgresql-action@1.0
+        with:
+          postgresql init scripts: "./src/main/resources/sql/init"
+          postgresql user: postgres
+          postgresql password: postgres
+          postgresql db: postgres
       - name: Set up JDK 17
         uses: actions/setup-java@v2
         with:
@@ -21,3 +28,5 @@ jobs:
         run: ./gradlew ktlintFormat
       - name: Run Gradle Check (build, test, lint)
         run: ./gradlew check
+        env:
+          JDBC_DATABASE_URL: jdbc:postgresql://localhost:5432/postgres?user=postgres&password=postgres

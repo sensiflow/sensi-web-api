@@ -87,7 +87,7 @@ class DeviceGroupService(
             .orElseThrow { DeviceGroupNotFoundException(groupID) }
 
         return deviceGroupRepository
-            .findAllDevicesByGroupId(groupID, pageable)
+            .findPaginatedByEntityDeviceId(groupID, pageable)
             .map { it.toDTO(expanded = expanded) }
             .toDTO()
     }

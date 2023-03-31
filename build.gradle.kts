@@ -54,6 +54,6 @@ tasks.withType<KotlinCompile> {
 tasks.withType<Test> {
     useJUnitPlatform()
     this.environment(
-        "DATABASE_URL" to "jdbc:postgresql://localhost:5432/postgres?user=postgres&password=postgres"
+        "JDBC_DATABASE_URL" to "jdbc:postgresql://localhost:5432/postgres?user=postgres&password=postgres"
     )
 }

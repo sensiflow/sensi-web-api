@@ -35,7 +35,7 @@ class DeviceService(
      * @return The created device.
      */
     @Transactional(isolation = Isolation.REPEATABLE_READ)
-    fun createDevice(deviceInput: DeviceInputDTO, userId: Int): Device {
+    fun createDevice(deviceInput: DeviceInputDTO, userId: Int): DeviceOutputDTO {
         val user = userRepository.findById(userId)
             .orElseThrow { UserNotFoundException(userId) }
         val newDevice = Device(
@@ -45,7 +45,9 @@ class DeviceService(
             user = user
         )
 
-        return deviceRepository.save(newDevice)
+        return deviceRepository
+            .save(newDevice)
+            .toDTO(expanded = false)
     }
 
     /**
