@@ -37,8 +37,10 @@ object Constants {
 
     object Error {
         const val PROCESSING_STATE_INVALID = "Invalid processing state: '%s' please use one of the following: %s"
+        const val EMAIL_ALREADY_EXISTS = "Email %s already exists"
         const val USER_NOT_FOUND = "User with id %d not found"
         const val DEVICE_NOT_FOUND = "Device with id %d not found"
+        const val EMAIL_NOT_FOUND = "User with email %s not found"
         const val DEVICE_OWNER_MISMATCH = "Device with id %d does not belong to user with id %d"
         const val DEVICE_NAME_EMPTY = "Name cannot be empty"
         const val DEVICE_STREAM_URL_EMPTY = "Stream URL cannot be empty"
@@ -50,5 +52,43 @@ object Constants {
         const val PROCESSED_STREAM_NOT_FOUND = "Processed stream with id %d not found"
         const val DEVICE_GROUP_NOT_FOUND = "Device group with id %d not found"
         const val DEVICE_STATE_REQUIRED = "Processing state is required"
+    }
+
+    object Problem {
+
+        object URI {
+            const val DEVICE_NOT_FOUND = "https://sensiflow.com/errors/device-not-found"
+            const val USER_NOT_FOUND = "https://sensiflow.com/errors/user-not-found"
+            const val PROCESSED_STREAM_NOT_FOUND = "https://sensiflow.com/errors/processed-stream-not-found"
+            const val DEVICE_GROUP_NOT_FOUND = "https://sensiflow.com/errors/device-group-not-found"
+            const val EMAIL_NOT_FOUND = "https://sensiflow.com/errors/email-not-found"
+            const val INVALID_CREDENTIALS = "https://sensiflow.com/errors/invalid-credentials"
+            const val UNAUTHORIZED = "https://sensiflow.com/errors/unauthorized"
+            const val UNAUTHENTICATED = "https://sensiflow.com/errors/unauthenticated"
+            const val OWNER_MISMATCH = "https://sensiflow.com/errors/owner-mismatch"
+            const val INVALID_PROCESSING_STATE = "https://sensiflow.com/errors/invalid-processing-state"
+            const val INVALID_PROCESSING_STATE_TRANSITION = "https://sensiflow.com/errors/invalid-processing-state-transition"
+            const val EMAIL_ALREADY_EXISTS = "https://sensiflow.com/errors/email-already-exists"
+            const val SERVICE_INTERNAL = "https://sensiflow.com/errors/service-internal"
+            const val URI_HANDLER_NOT_FOUND = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.4"
+            const val URI_VALIDATION_ERROR = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.1"
+            const val URI_METHOD_NOT_ALLOWED = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.5"
+        }
+
+        object Title {
+
+            const val NOT_FOUND = "The requested resource was not found"
+            const val INVALID_CREDENTIALS = "The provided credentials are invalid"
+            const val UNAUTHORIZED = "You are not authorized to perform this action"
+            const val UNAUTHENTICATED = "You must be authenticated to perform this action"
+            const val OWNER_MISMATCH = "You are not the owner of this resource"
+            const val INVALID_PROCESSING_STATE = "The provided Processing State is invalid"
+            const val INVALID_PROCESSING_STATE_TRANSITION = "An invalid Processing State Transition was requested"
+            const val ALREADY_EXISTS = "The requested resource already exists"
+            const val INTERNAL_ERROR = "An internal error occurred"
+            const val HANDLER_NOT_FOUND = "The requested uri does not have a handler associated with it"
+            const val METHOD_NOT_ALLOWED = "The requested method is not allowed for the requested uri"
+            const val VALIDATION_ERROR = "The provided data is invalid"
+        }
     }
 }

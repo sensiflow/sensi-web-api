@@ -1,5 +1,6 @@
 package com.isel.sensiflow.http.utils
 
+import com.isel.sensiflow.Constants
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletResponse
 
@@ -25,6 +26,21 @@ fun Cookie.path(path: String): Cookie {
 fun Cookie.httpOnly(httpOnly: Boolean): Cookie {
     this.isHttpOnly = httpOnly
     return this
+}
+
+/**
+ * Creates an authentication cookie with the given token and time until expiration
+ * this cookie is set to be httpOnly and its path is set to /api
+ * @param token The token to be set as the cookie value
+ * @param timeUntilExpire The time until the cookie expires in milliseconds
+ */
+fun createAuthCookie(token: String, timeUntilExpire: Long): Cookie {
+    return Cookie(Constants.User.AUTH_COOKIE_NAME, token)
+        .apply {
+            path("/api")
+            maxAge(timeUntilExpire)
+            httpOnly(true)
+        }
 }
 
 /**

@@ -19,7 +19,6 @@ object RequestPaths {
     object Users {
         const val USERS = "/users"
         const val LOGIN = "/login"
-        const val REGISTER = "/"
         const val LOGOUT = "/logout"
         const val GET_USER = "/ {userID}"
     }
