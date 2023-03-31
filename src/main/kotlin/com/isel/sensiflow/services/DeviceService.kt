@@ -183,7 +183,7 @@ class DeviceService(
             throw OwnerMismatchException(Constants.Error.DEVICE_OWNER_MISMATCH.format(deviceId, userId))
 
         return metricRepository
-            .findAllByDeviceID(deviceId, pageable)
+            .findAllByDeviceID(device, pageable)
             .map { it.toDTO() }
             .toDTO()
     }

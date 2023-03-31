@@ -102,17 +102,17 @@ class DevicesGroupControllerTests {
     @Test
     fun `update a group that does not exist returns Not Found`() {
         val cookie = get(cookie = createUser())
-        /** TODO: DO ERROR HANDLING
-         mockMvc.request<DevicesGroupUpdateDTO, Unit>(
-         method = HTTPMethod.PUT,
-         uri = "/groups/-1",
-         body = DevicesGroupUpdateDTO("Test2", "Test2"),
-         cookie = cookie,
-         mapper = mapper,
-         assertions = {
-         andExpect(status().isNotFound)
-         }
-         )*/
+
+        mockMvc.request<DevicesGroupUpdateDTO, ProblemDetail>(
+            method = HTTPMethod.PUT,
+            uri = "/groups/-1",
+            body = DevicesGroupUpdateDTO("Test2", "Test2"),
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isNotFound)
+            }
+        )
     }
 
     @Test
@@ -131,23 +131,29 @@ class DevicesGroupControllerTests {
             }
         )
 
-        // TODO: Get the group and check if it was deleted
+        mockMvc.request<Unit, ProblemDetail>(
+            method = HTTPMethod.GET,
+            uri = "/groups/$id",
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isNotFound)
+            }
+        )
     }
 
     @Test
     fun `delete a group that does not exist returns Not Found`() {
         val cookie = get(cookie = createUser())
-        /** TODO: DO ERROR HANDLING
-         mockMvc.request<IDOutputDTO, Unit>(
-         method = HTTPMethod.DELETE,
-         uri = "/groups/-1",
-         cookie = cookie,
-         mapper = mapper,
-         assertions = {
-         andExpect(status().isNotFound)
-         }
-         )
-         */
+        mockMvc.request<IDOutputDTO, ProblemDetail>(
+            method = HTTPMethod.DELETE,
+            uri = "/groups/-1",
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isNotFound)
+            }
+        )
     }
 
     @Test
@@ -225,17 +231,17 @@ class DevicesGroupControllerTests {
 
         val id1 = responseDevice1?.id ?: fail("Failed to create test device")
         val id2 = responseDevice2?.id ?: fail("Failed to create test device")
-        /** TODO: DO ERROR HANDLING
-         mockMvc.request<DevicesGroupInputDTO, Unit>(
-         method = HTTPMethod.PUT,
-         uri = "/groups/-1/devices",
-         body = DevicesGroupInputDTO(listOf(id1, id2)),
-         cookie = cookie,
-         mapper = mapper,
-         assertions = {
-         andExpect(status().isNotFound)
-         }
-         )*/
+
+        mockMvc.request<DevicesGroupInputDTO, ProblemDetail>(
+            method = HTTPMethod.PUT,
+            uri = "/groups/-1/devices",
+            body = DevicesGroupInputDTO(listOf(id1, id2)),
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isNotFound)
+            }
+        )
     }
 
     @Test
@@ -258,15 +264,14 @@ class DevicesGroupControllerTests {
 
     @Test
     fun `get devices from a group that does not exist returns Not Found`() {
-        /** TODO: DO ERROR HANDLING
-         mockMvc.request<Unit, PageDTO<DeviceOutputDTO>>(
-         method = HTTPMethod.GET,
-         uri = "/groups/-1/devices?page=0&size=10",
-         mapper = mapper,
-         assertions = {
-         andExpect(status().isNotFound)
-         }
-         )*/
+        mockMvc.request<Unit, ProblemDetail>(
+            method = HTTPMethod.GET,
+            uri = "/groups/-1/devices?page=0&size=10",
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isNotFound)
+            }
+        )
     }
 
     private fun createDevice(cookie: Cookie, input: DeviceInputDTO): IDOutputDTO? {

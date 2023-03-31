@@ -1,5 +1,6 @@
 package com.isel.sensiflow.model.repository
 
+import com.isel.sensiflow.model.dao.Device
 import com.isel.sensiflow.model.dao.Metric
 import com.isel.sensiflow.model.dao.MetricID
 import org.springframework.data.domain.Page
@@ -9,5 +10,5 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface MetricRepository : JpaRepository<Metric, MetricID> {
-    fun findAllByDeviceID(deviceId: Int, pageable: Pageable): Page<Metric>
+    fun findAllByDeviceID(deviceId: Device, pageable: Pageable): Page<Metric>
 }

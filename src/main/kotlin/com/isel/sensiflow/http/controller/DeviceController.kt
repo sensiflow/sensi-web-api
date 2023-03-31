@@ -87,7 +87,8 @@ class DeviceController(
     ) {
         deviceService.updateProcessingState(id, deviceStateInputDTO.state, userID ?: 0)
     }
-    @ResponseStatus(HttpStatus.NO_CONTENT)
+
+    @ResponseStatus(HttpStatus.OK)
     @GetMapping(RequestPaths.Device.DEVICE_STATS)
     @Authentication
     fun getDeviceStats(

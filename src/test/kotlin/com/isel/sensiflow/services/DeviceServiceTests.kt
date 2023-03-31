@@ -469,7 +469,7 @@ class DeviceServiceTests {
         )
 
         `when`(deviceRepository.findById(deviceId)).thenReturn(Optional.of(fakeDevice))
-        `when`(metricRepository.findAllByDeviceID(deviceId, PageRequest.of(paginationInfo.page, paginationInfo.size)))
+        `when`(metricRepository.findAllByDeviceID(fakeDevice, PageRequest.of(paginationInfo.page, paginationInfo.size)))
             .thenReturn(page)
 
         val expected = expectedPageItems.map { it.toDTO() }
@@ -480,7 +480,7 @@ class DeviceServiceTests {
         // Assert
         assertEquals(expected, retrievedStats.items)
         verify(metricRepository, times(1))
-            .findAllByDeviceID(deviceId, PageRequest.of(paginationInfo.page, paginationInfo.size))
+            .findAllByDeviceID(fakeDevice, PageRequest.of(paginationInfo.page, paginationInfo.size))
     }
 
     @Test
@@ -498,7 +498,7 @@ class DeviceServiceTests {
 
         // Assert
         verify(metricRepository, times(0))
-            .findAllByDeviceID(deviceId, PageRequest.of(paginationInfo.page, paginationInfo.size))
+            .findAllByDeviceID(fakeDevice, PageRequest.of(paginationInfo.page, paginationInfo.size))
     }
 
     @Test
@@ -516,6 +516,6 @@ class DeviceServiceTests {
 
         // Assert
         verify(metricRepository, times(0))
-            .findAllByDeviceID(deviceId, PageRequest.of(paginationInfo.page, paginationInfo.size))
+            .findAllByDeviceID(fakeDevice, PageRequest.of(paginationInfo.page, paginationInfo.size))
     }
 }
