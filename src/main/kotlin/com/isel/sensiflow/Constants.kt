@@ -49,6 +49,13 @@ object Constants {
             "Description must be between 1 and ${Device.DESCRIPTION_MAX_LENGTH} characters"
         const val DEVICE_STREAM_URL_INVALID_LENGTH =
             "Stream URL must be between 1 and ${Device.STREAM_URL_MAX_LENGTH} characters"
+        const val PASSWORD_REGEX_MISMATCH = "Password must contain at least one uppercase letter, one lowercase letter, one digit and one special character"
+        const val PASSWORD_INVALID_LENGTH = "Password must be between ${InputValidation.PASSWORD_MIN_SIZE} and ${InputValidation.PASSWORD_MAX_SIZE} characters"
+        const val EMAIL_INVALID_LENGTH = "Email must be between 1 and ${InputValidation.EMAIL_MAX_LENGTH} characters"
+        const val PASSWORD_EMPTY = "Password cannot be empty"
+        const val EMAIL_EMPTY = "Email cannot be empty"
+        const val NAME_EMPTY = "Name cannot be empty"
+        const val EMAIL_INVALID_FORMAT = "Email is not valid"
         const val PROCESSED_STREAM_NOT_FOUND = "Processed stream with id %d not found"
         const val DEVICE_GROUP_NOT_FOUND = "Device group with id %d not found"
         const val DEVICE_STATE_REQUIRED = "Processing state is required"
@@ -57,22 +64,27 @@ object Constants {
     object Problem {
 
         object URI {
-            const val DEVICE_NOT_FOUND = "https://sensiflow.com/errors/device-not-found"
-            const val USER_NOT_FOUND = "https://sensiflow.com/errors/user-not-found"
-            const val PROCESSED_STREAM_NOT_FOUND = "https://sensiflow.com/errors/processed-stream-not-found"
-            const val DEVICE_GROUP_NOT_FOUND = "https://sensiflow.com/errors/device-group-not-found"
-            const val EMAIL_NOT_FOUND = "https://sensiflow.com/errors/email-not-found"
-            const val INVALID_CREDENTIALS = "https://sensiflow.com/errors/invalid-credentials"
-            const val UNAUTHORIZED = "https://sensiflow.com/errors/unauthorized"
-            const val UNAUTHENTICATED = "https://sensiflow.com/errors/unauthenticated"
-            const val OWNER_MISMATCH = "https://sensiflow.com/errors/owner-mismatch"
-            const val INVALID_PROCESSING_STATE = "https://sensiflow.com/errors/invalid-processing-state"
-            const val INVALID_PROCESSING_STATE_TRANSITION = "https://sensiflow.com/errors/invalid-processing-state-transition"
-            const val EMAIL_ALREADY_EXISTS = "https://sensiflow.com/errors/email-already-exists"
-            const val SERVICE_INTERNAL = "https://sensiflow.com/errors/service-internal"
-            const val URI_HANDLER_NOT_FOUND = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.4"
-            const val URI_VALIDATION_ERROR = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.1"
-            const val URI_METHOD_NOT_ALLOWED = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.5"
+            private const val BASE_URI = "https://sensiflow.github.io/main/api/errors/general/"
+
+            const val DEVICE_NOT_FOUND = "${BASE_URI}#device-not-found"
+            const val USER_NOT_FOUND = "${BASE_URI}#user-not-found"
+            const val PROCESSED_STREAM_NOT_FOUND = "${BASE_URI}#processed-stream-not-found"
+            const val DEVICE_GROUP_NOT_FOUND = "${BASE_URI}#device-group-not-found"
+            const val EMAIL_NOT_FOUND = "${BASE_URI}#email-not-found"
+            const val UNAUTHORIZED = "${BASE_URI}#unauthorized"
+            const val UNAUTHENTICATED = "${BASE_URI}#unauthenticated"
+            const val INVALID_CREDENTIALS = "${BASE_URI}#invalid-credentials"
+            const val OWNER_MISMATCH = BASE_URI
+            const val INVALID_PROCESSING_STATE = "${BASE_URI}#invalid-processing-state"
+            const val INVALID_TOKEN = "${BASE_URI}#invalid-token"
+            const val INVALID_PROCESSING_STATE_TRANSITION = "${BASE_URI}#invalid-processing-state-transition"
+            const val EMAIL_ALREADY_EXISTS = "${BASE_URI}#email-already-exists"
+            const val URI_HANDLER_NOT_FOUND = "${BASE_URI}#handler-not-found"
+            const val URI_VALIDATION_ERROR = "${BASE_URI}#invalid-parameter"
+            const val INVALID_JSON_BODY = "${BASE_URI}#invalid-json-structure"
+            const val URI_REQUIRED_PATH_PARAMETER_MISSING = "${BASE_URI}#required-uri-parameter-missing"
+            const val URI_METHOD_NOT_ALLOWED = "${BASE_URI}#method-not-allowed"
+            const val SERVICE_INTERNAL = "${BASE_URI}#internal-server-error"
         }
 
         object Title {
@@ -85,10 +97,14 @@ object Constants {
             const val INVALID_PROCESSING_STATE = "The provided Processing State is invalid"
             const val INVALID_PROCESSING_STATE_TRANSITION = "An invalid Processing State Transition was requested"
             const val ALREADY_EXISTS = "The requested resource already exists"
-            const val INTERNAL_ERROR = "An internal error occurred"
+            const val INVALID_TOKEN = "The provided token is invalid"
             const val HANDLER_NOT_FOUND = "The requested uri does not have a handler associated with it"
             const val METHOD_NOT_ALLOWED = "The requested method is not allowed for the requested uri"
             const val VALIDATION_ERROR = "The provided data is invalid"
+            const val REQUIRED_PATH_PARAMETER_MISSING = "A required path parameter is missing"
+            const val REQUIRED_PARAMETER_MISSING = "A required parameter is missing"
+            const val INVALID_JSON_BODY = "The provided JSON body has an invalid structure"
+            const val INTERNAL_ERROR = "An internal error occurred"
         }
     }
 }

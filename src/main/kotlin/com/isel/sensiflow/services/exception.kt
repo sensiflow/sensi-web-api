@@ -59,6 +59,11 @@ class UnauthenticatedException(message: String) : ServiceException(message)
 class UnauthorizedException(message: String) : ServiceException(message)
 
 /**
+ * Indicates that the user provided an invalid token.
+ */
+class InvalidTokenException(message: String) : ServiceException(message)
+
+/**
  * Indicates that the user provided invalid credentials.
  */
 class InvalidCredentialsException(message: String) : ServiceException(message)

@@ -1,37 +1,43 @@
 package com.isel.sensiflow.services
 
 import com.isel.sensiflow.Constants.User.SESSION_EXPIRATION_TIME
-import com.isel.sensiflow.http.entities.input.UserLoginInput
-import com.isel.sensiflow.http.entities.input.UserRegisterInput
-import com.isel.sensiflow.http.entities.output.UserOutput
-import com.isel.sensiflow.http.entities.output.toDTO
 import com.isel.sensiflow.model.dao.Email
 import com.isel.sensiflow.model.dao.SessionToken
 import com.isel.sensiflow.model.dao.User
+import com.isel.sensiflow.model.dao.addEmail
 import com.isel.sensiflow.model.dao.hasExpired
 import com.isel.sensiflow.model.repository.EmailRepository
 import com.isel.sensiflow.model.repository.SessionTokenRepository
 import com.isel.sensiflow.model.repository.UserRepository
 import com.isel.sensiflow.services.dto.AuthInformationDTO
+import com.isel.sensiflow.services.dto.input.UserLoginInputDTO
+import com.isel.sensiflow.services.dto.input.UserRegisterInputDTO
+import com.isel.sensiflow.services.dto.output.UserOutputDTO
+import com.isel.sensiflow.services.dto.output.toDTO
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Isolation
 import org.springframework.transaction.annotation.Transactional
 
 @Service
-// @Transactional(noRollbackFor = [Exception::class])
+@Transactional(noRollbackFor = [InvalidTokenException::class])
 class UserService(
     private val userRepository: UserRepository,
     private val sessionTokenRepository: SessionTokenRepository,
     private val emailRepository: EmailRepository
 ) {
 
-    @Transactional(isolation = Isolation.REPEATABLE_READ) // TODO: VER TODOS OS CASOS DE ERRO DO COOKIE EM RELAÇAO AO TOKEN
-    fun createUser(userInput: UserRegisterInput): AuthInformationDTO {
-
+    /**
+     * Creates a new user in the database and a session token for it
+     * @param userInput the user's information
+     * @return the user's id and session token
+     * @throws EmailAlreadyExistsException if the email already exists
+     */
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    fun createUser(userInput: UserRegisterInputDTO): AuthInformationDTO {
         emailRepository
             .findByEmail(userInput.email)
             .ifPresent {
-                throw Exception("Email already exists") // TODO: criar exceção
+                throw EmailAlreadyExistsException(userInput.email)
             }
 
         val salt = generateSalt()
@@ -46,16 +52,17 @@ class UserService(
             )
         )
 
-        emailRepository.save(
+        val email = emailRepository.save(
             Email(
                 email = userInput.email,
                 user = user
             )
         )
 
+        val persistedUser = userRepository.save(user.addEmail(email))
         val sessionToken = sessionTokenRepository.save(
             SessionToken(
-                user = user,
+                user = persistedUser,
                 token = generateUUID(),
                 expiration = generateExpirationDate(SESSION_EXPIRATION_TIME).toTimeStamp()
             )
@@ -65,13 +72,17 @@ class UserService(
     }
 
     /**
-     * Gets a user from the database identified by its [UserID] and returns it as a [UserOutput]
+     * Gets a user from the database identified by its [UserID] and returns it as a [UserOutputDTO]
      * @param userID the user's id to be searched
-     * @throws Exception if the user is not found     TODO: change commment
+     * @throws UserNotFoundException if the [User] is not found
      */
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    fun getUser(userID: UserID): UserOutput {
-        val user = userRepository.findById(userID).orElseThrow { Exception("User not found") } // TODO: criar exceção
+    fun getUser(userID: UserID): UserOutputDTO {
+        val user = userRepository
+            .findById(userID)
+            .orElseThrow {
+                UserNotFoundException(userID)
+            }
         return user.toDTO()
     }
 
@@ -90,16 +101,16 @@ class UserService(
     /**
      * Verifies if the session token is valid and returns the user's id if it is
      * @param token the session token to be validated
-     * @throws Exception if the token is invalid //TODO: change comment
+     * @throws InvalidTokenException if the token is invalid or has expired
      */
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     fun validateSessionToken(token: String): UserID {
         val sessionToken = sessionTokenRepository
-            .findByToken(token) ?: throw Exception("Invalid token") // TODO: criar exceção
+            .findByToken(token) ?: throw InvalidTokenException("Invalid token")
 
         if (sessionToken.hasExpired()) {
             sessionTokenRepository.delete(sessionToken)
-            throw Exception("Token expired") // TODO: criar exceção e por la em cima no service para nao dar rollback
+            throw InvalidTokenException("The received token has expired")
         }
 
         return sessionToken.user.id
@@ -110,19 +121,21 @@ class UserService(
      * Reuses the session token if it is still valid otherwise creates a new one
      * @param userInput the user's login credentials
      * @returns a [AuthInformationDTO] object containing a session token and the user's id
+     * @throws EmailNotFoundException if the email is not found
+     * @throws InvalidCredentialsException if the password is invalid
      */
     @Transactional(isolation = Isolation.REPEATABLE_READ)
-    fun authenticateUser(userInput: UserLoginInput): AuthInformationDTO {
+    fun authenticateUser(userInput: UserLoginInputDTO): AuthInformationDTO {
         val email = emailRepository.findByEmail(userInput.email)
             .ifNotPresent {
-                throw Exception("Email not found") // TODO: criar exceção
+                throw EmailNotFoundException(userInput.email)
             }
         requireNotNull(email)
 
         val user = email.user
 
         if (hashPassword(userInput.password, user.passwordSalt) != user.passwordHash) {
-            throw Exception("Invalid password") // TODO: criar exceção
+            throw InvalidCredentialsException("Invalid password")
         }
 
         val token = sessionTokenRepository.findByUser(user)

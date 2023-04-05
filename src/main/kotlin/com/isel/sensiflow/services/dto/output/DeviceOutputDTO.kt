@@ -1,7 +1,5 @@
 package com.isel.sensiflow.services.dto.output
 
-import com.isel.sensiflow.http.entities.output.UserOutput
-import com.isel.sensiflow.http.entities.output.toDTO
 import com.isel.sensiflow.model.dao.Device
 import com.isel.sensiflow.services.ID
 import com.isel.sensiflow.services.UserID
@@ -46,7 +44,7 @@ data class DeviceExpandedOutputDTO(
     override val description: String?,
     override val streamURL: String,
     override val processingState: String,
-    val user: UserOutput,
+    val user: UserOutputDTO,
     // TODO e: val deviceGroup: DeviceGroupOutputDTO Adiciona aqui o teu,
 ) : DeviceOutputDTO
 

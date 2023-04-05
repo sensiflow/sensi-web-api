@@ -2,11 +2,11 @@ package com.isel.sensiflow.integration
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.isel.sensiflow.Constants.User.AUTH_COOKIE_NAME
-import com.isel.sensiflow.http.entities.input.UserRegisterInput
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupCreateDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupInputDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupUpdateDTO
+import com.isel.sensiflow.services.dto.input.UserRegisterInputDTO
 import com.isel.sensiflow.services.dto.output.DeviceGroupOutputDTO
 import com.isel.sensiflow.services.dto.output.DeviceOutputDTO
 import com.isel.sensiflow.services.dto.output.IDOutputDTO
@@ -298,7 +298,7 @@ class DevicesGroupControllerTests {
     }
 
     private fun createUser(): Cookie? {
-        val user = UserRegisterInput(
+        val user = UserRegisterInputDTO(
             email = "test@email.com",
             firstName = "Test",
             lastName = "Test",

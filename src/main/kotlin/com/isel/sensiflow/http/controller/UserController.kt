@@ -2,15 +2,15 @@ package com.isel.sensiflow.http.controller
 
 import com.isel.sensiflow.Constants.User.AUTH_COOKIE_NAME
 import com.isel.sensiflow.Constants.User.SESSION_EXPIRATION_TIME
-import com.isel.sensiflow.http.entities.input.UserLoginInput
-import com.isel.sensiflow.http.entities.input.UserRegisterInput
-import com.isel.sensiflow.http.entities.output.UserOutput
 import com.isel.sensiflow.http.pipeline.authentication.Authentication
 import com.isel.sensiflow.http.utils.createAuthCookie
 import com.isel.sensiflow.http.utils.removeCookie
 import com.isel.sensiflow.services.UserID
 import com.isel.sensiflow.services.UserService
+import com.isel.sensiflow.services.dto.input.UserLoginInputDTO
+import com.isel.sensiflow.services.dto.input.UserRegisterInputDTO
 import com.isel.sensiflow.services.dto.output.IDOutputDTO
+import com.isel.sensiflow.services.dto.output.UserOutputDTO
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
@@ -29,7 +29,7 @@ class UserController(private val userService: UserService) {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    fun registerHandler(@RequestBody @Valid userInput: UserRegisterInput, response: HttpServletResponse): IDOutputDTO {
+    fun registerHandler(@RequestBody @Valid userInput: UserRegisterInputDTO, response: HttpServletResponse): IDOutputDTO {
         val authInfo = userService.createUser(userInput)
 
         val authCookie = createAuthCookie(authInfo.token, SESSION_EXPIRATION_TIME)
@@ -40,13 +40,13 @@ class UserController(private val userService: UserService) {
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping(RequestPaths.Users.GET_USER)
-    fun getUserHandler(@PathVariable userID: UserID): UserOutput {
+    fun getUserHandler(@PathVariable userID: UserID): UserOutputDTO {
         return userService.getUser(userID)
     }
 
     @ResponseStatus(HttpStatus.OK)
     @PostMapping(RequestPaths.Users.LOGIN)
-    fun loginHandler(@RequestBody userInput: UserLoginInput, response: HttpServletResponse): IDOutputDTO {
+    fun loginHandler(@RequestBody @Valid userInput: UserLoginInputDTO, response: HttpServletResponse): IDOutputDTO {
         val authInfo = userService.authenticateUser(userInput)
 
         val authCookie = createAuthCookie(authInfo.token, authInfo.timeUntilExpire)
@@ -56,7 +56,7 @@ class UserController(private val userService: UserService) {
     }
 
     @Authentication
-    @ResponseStatus(HttpStatus.OK)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(RequestPaths.Users.LOGOUT)
     fun logoutHandler(request: HttpServletRequest, response: HttpServletResponse) {
         val authCookie = request.cookies?.find { it.name == AUTH_COOKIE_NAME }

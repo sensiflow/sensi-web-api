@@ -1,14 +1,14 @@
 package com.isel.sensiflow.services
 
 import com.isel.sensiflow.Constants.User.SESSION_EXPIRATION_TIME
-import com.isel.sensiflow.http.entities.input.UserLoginInput
-import com.isel.sensiflow.http.entities.input.UserRegisterInput
 import com.isel.sensiflow.model.dao.Email
 import com.isel.sensiflow.model.dao.SessionToken
 import com.isel.sensiflow.model.dao.User
 import com.isel.sensiflow.model.repository.EmailRepository
 import com.isel.sensiflow.model.repository.SessionTokenRepository
 import com.isel.sensiflow.model.repository.UserRepository
+import com.isel.sensiflow.services.dto.input.UserLoginInputDTO
+import com.isel.sensiflow.services.dto.input.UserRegisterInputDTO
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -67,14 +67,14 @@ class UserServiceTests {
         expiration = (timeNow + SESSION_EXPIRATION_TIME).toTimeStamp()
     )
 
-    private val fakeUserInput = UserRegisterInput(
+    private val fakeUserInput = UserRegisterInputDTO(
         firstName = "John",
         lastName = "Doe",
         email = "johnDoe@email.com",
         password = "Passord2.0"
     )
 
-    private val userLoginInput = UserLoginInput(
+    private val userLoginInput = UserLoginInputDTO(
         email = "johnDoe@email.com",
         password = "Passord2.0"
     )
@@ -82,9 +82,9 @@ class UserServiceTests {
     @Test
     fun `register user successfully`() {
 
-        // no user with the given id exists before
         `when`(emailRepository.findByEmail(fakeUserEmail.email)).thenReturn(null)
 
+        `when`(emailRepository.save(ArgumentMatchers.any(Email::class.java))).thenReturn(fakeUserEmail)
         `when`(userRepository.save(ArgumentMatchers.any(User::class.java))).thenReturn(fakeUser)
         `when`(tokenRepository.save(ArgumentMatchers.any(SessionToken::class.java))).thenReturn(fakeToken)
 
@@ -94,7 +94,7 @@ class UserServiceTests {
         assertEquals(fakeUser.id, resultAuthInfo.userID)
 
         verify(emailRepository, times(1)).findByEmail(fakeUserEmail.email)
-        verify(userRepository, times(1)).save(ArgumentMatchers.any(User::class.java))
+        verify(userRepository, times(2)).save(ArgumentMatchers.any(User::class.java))
         verify(tokenRepository, times(1)).save(ArgumentMatchers.any())
         verify(tokenRepository, times(1)).save(ArgumentMatchers.any())
     }
@@ -102,7 +102,7 @@ class UserServiceTests {
     @Test
     fun `trying to register a user with an existing email`() {
         `when`(emailRepository.findByEmail(fakeUserEmail.email)).thenReturn(fakeUserEmail)
-        assertThrows<Exception> {
+        assertThrows<EmailAlreadyExistsException> {
             userService.createUser(fakeUserInput)
         }
         verify(userRepository, times(0)).save(ArgumentMatchers.any(User::class.java))
@@ -121,7 +121,7 @@ class UserServiceTests {
     @Test
     fun `Try to get a non existing user`() {
         `when`(userRepository.findById(fakeUser.id)).thenReturn(Optional.empty())
-        assertThrows<Exception> {
+        assertThrows<UserNotFoundException> {
             userService.getUser(fakeUser.id)
         }
     }
@@ -155,7 +155,7 @@ class UserServiceTests {
     @Test
     fun `login a user with a wrong password`() {
         `when`(emailRepository.findByEmail(fakeUserEmail.email)).thenReturn(fakeUserEmail)
-        assertThrows<Exception> {
+        assertThrows<InvalidCredentialsException> {
             userService.authenticateUser(userLoginInput.copy(password = "wrongPassword"))
         }
     }
@@ -184,7 +184,7 @@ class UserServiceTests {
     @Test
     fun `try to login a user with an invalid email`() {
         `when`(emailRepository.findByEmail(fakeUserEmail.email)).thenReturn(null)
-        assertThrows<Exception> {
+        assertThrows<EmailNotFoundException> {
             userService.authenticateUser(userLoginInput)
         }
     }
@@ -206,7 +206,7 @@ class UserServiceTests {
     @Test
     fun `validate a given invalid token`() {
         `when`(tokenRepository.findByToken(fakeToken.token)).thenReturn(null)
-        assertThrows<Exception> {
+        assertThrows<InvalidTokenException> {
             userService.validateSessionToken(fakeToken.token)
         }
     }
@@ -220,7 +220,7 @@ class UserServiceTests {
         )
 
         `when`(tokenRepository.findByToken(fakeToken.token)).thenReturn(expiredToken)
-        assertThrows<Exception> {
+        assertThrows<InvalidTokenException> {
             userService.validateSessionToken(fakeToken.token)
         }
     }
