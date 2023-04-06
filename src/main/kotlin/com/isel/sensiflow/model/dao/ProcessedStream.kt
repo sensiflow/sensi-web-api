@@ -20,7 +20,7 @@ class ProcessedStream(
     val streamURL: String,
 
     @MapsId
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @OneToOne(fetch = FetchType.LAZY, optional = false, cascade = [jakarta.persistence.CascadeType.ALL])
     @JoinColumn(name = "deviceid", nullable = false)
     val device: Device
 )

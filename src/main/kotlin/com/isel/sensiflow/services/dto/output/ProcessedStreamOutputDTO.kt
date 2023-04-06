@@ -14,14 +14,21 @@ data class ProcessedStreamSimpleOutputDTO(
 
 data class ProcessedStreamExpandedOutputDTO(
     override val streamUrl: String,
-    val device: DeviceOutputDTO,
+    val device: DeviceSimpleOutputDTO
 ) : ProcessedStreamOutputDTO
 
 fun ProcessedStream.toDTO(expanded: Boolean): ProcessedStreamOutputDTO {
     return if (expanded)
         ProcessedStreamExpandedOutputDTO(
             streamUrl = this.streamURL,
-            device = this.device.toDTO(expanded = false)
+            device = DeviceSimpleOutputDTO(
+                id = this.device.id,
+                name = this.device.name,
+                description = this.device.description,
+                processingState = this.device.processingState.toString(),
+                userID = this.device.user.id,
+                streamURL = this.device.streamURL
+            )
         )
     else
         ProcessedStreamSimpleOutputDTO(
