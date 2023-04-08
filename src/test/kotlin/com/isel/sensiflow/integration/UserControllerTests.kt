@@ -3,10 +3,10 @@ package com.isel.sensiflow.integration
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.isel.sensiflow.Constants
 import com.isel.sensiflow.Constants.Problem.URI.URI_VALIDATION_ERROR
+import com.isel.sensiflow.http.entities.input.UserLoginInput
+import com.isel.sensiflow.http.entities.input.UserRegisterInput
+import com.isel.sensiflow.http.entities.output.IDOutput
 import com.isel.sensiflow.services.UserID
-import com.isel.sensiflow.services.dto.input.UserLoginInputDTO
-import com.isel.sensiflow.services.dto.input.UserRegisterInputDTO
-import com.isel.sensiflow.services.dto.output.IDOutputDTO
 import jakarta.servlet.http.Cookie
 import org.junit.jupiter.api.Test
 import org.junit.runner.RunWith
@@ -37,7 +37,7 @@ class UserControllerTests {
     }
 
     private fun createUser(
-        user: UserRegisterInputDTO = UserRegisterInputDTO(
+        user: UserRegisterInput = UserRegisterInput(
             email = "test@email.com",
             firstName = "Test",
             lastName = "Test",
@@ -54,14 +54,14 @@ class UserControllerTests {
             .andReturn()
 
         val response = result.response.contentAsString
-        val id = mapper.readValue(response, IDOutputDTO::class.java)
+        val id = mapper.readValue(response, IDOutput::class.java)
 
         return Pair(id.id, result.response.getCookie(Constants.User.AUTH_COOKIE_NAME))
     }
 
     @Test
     fun `test user register`() {
-        val userRegisterInput = UserRegisterInputDTO(
+        val userRegisterInput = UserRegisterInput(
             email = "test@email.com",
             firstName = "John",
             lastName = "Pork",
@@ -81,7 +81,7 @@ class UserControllerTests {
 
     @Test
     fun `test user register with invalid email`() {
-        val userRegisterInput = UserRegisterInputDTO(
+        val userRegisterInput = UserRegisterInput(
             email = "testemail.com",
             firstName = "John",
             lastName = "Pork",
@@ -101,7 +101,7 @@ class UserControllerTests {
 
     @Test
     fun `test user register with a small password`() {
-        val userRegisterInput = UserRegisterInputDTO(
+        val userRegisterInput = UserRegisterInput(
             email = "teste@email.com",
             firstName = "John",
             lastName = "Pork",
@@ -121,7 +121,7 @@ class UserControllerTests {
 
     @Test
     fun `test user register with invalid first name`() {
-        val userRegisterInput = UserRegisterInputDTO(
+        val userRegisterInput = UserRegisterInput(
             email = "test@email.com",
             firstName = "",
             lastName = "Pork",
@@ -141,7 +141,7 @@ class UserControllerTests {
 
     @Test
     fun `test user register with invalid last name`() {
-        val userRegisterInput = UserRegisterInputDTO(
+        val userRegisterInput = UserRegisterInput(
             email = "test@email.com",
             firstName = "John",
             lastName = "",
@@ -161,7 +161,7 @@ class UserControllerTests {
 
     @Test
     fun `test user register with invalid password`() {
-        val userRegisterInput = UserRegisterInputDTO(
+        val userRegisterInput = UserRegisterInput(
             email = "test@email.com",
             firstName = "John",
             lastName = "Pork",
@@ -182,7 +182,7 @@ class UserControllerTests {
 
     @Test
     fun `test user register with blank first name last name and password`() {
-        val userRegisterInput = UserRegisterInputDTO(
+        val userRegisterInput = UserRegisterInput(
             email = "testemail.com",
             firstName = "",
             lastName = "",
@@ -218,11 +218,11 @@ class UserControllerTests {
     @Test
     fun `login sucessfully`() {
         val (id, cookie) = createUser(
-            UserRegisterInputDTO(email = "test@email.com", firstName = "Test", lastName = "Test", password = "Password1_.")
+            UserRegisterInput(email = "test@email.com", firstName = "Test", lastName = "Test", password = "Password1_.")
         )
         requireNotNull(cookie)
 
-        val userLogin = UserLoginInputDTO(
+        val userLogin = UserLoginInput(
             email = "test@email.com",
             password = "Password1_."
         )
@@ -242,10 +242,10 @@ class UserControllerTests {
     @Test
     fun `try to login with invalid credentials`() {
         val (id, cookie) = createUser(
-            UserRegisterInputDTO(email = "test@email.com", firstName = "Test", lastName = "Test", password = "Password1_")
+            UserRegisterInput(email = "test@email.com", firstName = "Test", lastName = "Test", password = "Password1_")
         )
 
-        val userLogin = UserLoginInputDTO(
+        val userLogin = UserLoginInput(
             email = "test@email.com",
             password = "JosePue123."
         )
@@ -263,7 +263,7 @@ class UserControllerTests {
 
     @Test
     fun `try to login without a createdUser`() {
-        val userLogin = UserLoginInputDTO(
+        val userLogin = UserLoginInput(
             email = "test@email.com",
             password = "JosePue123."
         )
@@ -296,7 +296,7 @@ class UserControllerTests {
     @Test
     fun `get a user sucessfully`() {
         val (id, cookie) = createUser(
-            UserRegisterInputDTO(email = "test@email.com", firstName = "Test", lastName = "Test", password = "Password1_")
+            UserRegisterInput(email = "test@email.com", firstName = "Test", lastName = "Test", password = "Password1_")
         )
 
         mockMvc.perform(
@@ -332,7 +332,7 @@ class UserControllerTests {
     @Test
     fun `logout sucessfully`() {
         val (id, cookie) = createUser(
-            UserRegisterInputDTO(email = "test@email.com", firstName = "Test", lastName = "Test", password = "Password1_")
+            UserRegisterInput(email = "test@email.com", firstName = "Test", lastName = "Test", password = "Password1_")
         )
         requireNotNull(cookie)
 

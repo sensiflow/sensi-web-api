@@ -1,4 +1,4 @@
-package com.isel.sensiflow.services.dto.input
+package com.isel.sensiflow.http.entities.input
 
 import com.isel.sensiflow.Constants
 import jakarta.validation.constraints.Email
@@ -17,7 +17,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException
  * @param password Password of the user
  * @throws MethodArgumentNotValidException if any of the fields is not valid.
  */
-data class UserRegisterInputDTO(
+data class UserRegisterInput(
 
     @field:NotBlank(
         message = Constants.Error.EMAIL_EMPTY

@@ -1,4 +1,4 @@
-package com.isel.sensiflow.services.dto.input
+package com.isel.sensiflow.http.entities.input
 
 import com.isel.sensiflow.Constants
 import com.isel.sensiflow.Constants.InputValidation.PASSWORD_MAX_SIZE
@@ -19,7 +19,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException
  * @param password Password of the user
  * @throws MethodArgumentNotValidException if any of the fields is not valid.
  */
-data class UserLoginInputDTO(
+data class UserLoginInput(
     @field:NotBlank(
         message = Constants.Error.EMAIL_EMPTY
     )

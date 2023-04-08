@@ -1,6 +1,8 @@
 package com.isel.sensiflow.http.controller
 
+import com.isel.sensiflow.http.pipeline.authentication.Authentication
 import com.isel.sensiflow.services.ProcessedStreamService
+import com.isel.sensiflow.services.UserID
 import com.isel.sensiflow.services.dto.output.ProcessedStreamOutputDTO
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -12,11 +14,12 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping(RequestPaths.Device.DEVICE)
 class ProcessedStreamController(val processedStreamService: ProcessedStreamService) {
 
+    @Authentication
     @GetMapping(RequestPaths.Device.DEVICE_PROCESSED_STREAM)
     fun getProcessedStream(
         @PathVariable id: Int,
         @RequestParam expanded: Boolean = false,
-        userID: Int /* TODO Injected by auth */
+        userID: UserID
     ): ProcessedStreamOutputDTO {
         return processedStreamService
             .getProcessedStreamOfDeviceWith(id, userID, expanded)

@@ -3,6 +3,7 @@ package com.isel.sensiflow.services
 import com.isel.sensiflow.model.dao.DeviceGroup
 import com.isel.sensiflow.model.repository.DeviceGroupRepository
 import com.isel.sensiflow.model.repository.DeviceRepository
+import com.isel.sensiflow.model.repository.requireFindAllById
 import com.isel.sensiflow.services.dto.PaginationInfo
 import com.isel.sensiflow.services.dto.input.DevicesGroupCreateDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupInputDTO
@@ -65,7 +66,7 @@ class DeviceGroupService(
         val group = deviceGroupRepository.findById(groupID)
             .orElseThrow { DeviceGroupNotFoundException(groupID) }
 
-        val newDevices = deviceRepository.findAllById(input.deviceIDs)
+        val newDevices = deviceRepository.requireFindAllById(input.deviceIDs)
 
         group.devices.clear()
         group.devices.addAll(newDevices)
@@ -78,6 +79,8 @@ class DeviceGroupService(
      * @param paginationInfo The pagination info
      * @param expanded If the list should be expanded or not
      * @return The list of devices in the group as [PageDTO] of [DeviceOutputDTO]
+     * @throws DeviceGroupNotFoundException If the group does not exist
+     * @throws DeviceNotFoundException If a device in the list does not exist
      */
     @Transactional(isolation = Isolation.READ_COMMITTED)
     fun getDevicesFromGroup(groupID: ID, paginationInfo: PaginationInfo, expanded: Boolean): PageDTO<DeviceOutputDTO> {
@@ -112,18 +115,16 @@ class DeviceGroupService(
      * @param inputDTO The input data to create the group
      * @param devices The list of devices to add to the group
      * @return The id of the created group
+     * @throws DeviceNotFoundException if a given device from the received list does not exist
      */
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     fun createDevicesGroup(inputDTO: DevicesGroupCreateDTO, devices: List<ID>? = null): DeviceGroup {
-        try {
-            val group = DeviceGroup(name = inputDTO.name, description = inputDTO.description)
-            if (devices != null) {
-                val foundDevices = deviceRepository.findAllById(devices)
-                group.devices.addAll(foundDevices)
-            }
-            return deviceGroupRepository.save(group)
-        } catch (e: IllegalArgumentException) {
-            throw Exception(e.message) // TODO: Change exception
+        val group = DeviceGroup(name = inputDTO.name, description = inputDTO.description)
+
+        if (devices != null) {
+            val foundDevices = deviceRepository.requireFindAllById(devices)
+            group.devices.addAll(foundDevices)
         }
+        return deviceGroupRepository.save(group)
     }
 }

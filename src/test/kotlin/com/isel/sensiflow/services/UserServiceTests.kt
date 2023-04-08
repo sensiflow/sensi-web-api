@@ -1,14 +1,14 @@
 package com.isel.sensiflow.services
 
 import com.isel.sensiflow.Constants.User.SESSION_EXPIRATION_TIME
+import com.isel.sensiflow.http.entities.input.UserLoginInput
+import com.isel.sensiflow.http.entities.input.UserRegisterInput
 import com.isel.sensiflow.model.dao.Email
 import com.isel.sensiflow.model.dao.SessionToken
 import com.isel.sensiflow.model.dao.User
 import com.isel.sensiflow.model.repository.EmailRepository
 import com.isel.sensiflow.model.repository.SessionTokenRepository
 import com.isel.sensiflow.model.repository.UserRepository
-import com.isel.sensiflow.services.dto.input.UserLoginInputDTO
-import com.isel.sensiflow.services.dto.input.UserRegisterInputDTO
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -67,14 +67,14 @@ class UserServiceTests {
         expiration = (timeNow + SESSION_EXPIRATION_TIME).toTimeStamp()
     )
 
-    private val fakeUserInput = UserRegisterInputDTO(
+    private val fakeUserInput = UserRegisterInput(
         firstName = "John",
         lastName = "Doe",
         email = "johnDoe@email.com",
         password = "Passord2.0"
     )
 
-    private val userLoginInput = UserLoginInputDTO(
+    private val userLoginInput = UserLoginInput(
         email = "johnDoe@email.com",
         password = "Passord2.0"
     )

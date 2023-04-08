@@ -1,5 +1,6 @@
 package com.isel.sensiflow.model.dao
 
+import com.isel.sensiflow.services.dto.UserDTO
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
@@ -39,7 +40,25 @@ class User(
     val sessionTokens: MutableSet<SessionToken> = mutableSetOf()
 }
 
+/**
+ * Adds an email to a user
+ * @param email the email to add
+ * @return the user
+ */
 fun User.addEmail(email: Email): User {
     this.email = email
     return this
+}
+
+/**
+ * Converts a [User] to a [UserDTO]
+ */
+fun User.toDTO(): UserDTO {
+    val email = this.email
+    require(email != null) { "Invalid user creation" }
+    return UserDTO(
+        email = email.email,
+        firstName = this.firstName,
+        lastName = this.lastName,
+    )
 }

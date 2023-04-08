@@ -1,15 +1,16 @@
 package com.isel.sensiflow.integration
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.isel.sensiflow.Constants
 import com.isel.sensiflow.Constants.User.AUTH_COOKIE_NAME
+import com.isel.sensiflow.http.entities.input.UserRegisterInput
+import com.isel.sensiflow.http.entities.output.IDOutput
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupCreateDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupInputDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupUpdateDTO
-import com.isel.sensiflow.services.dto.input.UserRegisterInputDTO
 import com.isel.sensiflow.services.dto.output.DeviceGroupOutputDTO
 import com.isel.sensiflow.services.dto.output.DeviceOutputDTO
-import com.isel.sensiflow.services.dto.output.IDOutputDTO
 import com.isel.sensiflow.services.dto.output.PageDTO
 import jakarta.servlet.http.Cookie
 import org.junit.jupiter.api.Test
@@ -44,7 +45,7 @@ class DevicesGroupControllerTests {
     fun `update a group successfully`() {
         val cookie = get(cookie = createUser())
 
-        val createResponse = mockMvc.request<DevicesGroupCreateDTO, IDOutputDTO>(
+        val createResponse = mockMvc.request<DevicesGroupCreateDTO, IDOutput>(
             method = HTTPMethod.POST,
             uri = "/groups",
             body = DevicesGroupCreateDTO("Test", "Test"),
@@ -121,7 +122,7 @@ class DevicesGroupControllerTests {
         val createResponse = createTestGroup(cookie)
         val id = createResponse?.id ?: fail("Failed to create test group")
 
-        mockMvc.request<IDOutputDTO, Unit>(
+        mockMvc.request<IDOutput, Unit>(
             method = HTTPMethod.DELETE,
             uri = "/groups/$id",
             authorization = cookie,
@@ -269,8 +270,8 @@ class DevicesGroupControllerTests {
          )*/
     }
 
-    private fun createDevice(cookie: Cookie, input: DeviceInputDTO): IDOutputDTO? {
-        return mockMvc.request<DeviceInputDTO, IDOutputDTO>(
+    private fun createDevice(cookie: Cookie, input: DeviceInputDTO): IDOutput? {
+        return mockMvc.request<DeviceInputDTO, IDOutput>(
             method = HTTPMethod.POST,
             uri = "/devices",
             body = input,
@@ -283,8 +284,8 @@ class DevicesGroupControllerTests {
         )
     }
 
-    private fun createTestGroup(cookie: Cookie): IDOutputDTO? {
-        return mockMvc.request<DevicesGroupCreateDTO, IDOutputDTO>(
+    private fun createTestGroup(cookie: Cookie): IDOutput? {
+        return mockMvc.request<DevicesGroupCreateDTO, IDOutput>(
             method = HTTPMethod.POST,
             uri = "/groups",
             body = DevicesGroupCreateDTO("Test", "Test"),
@@ -298,7 +299,7 @@ class DevicesGroupControllerTests {
     }
 
     private fun createUser(): Cookie? {
-        val user = UserRegisterInputDTO(
+        val user = UserRegisterInput(
             email = "test@email.com",
             firstName = "Test",
             lastName = "Test",

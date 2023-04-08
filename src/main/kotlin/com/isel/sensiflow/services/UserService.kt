@@ -1,19 +1,20 @@
 package com.isel.sensiflow.services
 
 import com.isel.sensiflow.Constants.User.SESSION_EXPIRATION_TIME
+import com.isel.sensiflow.http.entities.input.UserLoginInput
+import com.isel.sensiflow.http.entities.input.UserRegisterInput
+import com.isel.sensiflow.http.entities.output.UserOutput
 import com.isel.sensiflow.model.dao.Email
 import com.isel.sensiflow.model.dao.SessionToken
 import com.isel.sensiflow.model.dao.User
 import com.isel.sensiflow.model.dao.addEmail
 import com.isel.sensiflow.model.dao.hasExpired
+import com.isel.sensiflow.model.dao.toDTO
 import com.isel.sensiflow.model.repository.EmailRepository
 import com.isel.sensiflow.model.repository.SessionTokenRepository
 import com.isel.sensiflow.model.repository.UserRepository
 import com.isel.sensiflow.services.dto.AuthInformationDTO
-import com.isel.sensiflow.services.dto.input.UserLoginInputDTO
-import com.isel.sensiflow.services.dto.input.UserRegisterInputDTO
-import com.isel.sensiflow.services.dto.output.UserOutputDTO
-import com.isel.sensiflow.services.dto.output.toDTO
+import com.isel.sensiflow.services.dto.UserDTO
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Isolation
 import org.springframework.transaction.annotation.Transactional
@@ -33,7 +34,7 @@ class UserService(
      * @throws EmailAlreadyExistsException if the email already exists
      */
     @Transactional(isolation = Isolation.REPEATABLE_READ)
-    fun createUser(userInput: UserRegisterInputDTO): AuthInformationDTO {
+    fun createUser(userInput: UserRegisterInput): AuthInformationDTO {
         emailRepository
             .findByEmail(userInput.email)
             .ifPresent {
@@ -72,12 +73,12 @@ class UserService(
     }
 
     /**
-     * Gets a user from the database identified by its [UserID] and returns it as a [UserOutputDTO]
+     * Gets a user from the database identified by its [UserID] and returns it as a [UserOutput]
      * @param userID the user's id to be searched
      * @throws UserNotFoundException if the [User] is not found
      */
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    fun getUser(userID: UserID): UserOutputDTO {
+    fun getUser(userID: UserID): UserDTO {
         val user = userRepository
             .findById(userID)
             .orElseThrow {
@@ -125,7 +126,7 @@ class UserService(
      * @throws InvalidCredentialsException if the password is invalid
      */
     @Transactional(isolation = Isolation.REPEATABLE_READ)
-    fun authenticateUser(userInput: UserLoginInputDTO): AuthInformationDTO {
+    fun authenticateUser(userInput: UserLoginInput): AuthInformationDTO {
         val email = emailRepository.findByEmail(userInput.email)
             .ifNotPresent {
                 throw EmailNotFoundException(userInput.email)
