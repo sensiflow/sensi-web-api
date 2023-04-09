@@ -1,6 +1,7 @@
 package com.isel.sensiflow.services.dto.input
 
 import com.isel.sensiflow.Constants
+import com.isel.sensiflow.http.entities.validation.NotBlankNullable
 import com.isel.sensiflow.services.ID
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
@@ -10,7 +11,7 @@ data class DevicesGroupInputDTO(
 )
 
 data class DevicesGroupUpdateDTO(
-    @field:NotBlank
+    @field:NotBlankNullable
     @field:Size(
         min = Constants.Device.NAME_MIN_LENGTH,
         max = Constants.Device.NAME_MAX_LENGTH,
@@ -40,6 +41,6 @@ data class DevicesGroupCreateDTO(
         max = Constants.Device.DESCRIPTION_MAX_LENGTH,
         message = Constants.Error.DEVICE_DESCRIPTION_INVALID_LENGTH
     )
-    @field:NotBlank
+    @field:NotBlankNullable
     val description: String? = null
 )
