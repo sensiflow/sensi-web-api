@@ -23,6 +23,7 @@ import org.springframework.http.MediaType
 import org.springframework.http.ProblemDetail
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
@@ -258,6 +259,84 @@ class DevicesGroupControllerTests {
     }
 
     @Test
+    fun `try to edit a group's description only`(){
+        val cookie = get(cookie = createUser())
+        val createResponse = createTestGroup(cookie)
+        val id = createResponse?.id ?: fail("Failed to create test group")
+
+        mockMvc.request<DevicesGroupUpdateDTO, Unit>(
+            method = HTTPMethod.PUT,
+            uri = "/groups/$id",
+            body = DevicesGroupUpdateDTO(description = "Test2"),
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isNoContent)
+            }
+        )
+
+        mockMvc.request<Unit, DeviceGroupOutputDTO>(
+            method = HTTPMethod.GET,
+            uri = "/groups/$id",
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isOk)
+                    .andExpect(jsonPath("$.name").value("Test"))
+                    .andExpect(jsonPath("$.description").value("Test2"))
+            }
+        )
+    }
+
+    @Test
+    fun `try to edit the groups name and cleaning description`(){
+        val cookie = get(cookie = createUser())
+        val createResponse = createTestGroup(cookie)
+        val id = createResponse?.id ?: fail("Failed to create test group")
+
+        mockMvc.request<DevicesGroupUpdateDTO, Unit>(
+            method = HTTPMethod.PUT,
+            uri = "/groups/$id",
+            body = DevicesGroupUpdateDTO(name = "changed" ,description = ""),
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isNoContent)
+            }
+        )
+
+        mockMvc.request<Unit, DeviceGroupOutputDTO>(
+            method = HTTPMethod.GET,
+            uri = "/groups/$id",
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isOk)
+                    .andExpect(jsonPath("$.name").value("changed"))
+                    .andExpect(jsonPath("$.description").doesNotExist())
+            }
+        )
+    }
+
+    @Test
+    fun `try to update a group with a non existent device`() {
+        val cookie = get(cookie = createUser())
+
+        mockMvc.request<DevicesGroupCreateDTO, ProblemDetail>(
+            method = HTTPMethod.POST,
+            uri = "/groups?devices=4,200",
+            body = DevicesGroupCreateDTO("Test", "Test"),
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isNotFound)
+                    .andExpect(
+                        jsonPath("$.type")
+                            .value(Constants.Problem.URI.DEVICE_NOT_FOUND)
+                    )
+            }
+        )
+    }
+
+    @Test
     fun `get devices from a group that does not exist returns Not Found`() {
         /** TODO: DO ERROR HANDLING
          mockMvc.request<Unit, PageDTO<DeviceOutputDTO>>(
@@ -268,6 +347,192 @@ class DevicesGroupControllerTests {
          andExpect(status().isNotFound)
          }
          )*/
+    }
+
+    @Test
+    fun `create a device group successfully`() {
+        val cookie = get(cookie = createUser())
+
+        mockMvc.request<DevicesGroupCreateDTO, IDOutput>(
+            method = HTTPMethod.POST,
+            uri = "/groups",
+            body = DevicesGroupCreateDTO("Test", "Test"),
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isCreated)
+                    .andExpect(jsonPath("$.id").exists())
+            }
+        )
+    }
+
+    @Test
+    fun `try to create a group without a description`() {
+        val cookie = get(cookie = createUser())
+
+        val responseGroup = mockMvc.request<DevicesGroupCreateDTO, IDOutput>(
+            method = HTTPMethod.POST,
+            uri = "/groups",
+            body = DevicesGroupCreateDTO("Test", null),
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isCreated)
+                    .andExpect(jsonPath("$.id").exists())
+            }
+        )
+
+        val id = responseGroup?.id ?: fail("Failed to create test device")
+
+        mockMvc.request<Unit, DeviceGroupOutputDTO>(
+            method = HTTPMethod.GET,
+            uri = "/groups/$id",
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isOk)
+                    .andExpect(jsonPath("$.description").isEmpty)
+                    .andExpect(jsonPath("$.name").value("Test"))
+            }
+        )
+    }
+
+    @Test
+    fun `try to create a group without a name`(){
+        val cookie = get(cookie = createUser())
+
+        val json = """{ description : "adwdw" }"""
+
+        mockMvc.perform(
+            post("/users/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .cookie(cookie)
+                .content(json)
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value(Constants.Problem.URI.INVALID_JSON_BODY))
+    }
+
+    @Test
+    fun `create a group and try to add invalid devices`(){
+        val cookie = get(cookie = createUser())
+
+        mockMvc.request<DevicesGroupCreateDTO,ProblemDetail>(
+            method = HTTPMethod.POST,
+            uri = "/groups?devices=4,200",
+            body = DevicesGroupCreateDTO("Test", "Test"),
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isNotFound)
+                    .andExpect(
+                        jsonPath("$.type")
+                            .value(Constants.Problem.URI.DEVICE_NOT_FOUND)
+                    )
+            }
+        )
+    }
+
+    @Test
+    fun `create a group and add devices successfully`(){
+        val cookie = get(cookie = createUser())
+
+        val id1 = mockMvc.request<DeviceInputDTO,IDOutput>(
+            method = HTTPMethod.POST,
+            uri = "/devices",
+            body = DeviceInputDTO(
+                name = "Test",
+                description = "Test",
+                streamURL = "Test.url"
+            ),
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isCreated)
+                    .andExpect(jsonPath("$.id").exists())
+            }
+        )
+        val id2 = mockMvc.request<DeviceInputDTO,IDOutput>(
+            method = HTTPMethod.POST,
+            uri = "/devices",
+            body = DeviceInputDTO(
+                name = "Test",
+                description = "Test",
+                streamURL = "Test.url"
+            ),
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isCreated)
+                    .andExpect(jsonPath("$.id").exists())
+            }
+        )
+
+        mockMvc.request<DevicesGroupCreateDTO,IDOutput>(
+            method = HTTPMethod.POST,
+            uri = "/groups?devices=${id1?.id},${id2?.id}",
+            body = DevicesGroupCreateDTO(
+                name = "Test",
+                description = "Test"
+            ),
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isCreated)
+                    .andExpect(jsonPath("$.id").exists())
+            }
+        )
+    }
+
+    @Test
+    fun `try to get a group that does not exist`(){
+        val cookie = get(cookie = createUser())
+
+        mockMvc.request<Unit,ProblemDetail>(
+            method = HTTPMethod.GET,
+            uri = "/groups/-1",
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isNotFound)
+                    .andExpect(
+                        jsonPath("$.type")
+                            .value(Constants.Problem.URI.DEVICE_GROUP_NOT_FOUND)
+                    )
+            }
+        )
+    }
+
+    fun `get a group sucessfully`(){
+        val cookie = get(cookie = createUser())
+
+        val id = mockMvc.request<DevicesGroupCreateDTO,IDOutput>(
+            method = HTTPMethod.POST,
+            uri = "/groups",
+            body = DevicesGroupCreateDTO(
+                name = "Test",
+                description = "Test"
+            ),
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isCreated)
+                    .andExpect(jsonPath("$.id").exists())
+            }
+        )?.id ?: fail("Failed to create test group")
+
+        mockMvc.request<Unit,DeviceGroupOutputDTO>(
+            method = HTTPMethod.GET,
+            uri = "/groups/$id",
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isOk)
+                    .andExpect(jsonPath("$.id").value(id))
+                    .andExpect(jsonPath("$.name").value("Test"))
+                    .andExpect(jsonPath("$.description").value("Test"))
+            }
+        )
     }
 
     private fun createDevice(cookie: Cookie, input: DeviceInputDTO): IDOutput? {

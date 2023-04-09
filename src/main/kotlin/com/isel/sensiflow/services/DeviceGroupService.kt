@@ -36,7 +36,7 @@ class DeviceGroupService(
 
         val groupName = groupInput.name ?: deviceGroup.name
 
-        val groupDescription = groupInput.description?.check() ?: deviceGroup.description
+        val groupDescription = (groupInput.description ?: deviceGroup.description)?.check()
 
         return deviceGroupRepository.save(
             DeviceGroup(deviceGroup.id, groupName, groupDescription)
