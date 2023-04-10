@@ -1,11 +1,14 @@
-begin;
+drop type if exists device_processing_state cascade;
+create type user_roles as enum ('OWNER', 'MODERATOR', 'USER');
 
 create table if not exists "user" (
     id serial primary key,
     first_name varchar(20) not null,
     last_name varchar(20) not null,
+    "role" user_roles not null default 'USER',
     password_hash varchar(200) not null,
-    password_salt varchar(32) not null
+    password_salt varchar(32) not null,
+    foreign key ("role") references UserRoles(id)
 );
 
 create table if not exists Email(

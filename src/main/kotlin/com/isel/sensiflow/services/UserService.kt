@@ -15,6 +15,7 @@ import com.isel.sensiflow.model.repository.SessionTokenRepository
 import com.isel.sensiflow.model.repository.UserRepository
 import com.isel.sensiflow.services.dto.AuthInformationDTO
 import com.isel.sensiflow.services.dto.UserDTO
+import com.isel.sensiflow.services.dto.input.UserRoleInputDTO
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Isolation
 import org.springframework.transaction.annotation.Transactional
@@ -34,7 +35,7 @@ class UserService(
      * @throws EmailAlreadyExistsException if the email already exists
      */
     @Transactional(isolation = Isolation.REPEATABLE_READ)
-    fun createUser(userInput: UserRegisterInput): AuthInformationDTO {
+    fun createUser(userInput: UserRegisterInput, role: Role = Role.USER): AuthInformationDTO {
         emailRepository
             .findByEmail(userInput.email)
             .ifPresent {
@@ -48,6 +49,7 @@ class UserService(
             User(
                 firstName = userInput.firstName,
                 lastName = userInput.lastName,
+                role = role,
                 passwordHash = hashedPassword,
                 passwordSalt = salt
             )
@@ -170,5 +172,27 @@ class UserService(
             )
             return AuthInformationDTO(sessionToken.token, user.id)
         }
+    }
+
+    /**
+     * Updates the user's role with the one provided in the [UserRoleInputDTO]
+     * @param userID the user's id to be updated
+     * @param input the [UserRoleInputDTO] containing the new role
+     * @throws UserNotFoundException if the user is not found
+     */
+    fun updateRole(userID: UserID, input: UserRoleInputDTO) {
+        val user = userRepository.findById(userID)
+            .orElseThrow { UserNotFoundException(userID) }
+
+        userRepository.save(
+            User(
+                id = user.id,
+                firstName = user.firstName,
+                lastName = user.lastName,
+                role = user.role,
+                passwordHash = user.passwordHash,
+                passwordSalt = user.passwordSalt
+            )
+        )
     }
 }

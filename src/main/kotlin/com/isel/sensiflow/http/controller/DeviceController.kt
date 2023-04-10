@@ -4,6 +4,7 @@ import com.isel.sensiflow.http.entities.output.IDOutput
 import com.isel.sensiflow.http.entities.output.toIDOutput
 import com.isel.sensiflow.http.pipeline.authentication.Authentication
 import com.isel.sensiflow.services.DeviceService
+import com.isel.sensiflow.services.Role.*
 import com.isel.sensiflow.services.UserID
 import com.isel.sensiflow.services.dto.PaginationInfo
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
@@ -30,7 +31,7 @@ import org.springframework.web.bind.annotation.RestController
 class DeviceController(
     val deviceService: DeviceService
 ) {
-
+    @Authentication(authorization = USER)
     @GetMapping
     fun getDevices(
         @RequestParam page: Int?,
@@ -40,7 +41,7 @@ class DeviceController(
         return deviceService.getAllDevices(PaginationInfo(page, size), expanded = expanded)
     }
 
-    @Authentication
+    @Authentication(authorization = MODERATOR)
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun createDevice(
@@ -54,6 +55,7 @@ class DeviceController(
         return deviceID.toIDOutput()
     }
 
+    @Authentication(authorization = USER)
     @GetMapping(RequestPaths.Device.DEVICE_ID)
     fun getDevice(
         @PathVariable id: Int,
@@ -62,45 +64,42 @@ class DeviceController(
         return deviceService.getDeviceById(id, expanded)
     }
 
-    @Authentication
+    @Authentication(authorization = MODERATOR)
     @PutMapping(RequestPaths.Device.DEVICE_ID)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun updateDevice(
         @PathVariable id: Int,
-        @Valid @RequestBody deviceInputDTO: DeviceUpdateDTO,
-        userID: UserID
+        @Valid @RequestBody deviceInputDTO: DeviceUpdateDTO
     ) {
-        deviceService.updateDevice(id, deviceInputDTO, userID)
+        deviceService.updateDevice(id, deviceInputDTO)
     }
 
-    @Authentication
+    @Authentication(authorization = OWNER)
     @DeleteMapping(RequestPaths.Device.DEVICE_ID)
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun deleteDevice(@PathVariable id: Int, userID: UserID) {
-        deviceService.deleteDevice(id, userID)
+    fun deleteDevice(@PathVariable id: Int) {
+        deviceService.deleteDevice(id)
     }
 
-    @Authentication
+    @Authentication(authorization = MODERATOR)
     @PutMapping(RequestPaths.Device.PROCESSING_STATE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun updateProcessingState(
         @PathVariable id: Int,
         @RequestBody @Valid deviceStateInputDTO: DeviceStateInputDTO,
-        userID: UserID
     ) {
-        deviceService.updateProcessingState(id, deviceStateInputDTO.state, userID)
+        deviceService.updateProcessingState(id, deviceStateInputDTO.state)
     }
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping(RequestPaths.Device.DEVICE_STATS)
-    @Authentication
+    @Authentication(authorization = USER)
     fun getDeviceStats(
         @PathVariable id: Int,
         @RequestParam page: Int,
         @RequestParam size: Int,
-        userID: UserID
     ): PageDTO<MetricOutputDTO> {
         return deviceService
-            .getDeviceStats(PaginationInfo(page, size), id, userID)
+            .getDeviceStats(PaginationInfo(page, size), id)
     }
 }

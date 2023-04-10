@@ -1,6 +1,5 @@
 package com.isel.sensiflow.services
 
-import com.isel.sensiflow.Constants
 import com.isel.sensiflow.model.dao.Device
 import com.isel.sensiflow.model.dao.DeviceProcessingState
 import com.isel.sensiflow.model.repository.DeviceRepository
@@ -85,18 +84,13 @@ class DeviceService(
      *
      * @param deviceId The id of the device.
      * @param deviceInput The input data for the device to update.
-     * @param userId The id of the user that owns the device.
-     * @throws OwnerMismatchException If the user does not own the device.
      * @return The updated [Device].
      */
     @Transactional(isolation = Isolation.REPEATABLE_READ)
-    fun updateDevice(deviceId: Int, deviceInput: DeviceUpdateDTO, userId: Int): Device {
+    fun updateDevice(deviceId: Int, deviceInput: DeviceUpdateDTO): Device {
 
         val device = deviceRepository.findById(deviceId)
             .orElseThrow { DeviceNotFoundException(deviceId) }
-
-        if (device.user.id != userId)
-            throw OwnerMismatchException(Constants.Error.DEVICE_OWNER_MISMATCH.format(deviceId, userId))
 
         // If the input is empty, there is nothing to update.
         // Same if the input is the same as the current device.
@@ -116,27 +110,23 @@ class DeviceService(
     /**
      * Deletes a device.
      * @param deviceId The id of the device.
-     * @param userId The id of the user that owns the device.
      * @throws DeviceNotFoundException If the device does not exist.
      */
     @Transactional(isolation = Isolation.REPEATABLE_READ)
-    fun deleteDevice(deviceId: Int, userId: Int) {
-        val device = deviceRepository.findById(deviceId)
+    fun deleteDevice(deviceId: Int) {
+        deviceRepository.findById(deviceId)
             .orElseThrow { DeviceNotFoundException(deviceId) }
-
-        if (device.user.id != userId)
-            throw OwnerMismatchException(
-                Constants.Error.DEVICE_OWNER_MISMATCH.format(deviceId, userId)
-            )
 
         deviceRepository.deleteById(deviceId)
     }
 
     /**
      * Changes the processing state of a device.
+     * @param deviceID The id of the device.
+     * @param state The new state of the device.
      */
     @Transactional(isolation = Isolation.REPEATABLE_READ)
-    fun updateProcessingState(deviceID: Int, state: String?, userID: Int) {
+    fun updateProcessingState(deviceID: Int, state: String?) {
 
         val safeState = state ?: throw InvalidProcessingStateException("null")
         val newProcessingState = DeviceProcessingState.fromString(safeState)
@@ -144,9 +134,6 @@ class DeviceService(
 
         val device = deviceRepository.findById(deviceID)
             .orElseThrow { DeviceNotFoundException(deviceID) }
-
-        if (device.user.id != userID)
-            throw OwnerMismatchException(Constants.Error.DEVICE_OWNER_MISMATCH.format(deviceID, userID))
 
         if (!device.processingState.isValidTransition(newProcessingState))
             throw InvalidProcessingStateTransitionException(from = device.processingState, to = newProcessingState)
@@ -167,20 +154,16 @@ class DeviceService(
      * Gets the stats of a device.
      * @param paginationInfo The pagination information.
      * @param deviceId The id of the device.
-     * @param userId The id of the user that owns the device.
      * @throws DeviceNotFoundException If the device does not exist.
      * @throws OwnerMismatchException If the user does not own the device.
      * @return A [PageDTO] of [MetricOutputDTO].
      */
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    fun getDeviceStats(paginationInfo: PaginationInfo, deviceId: Int, userId: Int): PageDTO<MetricOutputDTO> {
+    fun getDeviceStats(paginationInfo: PaginationInfo, deviceId: Int): PageDTO<MetricOutputDTO> {
         val pageable: Pageable = PageRequest.of(paginationInfo.page, paginationInfo.size)
 
         val device = deviceRepository.findById(deviceId)
             .orElseThrow { DeviceNotFoundException(deviceId) }
-
-        if (device.user.id != userId)
-            throw OwnerMismatchException(Constants.Error.DEVICE_OWNER_MISMATCH.format(deviceId, userId))
 
         return metricRepository
             .findAllByDeviceID(device, pageable)

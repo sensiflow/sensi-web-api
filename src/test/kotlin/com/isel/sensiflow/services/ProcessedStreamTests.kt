@@ -4,9 +4,9 @@ import com.isel.sensiflow.model.dao.User
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.model.repository.ProcessedStreamRepository
 import com.isel.sensiflow.services.DeviceNotFoundException
-import com.isel.sensiflow.services.OwnerMismatchException
 import com.isel.sensiflow.services.ProcessedStreamNotFoundException
 import com.isel.sensiflow.services.ProcessedStreamService
+import com.isel.sensiflow.services.Role
 import com.isel.sensiflow.services.dto.output.DeviceSimpleOutputDTO
 import com.isel.sensiflow.services.dto.output.ProcessedStreamExpandedOutputDTO
 import com.isel.sensiflow.services.dto.output.toDTO
@@ -46,6 +46,7 @@ class ProcessedStreamTests {
         id = 1,
         firstName = "John",
         lastName = "Doe",
+        role = Role.OWNER,
         passwordHash = "hash",
         passwordSalt = "salt"
     )
@@ -76,14 +77,13 @@ class ProcessedStreamTests {
     fun `get a simple processed stream of a device`() {
         // Arrange
         val deviceId = 1
-        val userId = 1
         val expanded = false
 
         `when`(deviceRepository.findById(deviceId)).thenReturn(Optional.of(fakeDevice))
         `when`(processedStreamRepository.findById(deviceId)).thenReturn(Optional.of(fakeProcessedStream))
 
         // Act
-        val processedStream = processedStreamService.getProcessedStreamOfDeviceWith(deviceId, userId, expanded)
+        val processedStream = processedStreamService.getProcessedStreamOfDeviceWith(deviceId, expanded)
 
         // Assert
         assertEquals(fakeProcessedStream.toDTO(expanded), processedStream)
@@ -95,7 +95,6 @@ class ProcessedStreamTests {
     fun `get an expanded processed stream of a device`() {
         // Arrange
         val deviceId = 1
-        val userId = 1
         val expanded = true
 
         val expandedProcessedStream = ProcessedStreamExpandedOutputDTO(
@@ -114,7 +113,7 @@ class ProcessedStreamTests {
         `when`(processedStreamRepository.findById(deviceId)).thenReturn(Optional.of(fakeProcessedStream))
 
         // Act
-        val processedStream = processedStreamService.getProcessedStreamOfDeviceWith(deviceId, userId, expanded)
+        val processedStream = processedStreamService.getProcessedStreamOfDeviceWith(deviceId, expanded)
 
         // Assert
         assertEquals(expandedProcessedStream, processedStream)
@@ -123,36 +122,16 @@ class ProcessedStreamTests {
     }
 
     @Test
-    fun `get processed stream of a device that does not belong to the user`() {
-        // Arrange
-        val deviceId = 1
-        val userId = fakeUser.id + 1
-        val expanded = false
-
-        `when`(deviceRepository.findById(deviceId)).thenReturn(Optional.of(fakeDevice))
-        `when`(processedStreamRepository.findById(deviceId)).thenReturn(Optional.of(fakeProcessedStream))
-
-        // Act
-        assertThrows<OwnerMismatchException> {
-            processedStreamService.getProcessedStreamOfDeviceWith(deviceId, userId, expanded)
-        }
-
-        verify(deviceRepository, times(1)).findById(deviceId)
-        verify(processedStreamRepository, times(0)).findById(anyInt())
-    }
-
-    @Test
     fun `get processed stream of a device that does not exist`() {
         // Arrange
         val nonExistentDeviceID = 1
-        val userId = 1
         val expanded = false
 
         `when`(deviceRepository.findById(nonExistentDeviceID)).thenReturn(Optional.empty())
 
         // Act
         assertThrows<DeviceNotFoundException> {
-            processedStreamService.getProcessedStreamOfDeviceWith(nonExistentDeviceID, userId, expanded)
+            processedStreamService.getProcessedStreamOfDeviceWith(nonExistentDeviceID, expanded)
         }
 
         verify(deviceRepository, times(1)).findById(nonExistentDeviceID)
@@ -163,7 +142,6 @@ class ProcessedStreamTests {
     fun `get a non existent processed stream`() {
         // Arrange
         val deviceId = 2
-        val userId = 1
         val expanded = false
 
         `when`(deviceRepository.findById(deviceId)).thenReturn(Optional.of(fakeDevice2))
@@ -171,7 +149,7 @@ class ProcessedStreamTests {
 
         // Act
         assertThrows<ProcessedStreamNotFoundException> {
-            processedStreamService.getProcessedStreamOfDeviceWith(deviceId, userId, expanded)
+            processedStreamService.getProcessedStreamOfDeviceWith(deviceId, expanded)
         }
 
         verify(deviceRepository, times(1)).findById(deviceId)

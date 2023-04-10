@@ -1,14 +1,19 @@
 package com.isel.sensiflow.model.dao
 
+import com.isel.sensiflow.services.Role
 import com.isel.sensiflow.services.dto.UserDTO
+import io.hypersistence.utils.hibernate.type.basic.PostgreSQLEnumType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.OneToMany
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
+import org.hibernate.annotations.Type
 
 @Entity
 @Table(name = "\"user\"")
@@ -23,6 +28,11 @@ class User(
 
     @Column(name = "last_name", nullable = false, length = 20)
     val lastName: String,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
+    @Type(PostgreSQLEnumType::class)
+    val role: Role = Role.USER,
 
     @Column(name = "password_hash", nullable = false, length = 200)
     val passwordHash: String,
@@ -58,6 +68,7 @@ fun User.toDTO(): UserDTO {
     require(email != null) { "Invalid user creation" }
     return UserDTO(
         email = email.email,
+        role = this.role,
         firstName = this.firstName,
         lastName = this.lastName,
     )

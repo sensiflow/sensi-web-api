@@ -21,5 +21,6 @@ object RequestPaths {
         const val LOGIN = "/login"
         const val LOGOUT = "/logout"
         const val GET_USER = "/{userID}"
+        const val ROLE = "{userID}/role"
     }
 }

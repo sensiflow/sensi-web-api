@@ -52,9 +52,11 @@ class UserServiceTests {
         id = 1,
         firstName = "John",
         lastName = "Doe",
+        role = Role.OWNER,
         passwordHash = "cff70d1997acd2093cbfca9b66ace24a70deb47c4b5b4ec9f87b83f881432070a8708f2bcd578dc5466de2e07c88c314f76cab9719294e91bf99fb7f76770b9e",
         passwordSalt = "[B@55614340"
     )
+
     private val fakeUserEmail = Email(
         user = fakeUser,
         email = "johnDoe@email.com"

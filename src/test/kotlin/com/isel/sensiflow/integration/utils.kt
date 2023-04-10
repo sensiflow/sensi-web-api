@@ -1,6 +1,10 @@
 package com.isel.sensiflow.integration
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.isel.sensiflow.http.entities.input.UserLoginInput
+import com.isel.sensiflow.http.entities.input.UserRegisterInput
+import com.isel.sensiflow.services.Role
+import com.isel.sensiflow.services.UserService
 import jakarta.servlet.http.Cookie
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
@@ -12,7 +16,7 @@ enum class HTTPMethod {
     GET, POST, PUT, DELETE
 }
 
-fun get(cookie: Cookie?) = cookie ?: error("Failed to create user")
+fun ensureCookieNotNull(cookie: Cookie?) = cookie ?: error("Failed to create user")
 
 inline fun <reified T, reified R> MockMvc.request(
     method: HTTPMethod,
@@ -53,3 +57,21 @@ inline fun <reified T> MockHttpServletRequestBuilder.addIfExists(
 
 fun MockHttpServletRequestBuilder.addIfExists(authorization: Cookie?): MockHttpServletRequestBuilder =
     if (authorization != null) this.cookie(authorization) else this
+
+fun createTestUser(
+    userService: UserService,
+    role: Role
+): UserLoginInput {
+    val user = UserRegisterInput(
+        email = "owner_test@email.com",
+        firstName = "Test",
+        lastName = "Test",
+        password = "Password1_"
+    )
+
+    userService.createUser(user, role)
+    return UserLoginInput(
+        email = user.email,
+        password = user.password
+    )
+}

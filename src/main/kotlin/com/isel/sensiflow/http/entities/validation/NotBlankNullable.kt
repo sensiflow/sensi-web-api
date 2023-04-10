@@ -19,7 +19,7 @@ import kotlin.reflect.KClass
     AnnotationTarget.VALUE_PARAMETER,
 )
 @Retention(AnnotationRetention.RUNTIME)
-annotation class NotBlankNullable (
+annotation class NotBlankNullable(
     val message: String = "This field cannot be blank",
     val groups: Array<KClass<*>> = [],
     val payload: Array<KClass<out Payload>> = []

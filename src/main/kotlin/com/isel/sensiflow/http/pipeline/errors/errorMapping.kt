@@ -11,8 +11,8 @@ import com.isel.sensiflow.services.InvalidProcessingStateException
 import com.isel.sensiflow.services.InvalidProcessingStateTransitionException
 import com.isel.sensiflow.services.InvalidTokenException
 import com.isel.sensiflow.services.NotFoundException
-import com.isel.sensiflow.services.OwnerMismatchException
 import com.isel.sensiflow.services.ProcessedStreamNotFoundException
+import com.isel.sensiflow.services.RoleNotFoundException
 import com.isel.sensiflow.services.ServiceException
 import com.isel.sensiflow.services.ServiceInternalException
 import com.isel.sensiflow.services.UnauthenticatedException
@@ -33,7 +33,6 @@ val ServiceException.httpCode: HttpStatus
         is UnauthenticatedException -> HttpStatus.UNAUTHORIZED
 
         is UnauthorizedException -> HttpStatus.FORBIDDEN
-        is OwnerMismatchException -> HttpStatus.FORBIDDEN
 
         is InvalidProcessingStateException -> HttpStatus.BAD_REQUEST
         is InvalidProcessingStateTransitionException -> HttpStatus.BAD_REQUEST
@@ -54,13 +53,13 @@ val ServiceException.errorURI: URI
     get() = when (this) {
         is DeviceGroupNotFoundException -> URI.create(Constants.Problem.URI.DEVICE_GROUP_NOT_FOUND)
         is UserNotFoundException -> URI.create(Constants.Problem.URI.USER_NOT_FOUND)
+        is RoleNotFoundException -> URI.create(Constants.Problem.URI.ROLE_NOT_FOUND)
         is EmailNotFoundException -> URI.create(Constants.Problem.URI.EMAIL_NOT_FOUND)
         is ProcessedStreamNotFoundException -> URI.create(Constants.Problem.URI.PROCESSED_STREAM_NOT_FOUND)
         is DeviceNotFoundException -> URI.create(Constants.Problem.URI.DEVICE_NOT_FOUND)
         is InvalidCredentialsException -> URI.create(Constants.Problem.URI.INVALID_CREDENTIALS)
         is UnauthorizedException -> URI.create(Constants.Problem.URI.UNAUTHORIZED)
         is UnauthenticatedException -> URI.create(Constants.Problem.URI.UNAUTHENTICATED)
-        is OwnerMismatchException -> URI.create(Constants.Problem.URI.OWNER_MISMATCH)
         is InvalidProcessingStateException -> URI.create(Constants.Problem.URI.INVALID_PROCESSING_STATE)
         is InvalidTokenException -> URI.create(Constants.Problem.URI.INVALID_TOKEN)
         is InvalidProcessingStateTransitionException -> URI.create(Constants.Problem.URI.INVALID_PROCESSING_STATE_TRANSITION)
@@ -77,7 +76,6 @@ val ServiceException.title: String
         is InvalidCredentialsException -> Constants.Problem.Title.INVALID_CREDENTIALS
         is UnauthorizedException -> Constants.Problem.Title.UNAUTHORIZED
         is UnauthenticatedException -> Constants.Problem.Title.UNAUTHENTICATED
-        is OwnerMismatchException -> Constants.Problem.Title.OWNER_MISMATCH
         is InvalidProcessingStateException -> Constants.Problem.Title.INVALID_PROCESSING_STATE
         is InvalidProcessingStateTransitionException -> Constants.Problem.Title.INVALID_PROCESSING_STATE_TRANSITION
         is AlreadyExistsException -> Constants.Problem.Title.ALREADY_EXISTS

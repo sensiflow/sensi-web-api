@@ -1,5 +1,6 @@
 package com.isel.sensiflow.http.pipeline.authentication
 
+import com.isel.sensiflow.services.Role
 import com.isel.sensiflow.services.UserID
 
 /**
@@ -12,4 +13,4 @@ import com.isel.sensiflow.services.UserID
  *
  */
 @Target(AnnotationTarget.FUNCTION)
-annotation class Authentication
+annotation class Authentication(val authorization: Role = Role.USER)

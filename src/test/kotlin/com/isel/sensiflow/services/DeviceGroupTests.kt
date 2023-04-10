@@ -46,10 +46,11 @@ class DeviceGroupTests {
         MockitoAnnotations.openMocks(this)
     }
 
-    private val fakeUser = User(
+    private val fakeUserOwner = User(
         id = 1,
         firstName = "John",
         lastName = "Doe",
+        role = Role.OWNER,
         passwordHash = "hash",
         passwordSalt = "salt"
     )
@@ -65,7 +66,7 @@ class DeviceGroupTests {
         name = "Device 1",
         streamURL = "https://example.com/device1/stream",
         description = "Device 1 description",
-        user = fakeUser
+        user = fakeUserOwner
     )
 
     private val fakeDevice2 = Device(
@@ -73,7 +74,7 @@ class DeviceGroupTests {
         name = "Device 2",
         streamURL = "https://example.com/device2/stream",
         description = "Device 2 description",
-        user = fakeUser
+        user = fakeUserOwner
     )
 
     @Test

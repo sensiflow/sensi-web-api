@@ -14,13 +14,18 @@ import org.springframework.web.servlet.HandlerInterceptor
  */
 @Component
 class AuthenticationInterceptor(
-    private val cookieAuthorizationProcessor: CookieAuthorizationProcessor
+    private val cookieAuthorizationProcessor: CookieAuthorizationProcessor,
+    private val authorizationProcessor: AuthorizationProcessor
 ) : HandlerInterceptor {
 
     override fun preHandle(request: HttpServletRequest, response: HttpServletResponse, handler: Any): Boolean {
         if (handler is HandlerMethod && handler.hasMethodAnnotation(Authentication::class.java)) {
             val cookies = request.cookies ?: null
             val userID = cookieAuthorizationProcessor.process(cookies)
+
+            val authorization = handler.getMethodAnnotation(Authentication::class.java)?.authorization
+            require(authorization != null)
+            authorizationProcessor.process(userID, authorization)
 
             UserIDArgumentResolver.addUserIDTo(userID, request)
             return true

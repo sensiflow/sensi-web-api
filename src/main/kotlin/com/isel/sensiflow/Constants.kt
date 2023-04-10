@@ -20,6 +20,12 @@ object Constants {
         const val A_DAY_IN_MILLIS = 1000L * 60 * 60 * 24
     }
 
+    object Roles {
+        const val ROLE_NAME_MIN_LENGTH = 4
+        const val ROLE_NAME_MAX_LENGTH = 9
+        const val DEFAULT_ROLE = "USER"
+    }
+
     object InputValidation {
         const val EMAIL_MAX_LENGTH = 100
         const val NAME_MIN_LENGTH = 3
@@ -40,10 +46,12 @@ object Constants {
         const val EMAIL_ALREADY_EXISTS = "Email %s already exists"
         const val USER_NOT_FOUND = "User with id %d not found"
         const val DEVICE_NOT_FOUND = "Device with id %d not found"
+        const val ROLE_NOT_FOUND = "Role with name %s not found"
         const val EMAIL_NOT_FOUND = "User with email %s not found"
         const val DEVICE_OWNER_MISMATCH = "Device with id %d does not belong to user with id %d"
         const val DEVICE_NAME_EMPTY = "Name cannot be empty"
         const val DEVICE_STREAM_URL_EMPTY = "Stream URL cannot be empty"
+        const val USER_ROLE_NAME_INVALID_LENGTH = "Role name must be between ${Roles.ROLE_NAME_MIN_LENGTH} and ${Roles.ROLE_NAME_MAX_LENGTH} characters"
         const val DEVICE_NAME_INVALID_LENGTH = "Name must be between 1 and ${Device.NAME_MAX_LENGTH} characters"
         const val DEVICE_DESCRIPTION_INVALID_LENGTH =
             "Description must be between 1 and ${Device.DESCRIPTION_MAX_LENGTH} characters"
@@ -68,6 +76,7 @@ object Constants {
 
             const val DEVICE_NOT_FOUND = "$BASE_URI#device-not-found"
             const val USER_NOT_FOUND = "$BASE_URI#user-not-found"
+            const val ROLE_NOT_FOUND = "$BASE_URI#role-not-found"
             const val PROCESSED_STREAM_NOT_FOUND = "$BASE_URI#processed-stream-not-found"
             const val DEVICE_GROUP_NOT_FOUND = "$BASE_URI#device-group-not-found"
             const val EMAIL_NOT_FOUND = "$BASE_URI#email-not-found"

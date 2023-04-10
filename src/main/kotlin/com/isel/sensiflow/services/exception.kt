@@ -18,8 +18,7 @@ class EmailNotFoundException(email: String) : NotFoundException(Constants.Error.
 class DeviceGroupNotFoundException(id: Int) : NotFoundException(Constants.Error.DEVICE_GROUP_NOT_FOUND.format(id))
 class ProcessedStreamNotFoundException(id: Int) : NotFoundException(Constants.Error.PROCESSED_STREAM_NOT_FOUND.format(id))
 class DeviceNotFoundException(id: Int) : NotFoundException(Constants.Error.DEVICE_NOT_FOUND.format(id))
-
-class OwnerMismatchException(message: String) : ServiceException(message) // TODO: not necessary because of roles, to be done in the future
+class RoleNotFoundException(name: String) : NotFoundException(Constants.Error.ROLE_NOT_FOUND.format(name))
 
 /**
  * Indicates that the resource already exists.

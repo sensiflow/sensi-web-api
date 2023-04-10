@@ -3,12 +3,13 @@ package com.isel.sensiflow.integration
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.isel.sensiflow.Constants
-import com.isel.sensiflow.http.entities.input.UserRegisterInput
+import com.isel.sensiflow.http.entities.output.IDOutput
 import com.isel.sensiflow.model.dao.ProcessedStream
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.model.repository.ProcessedStreamRepository
+import com.isel.sensiflow.services.Role
+import com.isel.sensiflow.services.UserService
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
-import com.isel.sensiflow.services.dto.output.IDOutputDTO
 import com.isel.sensiflow.services.dto.output.ProcessedStreamExpandedOutputDTO
 import com.isel.sensiflow.services.dto.output.ProcessedStreamSimpleOutputDTO
 import jakarta.servlet.http.Cookie
@@ -39,24 +40,25 @@ class ProcessedStreamControllerTests {
     @Autowired
     lateinit var deviceRepository: DeviceRepository
 
+    @Autowired
+    lateinit var userService: UserService
+
     companion object {
         val mapper: ObjectMapper = jacksonObjectMapper()
     }
 
     @Test
     fun `get a simple processed stream of a device successfully`() {
-        val cookie = get(cookie = createUser())
+        val cookie = ensureCookieNotNull(cookie = getCookie())
 
-        val device = createDevice(
+        val id = createDevice(
             cookie,
             DeviceInputDTO(
                 name = "Test",
                 description = "Test",
                 streamURL = "Test.url"
             )
-        )
-
-        val id = device?.id ?: fail("Device not created")
+        )?.id ?: fail("Failed to create device")
 
         val processedStreams = processedStreamRepository.findAll()
         val processedStreamID = if (processedStreams.isEmpty()) 1 else processedStreams.last().id + 1
@@ -83,7 +85,7 @@ class ProcessedStreamControllerTests {
 
     @Test
     fun `get an expanded processed stream of a device successfully`() {
-        val cookie = get(cookie = createUser())
+        val cookie = ensureCookieNotNull(cookie = getCookie())
 
         val device = createDevice(
             cookie,
@@ -123,7 +125,7 @@ class ProcessedStreamControllerTests {
 
     @Test
     fun `get a processed stream of a device that does not exist`() {
-        val cookie = get(cookie = createUser())
+        val cookie = ensureCookieNotNull(cookie = getCookie())
 
         mockMvc.request<Unit, ProblemDetail>(
             method = HTTPMethod.GET,
@@ -136,8 +138,8 @@ class ProcessedStreamControllerTests {
         )
     }
 
-    private fun createDevice(cookie: Cookie, input: DeviceInputDTO): IDOutputDTO? {
-        return mockMvc.request<DeviceInputDTO, IDOutputDTO>(
+    private fun createDevice(cookie: Cookie, input: DeviceInputDTO): IDOutput? {
+        return mockMvc.request<DeviceInputDTO, IDOutput>(
             method = HTTPMethod.POST,
             uri = "/devices",
             body = input,
@@ -150,23 +152,17 @@ class ProcessedStreamControllerTests {
         )
     }
 
-    private fun createUser(): Cookie? {
-        val user = UserRegisterInput(
-            email = "test@email.com",
-            firstName = "Test",
-            lastName = "Test",
-            password = "Password1_"
-        )
+    private fun getCookie(): Cookie? {
+        val inputLogin = createTestUser(userService, Role.OWNER)
+        val loginJson = DevicesGroupControllerTests.mapper.writeValueAsString(inputLogin)
 
-        val json = DevicesGroupControllerTests.mapper.writeValueAsString(user)
-
-        val result = mockMvc.perform(
-            MockMvcRequestBuilders.post("/users")
+        val loginResult = mockMvc.perform(
+            MockMvcRequestBuilders.post("/users/login")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(json)
-        ).andExpect(MockMvcResultMatchers.status().isCreated)
+                .content(loginJson)
+        ).andExpect(MockMvcResultMatchers.status().isOk)
 
-        return result
+        return loginResult
             .andReturn()
             .response
             .getCookie(Constants.User.AUTH_COOKIE_NAME)

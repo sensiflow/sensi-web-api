@@ -63,6 +63,7 @@ class DeviceServiceTests {
         id = 1,
         firstName = "John",
         lastName = "Doe",
+        role = Role.OWNER,
         passwordHash = "hash",
         passwordSalt = "salt"
     )
@@ -176,6 +177,7 @@ class DeviceServiceTests {
                     id = 1,
                     firstName = "John",
                     lastName = "Doe",
+                    role = Role.OWNER,
                     passwordHash = "hash",
                     passwordSalt = "salt"
                 ).addEmail(fakeUserEmail)
@@ -189,6 +191,7 @@ class DeviceServiceTests {
                     id = 2,
                     firstName = "Jane",
                     lastName = "Doe",
+                    role = Role.OWNER,
                     passwordHash = "hash",
                     passwordSalt = "salt"
                 ).addEmail(
@@ -217,7 +220,6 @@ class DeviceServiceTests {
     fun `simple device update`() {
         // Arrange
         val deviceId = 1
-        val userId = 1
         val existingDevice = fakeDevice
 
         `when`(deviceRepository.findById(deviceId)).thenReturn(Optional.of(existingDevice))
@@ -238,7 +240,7 @@ class DeviceServiceTests {
         `when`(deviceRepository.save(any(Device::class.java))).thenReturn(updatedDevice)
 
         // Act
-        val result = deviceService.updateDevice(deviceId, deviceDto, userId = userId)
+        val result = deviceService.updateDevice(deviceId, deviceDto)
 
         // Assert
         assertEquals(updatedDevice, result)
@@ -260,34 +262,12 @@ class DeviceServiceTests {
 
         // Act
         assertThrows<DeviceNotFoundException> {
-            deviceService.updateDevice(deviceId, deviceDto, userId = -1) // uid Irrelevant
+            deviceService.updateDevice(deviceId, deviceDto) // uid Irrelevant
         }
 
         // Assert
         verify(deviceRepository, times(1)).findById(deviceId)
         verify(deviceRepository, times(0)).save(any(Device::class.java))
-    }
-
-    @Test
-    fun `update device with a user that is not the owner`() {
-
-        val notOwnerId = fakeUser.id + 1
-        val deviceId = fakeDevice.id
-
-        val updater = DeviceUpdateDTO(
-            name = "Updated Test Device",
-            streamURL = "https://example.com/device1/stream",
-            description = "description"
-        )
-
-        `when`(deviceRepository.findById(deviceId)).thenReturn(Optional.of(fakeDevice))
-
-        assertThrows<OwnerMismatchException> {
-            deviceService.updateDevice(deviceId, updater, notOwnerId)
-        }
-
-        verify(deviceRepository, times(0)).save(any(Device::class.java))
-        verify(deviceRepository, times(1)).findById(deviceId)
     }
 
     @Test
@@ -299,7 +279,7 @@ class DeviceServiceTests {
         doNothing().`when`(deviceRepository).deleteById(deviceId)
 
         // Act
-        deviceService.deleteDevice(deviceId, fakeDevice.user.id)
+        deviceService.deleteDevice(deviceId)
 
         // Assert
         verify(deviceRepository, times(1)).findById(deviceId)
@@ -314,7 +294,7 @@ class DeviceServiceTests {
 
         // Act
         assertThrows<DeviceNotFoundException> {
-            deviceService.deleteDevice(nonExistingDevice, fakeUser.id)
+            deviceService.deleteDevice(nonExistingDevice)
         }
 
         // Assert
@@ -341,7 +321,7 @@ class DeviceServiceTests {
 
         `when`(deviceRepository.findById(existingDevice.id)).thenReturn(Optional.of(existingDevice))
 
-        deviceService.updateProcessingState(fakeDevice.id, to.name, fakeDevice.user.id)
+        deviceService.updateProcessingState(fakeDevice.id, to.name)
 
         verify(deviceRepository, times(1)).findById(existingDevice.id)
     }
@@ -357,25 +337,12 @@ class DeviceServiceTests {
     }
 
     @Test
-    fun `update state with a user that does not own the device`() {
-
-        val notOwnerID = fakeDevice.user.id + 1
-        `when`(deviceRepository.findById(fakeDevice.id)).thenReturn(Optional.of(fakeDevice))
-
-        assertThrows<OwnerMismatchException> {
-            deviceService.updateProcessingState(fakeDevice.id, DeviceProcessingState.ACTIVE.name, notOwnerID)
-        }
-
-        verify(deviceRepository, times(0)).save(any(Device::class.java))
-    }
-
-    @Test
     fun `update state for a device that does not exist`() {
         val nonExistantDevice = fakeDevice.id + 1
         `when`(deviceRepository.findById(nonExistantDevice)).thenReturn(Optional.empty())
 
         assertThrows<DeviceNotFoundException> {
-            deviceService.updateProcessingState(nonExistantDevice, DeviceProcessingState.ACTIVE.name, fakeUser.id)
+            deviceService.updateProcessingState(nonExistantDevice, DeviceProcessingState.ACTIVE.name)
         }
 
         verify(deviceRepository, times(1)).findById(nonExistantDevice)
@@ -387,7 +354,7 @@ class DeviceServiceTests {
         val nonExistantState = "nonExistantState"
 
         assertThrows<InvalidProcessingStateException> {
-            deviceService.updateProcessingState(fakeDevice.id, nonExistantState, fakeUser.id)
+            deviceService.updateProcessingState(fakeDevice.id, nonExistantState)
         }
 
         verify(deviceRepository, times(0)).findById(fakeDevice.id)
@@ -399,7 +366,7 @@ class DeviceServiceTests {
         val nonExistantState = null
 
         assertThrows<InvalidProcessingStateException> {
-            deviceService.updateProcessingState(fakeDevice.id, nonExistantState, fakeUser.id)
+            deviceService.updateProcessingState(fakeDevice.id, nonExistantState)
         }
 
         verify(deviceRepository, times(0)).findById(fakeDevice.id)
@@ -475,7 +442,7 @@ class DeviceServiceTests {
         val expected = expectedPageItems.map { it.toDTO() }
 
         // Act
-        val retrievedStats = deviceService.getDeviceStats(paginationInfo, deviceId, fakeUser.id)
+        val retrievedStats = deviceService.getDeviceStats(paginationInfo, deviceId)
 
         // Assert
         assertEquals(expected, retrievedStats.items)
@@ -493,25 +460,7 @@ class DeviceServiceTests {
 
         // Act
         assertThrows<DeviceNotFoundException> {
-            deviceService.getDeviceStats(paginationInfo, deviceId, fakeUser.id)
-        }
-
-        // Assert
-        verify(metricRepository, times(0))
-            .findAllByDeviceID(fakeDevice, PageRequest.of(paginationInfo.page, paginationInfo.size))
-    }
-
-    @Test
-    fun `get device stats when user is not the owner`() {
-        // Arrange
-        val deviceId = 1
-        val paginationInfo = PaginationInfo(page = 1, size = 10)
-
-        `when`(deviceRepository.findById(deviceId)).thenReturn(Optional.of(fakeDevice))
-
-        // Act
-        assertThrows<OwnerMismatchException> {
-            deviceService.getDeviceStats(paginationInfo, deviceId, fakeUser.id + 1)
+            deviceService.getDeviceStats(paginationInfo, deviceId)
         }
 
         // Assert

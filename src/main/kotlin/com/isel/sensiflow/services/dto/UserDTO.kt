@@ -1,9 +1,11 @@
 package com.isel.sensiflow.services.dto
 
 import com.isel.sensiflow.http.entities.output.UserOutput
+import com.isel.sensiflow.services.Role
 
 data class UserDTO(
     val email: String,
+    val role: Role,
     val firstName: String,
     val lastName: String,
 )
