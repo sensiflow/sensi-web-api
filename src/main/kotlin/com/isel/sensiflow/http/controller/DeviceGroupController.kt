@@ -1,5 +1,7 @@
 package com.isel.sensiflow.http.controller
 
+import com.isel.sensiflow.http.entities.output.IDOutput
+import com.isel.sensiflow.http.entities.output.toIDOutput
 import com.isel.sensiflow.http.pipeline.authentication.Authentication
 import com.isel.sensiflow.services.DeviceGroupService
 import com.isel.sensiflow.services.ID
@@ -10,7 +12,6 @@ import com.isel.sensiflow.services.dto.input.DevicesGroupInputDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupUpdateDTO
 import com.isel.sensiflow.services.dto.output.DeviceGroupOutputDTO
 import com.isel.sensiflow.services.dto.output.DeviceOutputDTO
-import com.isel.sensiflow.services.dto.output.IDOutputDTO
 import com.isel.sensiflow.services.dto.output.PageDTO
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -68,7 +69,7 @@ class DeviceGroupController(val deviceGroupService: DeviceGroupService) {
     @PutMapping(RequestPaths.DeviceGroups.GROUPS_DEVICES)
     fun updateDevicesGroup(
         @PathVariable id: Int,
-        @RequestBody inputDTO: DevicesGroupInputDTO,
+        @RequestBody @Valid inputDTO: DevicesGroupInputDTO,
         userID: UserID
     ): ResponseEntity<Unit> {
         deviceGroupService.updateDevicesGroup(id, inputDTO)
@@ -82,10 +83,10 @@ class DeviceGroupController(val deviceGroupService: DeviceGroupService) {
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping()
     fun createDevicesGroup(
-        @RequestBody inputDTO: DevicesGroupCreateDTO,
+        @RequestBody @Valid inputDTO: DevicesGroupCreateDTO,
         @RequestParam devices: List<ID>? = null
-    ): IDOutputDTO =
-        IDOutputDTO(deviceGroupService.createDevicesGroup(inputDTO, devices).id)
+    ): IDOutput =
+        deviceGroupService.createDevicesGroup(inputDTO, devices).id.toIDOutput()
 
     @GetMapping(RequestPaths.DeviceGroups.GROUPS_DEVICES)
     fun getDevicesFromGroup(

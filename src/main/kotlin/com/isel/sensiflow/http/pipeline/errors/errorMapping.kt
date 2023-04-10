@@ -9,6 +9,7 @@ import com.isel.sensiflow.services.EmailNotFoundException
 import com.isel.sensiflow.services.InvalidCredentialsException
 import com.isel.sensiflow.services.InvalidProcessingStateException
 import com.isel.sensiflow.services.InvalidProcessingStateTransitionException
+import com.isel.sensiflow.services.InvalidTokenException
 import com.isel.sensiflow.services.NotFoundException
 import com.isel.sensiflow.services.OwnerMismatchException
 import com.isel.sensiflow.services.ProcessedStreamNotFoundException
@@ -27,7 +28,7 @@ val ServiceException.httpCode: HttpStatus
     get() = when (this) {
         is NotFoundException -> HttpStatus.NOT_FOUND
 
-        is InvalidCredentialsException -> HttpStatus.BAD_REQUEST
+        is InvalidCredentialsException -> HttpStatus.UNAUTHORIZED
 
         is UnauthenticatedException -> HttpStatus.UNAUTHORIZED
 
@@ -50,7 +51,7 @@ val ServiceException.httpCode: HttpStatus
  * @returns the associated error [URI] for the given [ServiceException]
  */
 val ServiceException.errorURI: URI
-    get() = when (this) { // TODO: change this urls to our documentation urls
+    get() = when (this) {
         is DeviceGroupNotFoundException -> URI.create(Constants.Problem.URI.DEVICE_GROUP_NOT_FOUND)
         is UserNotFoundException -> URI.create(Constants.Problem.URI.USER_NOT_FOUND)
         is EmailNotFoundException -> URI.create(Constants.Problem.URI.EMAIL_NOT_FOUND)
@@ -61,6 +62,7 @@ val ServiceException.errorURI: URI
         is UnauthenticatedException -> URI.create(Constants.Problem.URI.UNAUTHENTICATED)
         is OwnerMismatchException -> URI.create(Constants.Problem.URI.OWNER_MISMATCH)
         is InvalidProcessingStateException -> URI.create(Constants.Problem.URI.INVALID_PROCESSING_STATE)
+        is InvalidTokenException -> URI.create(Constants.Problem.URI.INVALID_TOKEN)
         is InvalidProcessingStateTransitionException -> URI.create(Constants.Problem.URI.INVALID_PROCESSING_STATE_TRANSITION)
         is EmailAlreadyExistsException -> URI.create(Constants.Problem.URI.EMAIL_ALREADY_EXISTS)
         is ServiceInternalException -> URI.create(Constants.Problem.URI.SERVICE_INTERNAL)
@@ -79,5 +81,6 @@ val ServiceException.title: String
         is InvalidProcessingStateException -> Constants.Problem.Title.INVALID_PROCESSING_STATE
         is InvalidProcessingStateTransitionException -> Constants.Problem.Title.INVALID_PROCESSING_STATE_TRANSITION
         is AlreadyExistsException -> Constants.Problem.Title.ALREADY_EXISTS
+        is InvalidTokenException -> Constants.Problem.Title.INVALID_TOKEN
         is ServiceInternalException -> Constants.Problem.Title.INTERNAL_ERROR
     }

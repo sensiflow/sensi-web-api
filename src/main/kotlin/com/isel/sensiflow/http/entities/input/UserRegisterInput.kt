@@ -1,11 +1,6 @@
 package com.isel.sensiflow.http.entities.input
 
-import com.isel.sensiflow.Constants.InputValidation.EMAIL_MAX_LENGTH
-import com.isel.sensiflow.Constants.InputValidation.NAME_MAX_LENGTH
-import com.isel.sensiflow.Constants.InputValidation.NAME_MIN_LENGTH
-import com.isel.sensiflow.Constants.InputValidation.PASSWORD_MAX_SIZE
-import com.isel.sensiflow.Constants.InputValidation.PASSWORD_MIN_SIZE
-import com.isel.sensiflow.Constants.InputValidation.PASSWORD_REGEX
+import com.isel.sensiflow.Constants
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
@@ -23,32 +18,48 @@ import org.springframework.web.bind.MethodArgumentNotValidException
  * @throws MethodArgumentNotValidException if any of the fields is not valid.
  */
 data class UserRegisterInput(
-    @field:NotBlank()
-    @field:Email()
+
+    @field:NotBlank(
+        message = Constants.Error.EMAIL_EMPTY
+    )
+    @field:Email(
+        message = Constants.Error.EMAIL_INVALID_FORMAT
+    )
     @field:Size(
-        max = EMAIL_MAX_LENGTH
+        max = Constants.InputValidation.EMAIL_MAX_LENGTH,
+        message = Constants.Error.EMAIL_INVALID_LENGTH
     )
     val email: String,
 
-    @field:NotBlank
+    @field:NotBlank(
+        message = Constants.Error.NAME_EMPTY
+    )
     @field:Size(
-        min = NAME_MIN_LENGTH,
-        max = NAME_MAX_LENGTH
+        min = Constants.InputValidation.NAME_MIN_LENGTH,
+        max = Constants.InputValidation.NAME_MAX_LENGTH
     )
     val firstName: String,
 
-    @field:NotBlank
+    @field:NotBlank(
+        message = Constants.Error.NAME_EMPTY
+    )
     @field:Size(
-        min = NAME_MIN_LENGTH,
-        max = NAME_MAX_LENGTH
+        min = Constants.InputValidation.NAME_MIN_LENGTH,
+        max = Constants.InputValidation.NAME_MAX_LENGTH
     )
     val lastName: String,
 
-    @field:NotBlank
-    @field:Pattern(regexp = PASSWORD_REGEX)
+    @field:NotBlank(
+        message = Constants.Error.PASSWORD_EMPTY
+    )
+    @field:Pattern(
+        regexp = Constants.InputValidation.PASSWORD_REGEX,
+        message = Constants.Error.PASSWORD_REGEX_MISMATCH
+    )
     @field:Size(
-        min = PASSWORD_MIN_SIZE,
-        max = PASSWORD_MAX_SIZE
+        min = Constants.InputValidation.PASSWORD_MIN_SIZE,
+        max = Constants.InputValidation.PASSWORD_MAX_SIZE,
+        message = Constants.Error.PASSWORD_INVALID_LENGTH
     )
     val password: String
 )

@@ -1,20 +1,27 @@
 package com.isel.sensiflow.http.pipeline.errors
 
+import com.isel.sensiflow.Constants
 import com.isel.sensiflow.Constants.Problem.Title.HANDLER_NOT_FOUND
 import com.isel.sensiflow.Constants.Problem.Title.METHOD_NOT_ALLOWED
+import com.isel.sensiflow.Constants.Problem.Title.REQUIRED_PARAMETER_MISSING
 import com.isel.sensiflow.Constants.Problem.Title.VALIDATION_ERROR
+import com.isel.sensiflow.Constants.Problem.URI.INVALID_JSON_BODY
 import com.isel.sensiflow.Constants.Problem.URI.URI_HANDLER_NOT_FOUND
 import com.isel.sensiflow.Constants.Problem.URI.URI_METHOD_NOT_ALLOWED
+import com.isel.sensiflow.Constants.Problem.URI.URI_REQUIRED_PATH_PARAMETER_MISSING
 import com.isel.sensiflow.Constants.Problem.URI.URI_VALIDATION_ERROR
 import com.isel.sensiflow.services.ServiceException
 import jakarta.servlet.http.HttpServletRequest
+import org.springframework.beans.TypeMismatchException
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
 import org.springframework.http.ProblemDetail
 import org.springframework.http.ResponseEntity
+import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.HttpRequestMethodNotSupportedException
 import org.springframework.web.bind.MethodArgumentNotValidException
+import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.context.request.WebRequest
@@ -26,6 +33,20 @@ import java.net.URI
 @RestControllerAdvice
 class ErrorHandler : ResponseEntityExceptionHandler() {
 
+    @ExceptionHandler(ServiceException::class)
+    fun handleServiceException(ex: ServiceException, request: HttpServletRequest): ProblemDetail {
+        val problemDetail = ProblemDetail.forStatus(ex.httpCode).apply {
+            type = ex.errorURI
+            title = ex.title
+            detail = ex.message
+            instance = URI(request.requestURI)
+        }
+        return problemDetail
+    }
+
+    /**
+     * Handles the case when a parameter verified by @Valid has a validation error.
+     */
     override fun handleMethodArgumentNotValid(
         ex: MethodArgumentNotValidException,
         headers: HttpHeaders,
@@ -42,11 +63,65 @@ class ErrorHandler : ResponseEntityExceptionHandler() {
         return problemDetail.toResponseEntity()
     }
 
-    @ExceptionHandler(ServiceException::class)
-    fun handleServiceException(ex: ServiceException, request: HttpServletRequest): ProblemDetail {
-        val problemDetail = ProblemDetail.forStatus(ex.httpCode).apply {
-            type = ex.errorURI
-            title = ex.title
+    /**
+     * Handles the case when a parameter has the wrong type.
+     */
+    override fun handleTypeMismatch(
+        ex: TypeMismatchException,
+        headers: HttpHeaders,
+        status: HttpStatusCode,
+        request: WebRequest
+    ): ResponseEntity<Any>? {
+        val problemDetail = ProblemDetail.forStatus(status).apply {
+            type = URI(URI_VALIDATION_ERROR)
+            title = VALIDATION_ERROR
+            detail = ex.message
+            instance = URI(request.contextPath)
+        }
+        return problemDetail.toResponseEntity()
+    }
+
+    /**
+     * Handles the case when the received json is not valid.
+     */
+    override fun handleHttpMessageNotReadable(
+        ex: HttpMessageNotReadableException,
+        headers: HttpHeaders,
+        status: HttpStatusCode,
+        request: WebRequest
+    ): ResponseEntity<Any>? {
+        val problemDetail = ProblemDetail.forStatus(status).apply {
+            type = URI(INVALID_JSON_BODY)
+            title = Constants.Problem.Title.INVALID_JSON_BODY
+            detail = ex.message
+            instance = URI(request.contextPath)
+        }
+        return problemDetail.toResponseEntity()
+    }
+
+    /**
+     * Handles the case when there are missing parameters.
+     */
+    override fun handleMissingServletRequestParameter(
+        ex: MissingServletRequestParameterException,
+        headers: HttpHeaders,
+        status: HttpStatusCode,
+        request: WebRequest
+    ): ResponseEntity<Any>? {
+        val problemDetail = ProblemDetail.forStatus(status).apply {
+            type = URI(URI_REQUIRED_PATH_PARAMETER_MISSING)
+            title = REQUIRED_PARAMETER_MISSING
+            detail = ex.message
+            instance = URI(request.contextPath)
+        }
+        return problemDetail.toResponseEntity()
+    }
+
+    @ExceptionHandler(Exception::class)
+    fun handleException(ex: Exception, request: HttpServletRequest): ProblemDetail {
+        val problemDetail = ProblemDetail.forStatus(HttpStatusCode.valueOf(500)).apply {
+            type = URI(Constants.Problem.URI.SERVICE_INTERNAL)
+            title = Constants.Problem.Title.INTERNAL_ERROR
             detail = ex.message
             instance = URI(request.requestURI)
         }
@@ -71,6 +146,9 @@ class ErrorHandler : ResponseEntityExceptionHandler() {
         return problemDetail.toResponseEntity()
     }
 
+    /**
+     * Handle the exception thrown when a request method is not supported by the endpoint.
+     */
     override fun handleHttpRequestMethodNotSupported(
         ex: HttpRequestMethodNotSupportedException,
         headers: HttpHeaders,

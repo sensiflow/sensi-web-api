@@ -1,13 +1,15 @@
 package com.isel.sensiflow.http.controller
 
+import com.isel.sensiflow.http.entities.output.IDOutput
+import com.isel.sensiflow.http.entities.output.toIDOutput
 import com.isel.sensiflow.http.pipeline.authentication.Authentication
 import com.isel.sensiflow.services.DeviceService
+import com.isel.sensiflow.services.UserID
 import com.isel.sensiflow.services.dto.PaginationInfo
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
 import com.isel.sensiflow.services.dto.input.DeviceStateInputDTO
 import com.isel.sensiflow.services.dto.input.DeviceUpdateDTO
 import com.isel.sensiflow.services.dto.output.DeviceOutputDTO
-import com.isel.sensiflow.services.dto.output.IDOutputDTO
 import com.isel.sensiflow.services.dto.output.MetricOutputDTO
 import com.isel.sensiflow.services.dto.output.PageDTO
 import jakarta.validation.Valid
@@ -43,13 +45,13 @@ class DeviceController(
     @ResponseStatus(HttpStatus.CREATED)
     fun createDevice(
         @Valid @RequestBody deviceInputDTO: DeviceInputDTO,
-        userID: Int
-    ): IDOutputDTO {
+        userID: UserID
+    ): IDOutput {
         val deviceID = deviceService
             .createDevice(deviceInputDTO, userID)
             .id
 
-        return IDOutputDTO(deviceID)
+        return deviceID.toIDOutput()
     }
 
     @GetMapping(RequestPaths.Device.DEVICE_ID)
@@ -66,7 +68,7 @@ class DeviceController(
     fun updateDevice(
         @PathVariable id: Int,
         @Valid @RequestBody deviceInputDTO: DeviceUpdateDTO,
-        userID: Int
+        userID: UserID
     ) {
         deviceService.updateDevice(id, deviceInputDTO, userID)
     }
@@ -74,18 +76,19 @@ class DeviceController(
     @Authentication
     @DeleteMapping(RequestPaths.Device.DEVICE_ID)
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun deleteDevice(@PathVariable id: Int, userID: Int) {
+    fun deleteDevice(@PathVariable id: Int, userID: UserID) {
         deviceService.deleteDevice(id, userID)
     }
 
+    @Authentication
     @PutMapping(RequestPaths.Device.PROCESSING_STATE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun updateProcessingState(
         @PathVariable id: Int,
-        @RequestBody deviceStateInputDTO: DeviceStateInputDTO,
-        userID: Int?/* TODO: Injected by auth */
+        @RequestBody @Valid deviceStateInputDTO: DeviceStateInputDTO,
+        userID: UserID
     ) {
-        deviceService.updateProcessingState(id, deviceStateInputDTO.state, userID ?: 0)
+        deviceService.updateProcessingState(id, deviceStateInputDTO.state, userID)
     }
 
     @ResponseStatus(HttpStatus.OK)
@@ -93,9 +96,9 @@ class DeviceController(
     @Authentication
     fun getDeviceStats(
         @PathVariable id: Int,
-        @RequestParam page: Int?,
-        @RequestParam size: Int?,
-        userID: Int
+        @RequestParam page: Int,
+        @RequestParam size: Int,
+        userID: UserID
     ): PageDTO<MetricOutputDTO> {
         return deviceService
             .getDeviceStats(PaginationInfo(page, size), id, userID)

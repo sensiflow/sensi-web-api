@@ -1,10 +1,11 @@
 package com.isel.sensiflow.services.dto.output
 
 import com.isel.sensiflow.http.entities.output.UserOutput
-import com.isel.sensiflow.http.entities.output.toDTO
 import com.isel.sensiflow.model.dao.Device
+import com.isel.sensiflow.model.dao.toDTO
 import com.isel.sensiflow.services.ID
 import com.isel.sensiflow.services.UserID
+import com.isel.sensiflow.services.dto.toOutput
 
 interface DeviceOutputDTO {
     val id: ID
@@ -65,7 +66,7 @@ fun Device.toDTO(expanded: Boolean): DeviceOutputDTO {
             description = this.description,
             streamURL = this.streamURL,
             processingState = processingStateString,
-            user = this.user.toDTO(),
+            user = this.user.toDTO().toOutput(),
             // TODO : deviceGroup = this.deviceGroup.toDTO(expanded = false)
         )
     } else {

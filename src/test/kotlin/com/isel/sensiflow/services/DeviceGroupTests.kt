@@ -251,6 +251,24 @@ class DeviceGroupTests {
     }
 
     @Test
+    fun `update a group with devices that dont exist`() {
+
+        // Arrange
+        val existingGroup = 1
+        `when`(deviceGroupRepository.findById(existingGroup)).thenReturn(Optional.of(fakeDeviceGroup))
+        `when`(deviceRepository.findAllById(listOf(fakeDevice.id, 5))).thenThrow(java.lang.IllegalArgumentException::class.java)
+
+        // Act
+        assertThrows<DeviceNotFoundException> {
+            deviceGroupService.updateDevicesGroup(existingGroup, DevicesGroupInputDTO(listOf(fakeDevice.id, 5)))
+        }
+
+        // Assert
+        verify(deviceGroupRepository, times(1)).findById(existingGroup)
+        verify(deviceRepository, times(1)).findAllById(listOf(fakeDevice.id, 5))
+    }
+
+    @Test
     fun `get the device list of a group successfully`() {
         // Arrange
         val deviceGroupID = 1
@@ -360,6 +378,7 @@ class DeviceGroupTests {
         fakeDeviceGroup.devices.addAll(listOf(fakeDevice))
 
         `when`(deviceGroupRepository.save(any(DeviceGroup::class.java))).thenReturn(fakeDeviceGroup)
+        `when`(deviceRepository.findAllById(listOf(fakeDevice.id))).thenReturn(listOf(fakeDevice))
 
         // Act
         val result = deviceGroupService.createDevicesGroup(groupDTO, listOf(fakeDevice.id))
@@ -367,5 +386,28 @@ class DeviceGroupTests {
         // Assert
         assertEquals(fakeDeviceGroup, result)
         verify(deviceGroupRepository, times(1)).save(any(DeviceGroup::class.java))
+    }
+
+    @Test
+    fun `create a device group with a non existant device`() {
+
+        val groupDTO = DevicesGroupCreateDTO(
+            name = "Test group",
+        )
+
+        val fakeDeviceGroup = DeviceGroup(
+            name = groupDTO.name,
+            description = null
+        )
+        fakeDeviceGroup.devices.addAll(listOf(fakeDevice))
+
+        `when`(deviceGroupRepository.save(any(DeviceGroup::class.java))).thenReturn(fakeDeviceGroup)
+        `when`(deviceRepository.findAllById(listOf(fakeDevice.id, 88))).thenThrow(IllegalArgumentException::class.java)
+
+        assertThrows<DeviceNotFoundException> {
+            deviceGroupService.createDevicesGroup(groupDTO, listOf(fakeDevice.id, 88))
+        }
+
+        verify(deviceGroupRepository, times(0)).save(any(DeviceGroup::class.java))
     }
 }

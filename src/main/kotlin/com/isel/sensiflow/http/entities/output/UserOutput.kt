@@ -1,19 +1,12 @@
 package com.isel.sensiflow.http.entities.output
 
-import com.isel.sensiflow.model.dao.User
+import com.isel.sensiflow.services.dto.UserDTO
 
+/**
+ * Represents the output of a [UserDTO]
+ */
 data class UserOutput(
     val email: String,
     val firstName: String,
     val lastName: String,
 )
-
-fun User.toDTO(): UserOutput {
-    val email = this.email
-    check(email != null) { "Invalid user creation" }
-    return UserOutput(
-        email = email.email,
-        firstName = this.firstName,
-        lastName = this.lastName,
-    )
-}
