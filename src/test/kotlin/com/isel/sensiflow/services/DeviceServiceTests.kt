@@ -6,10 +6,12 @@ import com.isel.sensiflow.model.dao.Email
 import com.isel.sensiflow.model.dao.Metric
 import com.isel.sensiflow.model.dao.MetricID
 import com.isel.sensiflow.model.dao.User
+import com.isel.sensiflow.model.dao.Userrole
 import com.isel.sensiflow.model.dao.addEmail
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.model.repository.MetricRepository
 import com.isel.sensiflow.model.repository.UserRepository
+import com.isel.sensiflow.model.repository.UserRoleRepository
 import com.isel.sensiflow.services.dto.PaginationInfo
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
 import com.isel.sensiflow.services.dto.input.DeviceUpdateDTO
@@ -51,6 +53,9 @@ class DeviceServiceTests {
     @Mock
     private lateinit var metricRepository: MetricRepository
 
+    @Mock
+    private lateinit var userRoleRepository: UserRoleRepository
+
     @BeforeEach
     fun initMocks() {
         fakeUser.devices.add(fakeDevice)
@@ -59,11 +64,16 @@ class DeviceServiceTests {
         MockitoAnnotations.openMocks(this)
     }
 
+    private val ownerRole = Userrole(
+        id = 1,
+        role = Role.OWNER.name
+    )
+
     private val fakeUser = User(
         id = 1,
         firstName = "John",
         lastName = "Doe",
-        role = Role.OWNER,
+        role = ownerRole,
         passwordHash = "hash",
         passwordSalt = "salt"
     )
@@ -177,7 +187,7 @@ class DeviceServiceTests {
                     id = 1,
                     firstName = "John",
                     lastName = "Doe",
-                    role = Role.OWNER,
+                    role = ownerRole,
                     passwordHash = "hash",
                     passwordSalt = "salt"
                 ).addEmail(fakeUserEmail)
@@ -191,7 +201,7 @@ class DeviceServiceTests {
                     id = 2,
                     firstName = "Jane",
                     lastName = "Doe",
-                    role = Role.OWNER,
+                    role = ownerRole,
                     passwordHash = "hash",
                     passwordSalt = "salt"
                 ).addEmail(

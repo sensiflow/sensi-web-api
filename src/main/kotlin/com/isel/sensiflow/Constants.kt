@@ -110,7 +110,6 @@ object Constants {
             const val HANDLER_NOT_FOUND = "The requested uri does not have a handler associated with it"
             const val METHOD_NOT_ALLOWED = "The requested method is not allowed for the requested uri"
             const val VALIDATION_ERROR = "The provided data is invalid"
-            const val REQUIRED_PATH_PARAMETER_MISSING = "A required path parameter is missing"
             const val REQUIRED_PARAMETER_MISSING = "A required parameter is missing"
             const val INVALID_JSON_BODY = "The provided JSON body has an invalid structure"
             const val INTERNAL_ERROR = "An internal error occurred"

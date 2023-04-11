@@ -10,10 +10,12 @@ import com.isel.sensiflow.http.entities.output.toIDOutput
 import com.isel.sensiflow.http.pipeline.authentication.Authentication
 import com.isel.sensiflow.http.utils.createAuthCookie
 import com.isel.sensiflow.http.utils.removeCookie
-import com.isel.sensiflow.services.Role.*
+import com.isel.sensiflow.services.Role.MODERATOR
+import com.isel.sensiflow.services.Role.OWNER
+import com.isel.sensiflow.services.Role.USER
 import com.isel.sensiflow.services.UserID
 import com.isel.sensiflow.services.UserService
-import com.isel.sensiflow.services.dto.input.UserRoleInputDTO
+import com.isel.sensiflow.services.dto.input.UserRoleInput
 import com.isel.sensiflow.services.dto.toOutput
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -86,7 +88,7 @@ class UserController(private val userService: UserService) {
     @PutMapping(Users.ROLE)
     fun updateRole(
         @PathVariable userID: UserID,
-        @RequestBody @Valid inputDTO: UserRoleInputDTO,
+        @RequestBody @Valid inputDTO: UserRoleInput,
     ): ResponseEntity<Unit> {
         userService.updateRole(userID, inputDTO)
 

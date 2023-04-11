@@ -1,8 +1,10 @@
 import com.isel.sensiflow.model.dao.Device
 import com.isel.sensiflow.model.dao.ProcessedStream
 import com.isel.sensiflow.model.dao.User
+import com.isel.sensiflow.model.dao.Userrole
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.model.repository.ProcessedStreamRepository
+import com.isel.sensiflow.model.repository.UserRoleRepository
 import com.isel.sensiflow.services.DeviceNotFoundException
 import com.isel.sensiflow.services.ProcessedStreamNotFoundException
 import com.isel.sensiflow.services.ProcessedStreamService
@@ -37,16 +39,24 @@ class ProcessedStreamTests {
     @Mock
     private lateinit var deviceRepository: DeviceRepository
 
+    @Mock
+    private lateinit var userRoleRepository: UserRoleRepository
+
     @BeforeEach
     fun initMocks() {
         MockitoAnnotations.openMocks(this)
     }
 
+    private val ownerRole = Userrole(
+        id = 1,
+        role = Role.OWNER.name
+    )
+
     private val fakeUser = User(
         id = 1,
         firstName = "John",
         lastName = "Doe",
-        role = Role.OWNER,
+        role = ownerRole,
         passwordHash = "hash",
         passwordSalt = "salt"
     )

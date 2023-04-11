@@ -3,8 +3,10 @@ package com.isel.sensiflow.services
 import com.isel.sensiflow.model.dao.Device
 import com.isel.sensiflow.model.dao.DeviceGroup
 import com.isel.sensiflow.model.dao.User
+import com.isel.sensiflow.model.dao.Userrole
 import com.isel.sensiflow.model.repository.DeviceGroupRepository
 import com.isel.sensiflow.model.repository.DeviceRepository
+import com.isel.sensiflow.model.repository.UserRoleRepository
 import com.isel.sensiflow.services.dto.PaginationInfo
 import com.isel.sensiflow.services.dto.input.DevicesGroupCreateDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupInputDTO
@@ -41,16 +43,24 @@ class DeviceGroupTests {
     @Mock
     private lateinit var deviceRepository: DeviceRepository
 
+    @Mock
+    private lateinit var userRoleRepository: UserRoleRepository
+
     @BeforeEach
     fun initMocks() {
         MockitoAnnotations.openMocks(this)
     }
 
+    private val ownerRole = Userrole(
+        id = 1,
+        role = Role.OWNER.name
+    )
+
     private val fakeUserOwner = User(
         id = 1,
         firstName = "John",
         lastName = "Doe",
-        role = Role.OWNER,
+        role = ownerRole,
         passwordHash = "hash",
         passwordSalt = "salt"
     )

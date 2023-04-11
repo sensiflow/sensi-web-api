@@ -13,9 +13,10 @@ import com.isel.sensiflow.model.dao.toDTO
 import com.isel.sensiflow.model.repository.EmailRepository
 import com.isel.sensiflow.model.repository.SessionTokenRepository
 import com.isel.sensiflow.model.repository.UserRepository
+import com.isel.sensiflow.model.repository.UserRoleRepository
 import com.isel.sensiflow.services.dto.AuthInformationDTO
 import com.isel.sensiflow.services.dto.UserDTO
-import com.isel.sensiflow.services.dto.input.UserRoleInputDTO
+import com.isel.sensiflow.services.dto.input.UserRoleInput
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Isolation
 import org.springframework.transaction.annotation.Transactional
@@ -25,7 +26,8 @@ import org.springframework.transaction.annotation.Transactional
 class UserService(
     private val userRepository: UserRepository,
     private val sessionTokenRepository: SessionTokenRepository,
-    private val emailRepository: EmailRepository
+    private val emailRepository: EmailRepository,
+    private val userRoleRepository: UserRoleRepository
 ) {
 
     /**
@@ -45,11 +47,16 @@ class UserService(
         val salt = generateSalt()
         val hashedPassword = hashPassword(userInput.password, salt)
 
+        val userRole = userRoleRepository.findByRole(role.name)
+            .orElseThrow {
+                throw RoleNotFoundException(role.name)
+            }
+
         val user = userRepository.save(
             User(
                 firstName = userInput.firstName,
                 lastName = userInput.lastName,
-                role = role,
+                role = userRole,
                 passwordHash = hashedPassword,
                 passwordSalt = salt
             )
@@ -144,43 +151,25 @@ class UserService(
         val token = sessionTokenRepository.findByUser(user)
 
         if (token != null) {
-            if (token.hasExpired()) {
-                sessionTokenRepository.delete(token)
-                val sessionToken = sessionTokenRepository.save(
-                    SessionToken(
-                        user = user,
-                        token = generateUUID(),
-                        expiration = generateExpirationDate(SESSION_EXPIRATION_TIME).toTimeStamp()
-                    )
-                )
-                return AuthInformationDTO(sessionToken.token, user.id)
-            } else {
-                val timeUntilExpire = token.expiration
-                    .toInstant()
-                    .toMillis()
-                    .minus(System.currentTimeMillis())
-
-                return AuthInformationDTO(token.token, user.id, timeUntilExpire)
-            }
-        } else {
-            val sessionToken = sessionTokenRepository.save(
-                SessionToken(
-                    user = user,
-                    token = generateUUID(),
-                    expiration = generateExpirationDate(SESSION_EXPIRATION_TIME).toTimeStamp()
-                )
-            )
-            return AuthInformationDTO(sessionToken.token, user.id)
+            sessionTokenRepository.delete(token)
         }
+        val sessionToken = sessionTokenRepository.save(
+            SessionToken(
+                user = user,
+                token = generateUUID(),
+                expiration = generateExpirationDate(SESSION_EXPIRATION_TIME).toTimeStamp()
+            )
+        )
+        return AuthInformationDTO(sessionToken.token, user.id)
     }
 
     /**
-     * Updates the user's role with the one provided in the [UserRoleInputDTO]
+     * Updates the user's role with the one provided in the [UserRoleInput]
      * @param userID the user's id to be updated
-     * @param input the [UserRoleInputDTO] containing the new role
+     * @param input the [UserRoleInput] containing the new role
      * @throws UserNotFoundException if the user is not found
      */
-    fun updateRole(userID: UserID, input: UserRoleInputDTO) {
+    fun updateRole(userID: UserID, input: UserRoleInput) {
         val user = userRepository.findById(userID)
             .orElseThrow { UserNotFoundException(userID) }
 

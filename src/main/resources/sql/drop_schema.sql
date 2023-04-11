@@ -1,3 +1,4 @@
+drop type if exists device_processing_state cascade;
 drop table processedstream cascade;
 drop table metric cascade;
 drop table devicegroup cascade;

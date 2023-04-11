@@ -4,7 +4,9 @@ import com.isel.sensiflow.http.entities.output.IDOutput
 import com.isel.sensiflow.http.entities.output.toIDOutput
 import com.isel.sensiflow.http.pipeline.authentication.Authentication
 import com.isel.sensiflow.services.DeviceService
-import com.isel.sensiflow.services.Role.*
+import com.isel.sensiflow.services.Role.MODERATOR
+import com.isel.sensiflow.services.Role.OWNER
+import com.isel.sensiflow.services.Role.USER
 import com.isel.sensiflow.services.UserID
 import com.isel.sensiflow.services.dto.PaginationInfo
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO

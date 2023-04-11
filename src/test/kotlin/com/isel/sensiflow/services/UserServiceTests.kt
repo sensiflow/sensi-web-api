@@ -6,9 +6,11 @@ import com.isel.sensiflow.http.entities.input.UserRegisterInput
 import com.isel.sensiflow.model.dao.Email
 import com.isel.sensiflow.model.dao.SessionToken
 import com.isel.sensiflow.model.dao.User
+import com.isel.sensiflow.model.dao.Userrole
 import com.isel.sensiflow.model.repository.EmailRepository
 import com.isel.sensiflow.model.repository.SessionTokenRepository
 import com.isel.sensiflow.model.repository.UserRepository
+import com.isel.sensiflow.model.repository.UserRoleRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -40,6 +42,9 @@ class UserServiceTests {
     @Mock
     private lateinit var tokenRepository: SessionTokenRepository
 
+    @Mock
+    private lateinit var userRoleRepository: UserRoleRepository
+
     @BeforeEach
     fun initMocks() {
         fakeUser.email = fakeUserEmail
@@ -48,11 +53,21 @@ class UserServiceTests {
         MockitoAnnotations.openMocks(this)
     }
 
+    private val ownerRole = Userrole(
+        id = 1,
+        role = Role.OWNER.name
+    )
+
+    private val userRole = Userrole(
+        id = 2,
+        role = Role.USER.name
+    )
+
     private val fakeUser = User(
         id = 1,
         firstName = "John",
         lastName = "Doe",
-        role = Role.OWNER,
+        role = ownerRole,
         passwordHash = "cff70d1997acd2093cbfca9b66ace24a70deb47c4b5b4ec9f87b83f881432070a8708f2bcd578dc5466de2e07c88c314f76cab9719294e91bf99fb7f76770b9e",
         passwordSalt = "[B@55614340"
     )
@@ -86,6 +101,7 @@ class UserServiceTests {
 
         `when`(emailRepository.findByEmail(fakeUserEmail.email)).thenReturn(null)
 
+        `when`(userRoleRepository.findByRole(Role.USER.name)).thenReturn(Optional.of(userRole))
         `when`(emailRepository.save(ArgumentMatchers.any(Email::class.java))).thenReturn(fakeUserEmail)
         `when`(userRepository.save(ArgumentMatchers.any(User::class.java))).thenReturn(fakeUser)
         `when`(tokenRepository.save(ArgumentMatchers.any(SessionToken::class.java))).thenReturn(fakeToken)
@@ -116,7 +132,7 @@ class UserServiceTests {
         val result = userService.getUser(fakeUser.id)
         assertEquals(fakeUser.firstName, result.firstName)
         assertEquals(fakeUser.lastName, result.lastName)
-        assertEquals(fakeUser.email?.email, result.email)
+        assertEquals(fakeUser.email.email, result.email)
         assertTrue(fakeUser.sessionTokens.contains(fakeToken))
     }
 
@@ -151,7 +167,8 @@ class UserServiceTests {
         assertEquals(fakeUser.id, result.userID)
         assertTrue(result.timeUntilExpire > 0) // Future time
 
-        verify(tokenRepository, times(0)).save(ArgumentMatchers.any())
+        verify(tokenRepository, times(1)).delete(fakeToken)
+        verify(tokenRepository, times(1)).save(ArgumentMatchers.any())
     }
 
     @Test

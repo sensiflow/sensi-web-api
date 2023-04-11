@@ -4,7 +4,7 @@ import com.isel.sensiflow.Constants
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 
-data class UserRoleInputDTO(
+data class UserRoleInput(
     @field:NotBlank
     @field:Size(
         min = Constants.Roles.ROLE_NAME_MIN_LENGTH,
