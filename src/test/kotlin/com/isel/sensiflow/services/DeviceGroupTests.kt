@@ -6,12 +6,12 @@ import com.isel.sensiflow.model.dao.User
 import com.isel.sensiflow.model.dao.Userrole
 import com.isel.sensiflow.model.repository.DeviceGroupRepository
 import com.isel.sensiflow.model.repository.DeviceRepository
-import com.isel.sensiflow.model.repository.UserRoleRepository
-import com.isel.sensiflow.services.dto.PaginationInfo
+import com.isel.sensiflow.services.dto.PageableDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupCreateDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupInputDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupUpdateDTO
-import com.isel.sensiflow.services.dto.output.toDTO
+import com.isel.sensiflow.services.dto.output.toDeviceGroupOutputDTO
+import com.isel.sensiflow.services.dto.output.toDeviceOutputDTO
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -42,9 +42,6 @@ class DeviceGroupTests {
 
     @Mock
     private lateinit var deviceRepository: DeviceRepository
-
-    @Mock
-    private lateinit var userRoleRepository: UserRoleRepository
 
     @BeforeEach
     fun initMocks() {
@@ -283,7 +280,7 @@ class DeviceGroupTests {
     fun `get the device list of a group successfully`() {
         // Arrange
         val deviceGroupID = 1
-        val paginationInfo = PaginationInfo(1, 10)
+        val pageableDTO = PageableDTO(1, 10)
 
         val expectedPageItems = listOf<Device>(
             fakeDevice,
@@ -292,42 +289,42 @@ class DeviceGroupTests {
 
         val page = PageImpl(
             expectedPageItems,
-            PageRequest.of(paginationInfo.page, paginationInfo.size),
+            PageRequest.of(pageableDTO.page, pageableDTO.size),
             expectedPageItems.size.toLong()
         )
 
         `when`(deviceGroupRepository.findById(deviceGroupID)).thenReturn(Optional.of(fakeDeviceGroup))
         `when`(
             deviceGroupRepository
-                .findPaginatedByEntityDeviceId(deviceGroupID, PageRequest.of(paginationInfo.page, paginationInfo.size))
+                .findPaginatedByEntityDeviceId(deviceGroupID, PageRequest.of(pageableDTO.page, pageableDTO.size))
         )
             .thenReturn(page)
 
-        val expected = expectedPageItems.map { it.toDTO(expanded = false) }
+        val expected = expectedPageItems.map { it.toDeviceOutputDTO(expanded = false) }
         val retrievedStats = deviceGroupService
-            .getDevicesFromGroup(deviceGroupID, paginationInfo = paginationInfo, expanded = false)
+            .getDevicesFromGroup(deviceGroupID, pageableDTO = pageableDTO, expanded = false)
 
         // Assert
         assertEquals(expected, retrievedStats.items)
         verify(deviceGroupRepository, times(1))
-            .findPaginatedByEntityDeviceId(deviceGroupID, PageRequest.of(paginationInfo.page, paginationInfo.size))
+            .findPaginatedByEntityDeviceId(deviceGroupID, PageRequest.of(pageableDTO.page, pageableDTO.size))
     }
 
     @Test
     fun `get the list of devices of a group that does not exist`() {
         // Arrange
         val nonExistingGroup = 1
-        val paginationInfo = PaginationInfo(1, 10)
+        val pageableDTO = PageableDTO(1, 10)
 
         `when`(deviceGroupRepository.findById(nonExistingGroup)).thenReturn(Optional.empty())
 
         assertThrows<DeviceGroupNotFoundException> {
-            deviceGroupService.getDevicesFromGroup(nonExistingGroup, paginationInfo = paginationInfo, expanded = false)
+            deviceGroupService.getDevicesFromGroup(nonExistingGroup, pageableDTO = pageableDTO, expanded = false)
         }
 
         // Assert
         verify(deviceGroupRepository, times(0))
-            .findPaginatedByEntityDeviceId(nonExistingGroup, PageRequest.of(paginationInfo.page, paginationInfo.size))
+            .findPaginatedByEntityDeviceId(nonExistingGroup, PageRequest.of(pageableDTO.page, pageableDTO.size))
     }
 
     @Test
@@ -337,7 +334,7 @@ class DeviceGroupTests {
 
         val result = deviceGroupService.getGroup(fakeDeviceGroup.id)
 
-        assertEquals(fakeDeviceGroup.toDTO(), result)
+        assertEquals(fakeDeviceGroup.toDeviceGroupOutputDTO(), result)
         verify(deviceGroupRepository, times(1)).findById(fakeDeviceGroup.id)
     }
 

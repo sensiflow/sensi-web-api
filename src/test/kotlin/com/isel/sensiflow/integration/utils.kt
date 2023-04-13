@@ -3,8 +3,10 @@ package com.isel.sensiflow.integration
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.isel.sensiflow.http.entities.input.UserLoginInput
 import com.isel.sensiflow.http.entities.input.UserRegisterInput
+import com.isel.sensiflow.model.dao.Device
 import com.isel.sensiflow.services.Role
 import com.isel.sensiflow.services.UserService
+import com.isel.sensiflow.services.dto.output.PageDTO
 import jakarta.servlet.http.Cookie
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
@@ -12,11 +14,24 @@ import org.springframework.test.web.servlet.ResultActions
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 
+typealias NoBody = Unit
+
+data class InvalidBody(
+    val random: String = "",
+    val timestamp: Long = 0,
+    val value: Int = 0,
+    val page: PageDTO<PageDTO<Device>>? = null
+)
+
 enum class HTTPMethod {
     GET, POST, PUT, DELETE
 }
 
-fun ensureCookieNotNull(cookie: Cookie?) = cookie ?: error("Failed to create user")
+/**
+ * Ensures that the cookie is not null
+ * @param cookie The nullable cookie to be checked
+ */
+fun ensureCookieNotNull(cookie: Cookie?) = cookie ?: error("The provided cookie is null")
 
 inline fun <reified T, reified R> MockMvc.request(
     method: HTTPMethod,

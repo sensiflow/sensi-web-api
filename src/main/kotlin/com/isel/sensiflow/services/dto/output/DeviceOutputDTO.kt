@@ -55,7 +55,7 @@ data class DeviceExpandedOutputDTO(
  * Factory method to create a DeviceOutputDTO from a Device
  * @param expanded If true, the DeviceOutputDTO foreign key fields will be expanded to the full entity
  */
-fun Device.toDTO(expanded: Boolean): DeviceOutputDTO {
+fun Device.toDeviceOutputDTO(expanded: Boolean): DeviceOutputDTO {
 
     val processingStateString = this.processingState.toString()
 

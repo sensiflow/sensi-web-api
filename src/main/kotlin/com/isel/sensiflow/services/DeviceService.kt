@@ -5,15 +5,17 @@ import com.isel.sensiflow.model.dao.DeviceProcessingState
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.model.repository.MetricRepository
 import com.isel.sensiflow.model.repository.UserRepository
-import com.isel.sensiflow.services.dto.PaginationInfo
+import com.isel.sensiflow.services.dto.PageableDTO
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
 import com.isel.sensiflow.services.dto.input.DeviceUpdateDTO
-import com.isel.sensiflow.services.dto.input.isEmpty
-import com.isel.sensiflow.services.dto.input.isEqual
+import com.isel.sensiflow.services.dto.input.fieldsAreEmpty
+import com.isel.sensiflow.services.dto.input.isTheSameAs
 import com.isel.sensiflow.services.dto.output.DeviceOutputDTO
 import com.isel.sensiflow.services.dto.output.MetricOutputDTO
 import com.isel.sensiflow.services.dto.output.PageDTO
-import com.isel.sensiflow.services.dto.output.toDTO
+import com.isel.sensiflow.services.dto.output.toDeviceOutputDTO
+import com.isel.sensiflow.services.dto.output.toMetricOutputDTO
+import com.isel.sensiflow.services.dto.output.toPageDTO
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -46,7 +48,7 @@ class DeviceService(
 
         return deviceRepository
             .save(newDevice)
-            .toDTO(expanded = false)
+            .toDeviceOutputDTO(expanded = false)
     }
 
     /**
@@ -60,21 +62,21 @@ class DeviceService(
     fun getDeviceById(deviceId: Int, expanded: Boolean): DeviceOutputDTO {
         return deviceRepository.findById(deviceId)
             .orElseThrow { DeviceNotFoundException(deviceId) }
-            .toDTO(expanded)
+            .toDeviceOutputDTO(expanded)
     }
 
     /**
      * Gets all devices.
-     * @param paginationInfo The pagination information.
+     * @param pageableDTO The pagination information.
      * @return A [PageDTO] of devices.
      */
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    fun getAllDevices(paginationInfo: PaginationInfo, expanded: Boolean): PageDTO<DeviceOutputDTO> {
-        val pageable: Pageable = PageRequest.of(paginationInfo.page, paginationInfo.size)
+    fun getAllDevices(pageableDTO: PageableDTO, expanded: Boolean): PageDTO<DeviceOutputDTO> {
+        val pageable: Pageable = PageRequest.of(pageableDTO.page, pageableDTO.size)
         return deviceRepository
             .findAll(pageable)
-            .map { it.toDTO(expanded = expanded) }
-            .toDTO()
+            .map { deviceDao -> deviceDao.toDeviceOutputDTO(expanded = expanded) }
+            .toPageDTO()
     }
 
     /**
@@ -83,28 +85,27 @@ class DeviceService(
      * All provided fields are overwritten, except if in the input the field is null.
      *
      * @param deviceId The id of the device.
-     * @param deviceInput The input data for the device to update.
+     * @param deviceUpdateInput The input data for the device to update.
      * @return The updated [Device].
      */
     @Transactional(isolation = Isolation.REPEATABLE_READ)
-    fun updateDevice(deviceId: Int, deviceInput: DeviceUpdateDTO): Device {
+    fun updateDevice(deviceId: Int, deviceUpdateInput: DeviceUpdateDTO) {
 
-        val device = deviceRepository.findById(deviceId)
+        val storedDevice = deviceRepository.findById(deviceId)
             .orElseThrow { DeviceNotFoundException(deviceId) }
 
-        // If the input is empty, there is nothing to update.
-        // Same if the input is the same as the current device.
-        if (deviceInput.isEmpty() || device.isEqual(deviceInput)) return device
+        if (deviceUpdateInput.fieldsAreEmpty() || storedDevice.isTheSameAs(deviceUpdateInput))
+            return
 
         val updatedDevice = Device(
-            id = device.id,
-            name = deviceInput.name ?: device.name,
-            streamURL = deviceInput.streamURL ?: device.streamURL,
-            description = deviceInput.description ?: device.description,
-            user = device.user
+            id = storedDevice.id,
+            name = deviceUpdateInput.name ?: storedDevice.name,
+            streamURL = deviceUpdateInput.streamURL ?: storedDevice.streamURL,
+            description = deviceUpdateInput.description ?: storedDevice.description,
+            user = storedDevice.user
         )
 
-        return deviceRepository.save(updatedDevice)
+        deviceRepository.save(updatedDevice)
     }
 
     /**
@@ -123,51 +124,57 @@ class DeviceService(
     /**
      * Changes the processing state of a device.
      * @param deviceID The id of the device.
-     * @param state The new state of the device.
+     * @param newStateInput The new state of the device.
      */
     @Transactional(isolation = Isolation.REPEATABLE_READ)
-    fun updateProcessingState(deviceID: Int, state: String?) {
+    fun updateProcessingState(deviceID: Int, newStateInput: String?) {
 
-        val safeState = state ?: throw InvalidProcessingStateException("null")
-        val newProcessingState = DeviceProcessingState.fromString(safeState)
-            ?: throw InvalidProcessingStateException(safeState)
+        val cleanStateInput: String = newStateInput ?: throw InvalidProcessingStateException("null")
 
-        val device = deviceRepository.findById(deviceID)
+        val newProcessingState: DeviceProcessingState = DeviceProcessingState.fromString(cleanStateInput)
+            ?: throw InvalidProcessingStateException(cleanStateInput)
+
+        val storedDevice = deviceRepository.findById(deviceID)
             .orElseThrow { DeviceNotFoundException(deviceID) }
 
-        if (!device.processingState.isValidTransition(newProcessingState))
-            throw InvalidProcessingStateTransitionException(from = device.processingState, to = newProcessingState)
+        if (storedDevice.processingState == newProcessingState)
+            return
 
-        val newDevice = Device( // Preserve immutability
-            id = device.id,
-            name = device.name,
-            streamURL = device.streamURL,
-            description = device.description,
-            user = device.user,
+        if (!storedDevice.processingState.isValidTransition(newProcessingState))
+            throw InvalidProcessingStateTransitionException(
+                from = storedDevice.processingState,
+                to = newProcessingState
+            )
+
+        val deviceWithUpdatedState = Device(
+            id = storedDevice.id,
+            name = storedDevice.name,
+            streamURL = storedDevice.streamURL,
+            description = storedDevice.description,
+            user = storedDevice.user,
             processingState = newProcessingState
         )
 
-        deviceRepository.save(newDevice)
+        deviceRepository.save(deviceWithUpdatedState)
     }
 
     /**
      * Gets the stats of a device.
-     * @param paginationInfo The pagination information.
+     * @param pageableDTO The pagination information.
      * @param deviceId The id of the device.
      * @throws DeviceNotFoundException If the device does not exist.
-     * @throws OwnerMismatchException If the user does not own the device.
      * @return A [PageDTO] of [MetricOutputDTO].
      */
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    fun getDeviceStats(paginationInfo: PaginationInfo, deviceId: Int): PageDTO<MetricOutputDTO> {
-        val pageable: Pageable = PageRequest.of(paginationInfo.page, paginationInfo.size)
+    fun getDeviceStats(pageableDTO: PageableDTO, deviceId: Int): PageDTO<MetricOutputDTO> {
+        val pageable: Pageable = PageRequest.of(pageableDTO.page, pageableDTO.size)
 
-        val device = deviceRepository.findById(deviceId)
+        val storedDevice = deviceRepository.findById(deviceId)
             .orElseThrow { DeviceNotFoundException(deviceId) }
 
         return metricRepository
-            .findAllByDeviceID(device, pageable)
-            .map { it.toDTO() }
-            .toDTO()
+            .findAllByDeviceID(storedDevice, pageable)
+            .map { metric -> metric.toMetricOutputDTO() }
+            .toPageDTO()
     }
 }

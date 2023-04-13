@@ -4,14 +4,13 @@ import com.isel.sensiflow.model.dao.User
 import com.isel.sensiflow.model.dao.Userrole
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.model.repository.ProcessedStreamRepository
-import com.isel.sensiflow.model.repository.UserRoleRepository
 import com.isel.sensiflow.services.DeviceNotFoundException
 import com.isel.sensiflow.services.ProcessedStreamNotFoundException
 import com.isel.sensiflow.services.ProcessedStreamService
 import com.isel.sensiflow.services.Role
 import com.isel.sensiflow.services.dto.output.DeviceSimpleOutputDTO
 import com.isel.sensiflow.services.dto.output.ProcessedStreamExpandedOutputDTO
-import com.isel.sensiflow.services.dto.output.toDTO
+import com.isel.sensiflow.services.dto.output.toProcessedStreamOutputDTO
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -38,9 +37,6 @@ class ProcessedStreamTests {
 
     @Mock
     private lateinit var deviceRepository: DeviceRepository
-
-    @Mock
-    private lateinit var userRoleRepository: UserRoleRepository
 
     @BeforeEach
     fun initMocks() {
@@ -96,7 +92,7 @@ class ProcessedStreamTests {
         val processedStream = processedStreamService.getProcessedStreamOfDeviceWith(deviceId, expanded)
 
         // Assert
-        assertEquals(fakeProcessedStream.toDTO(expanded), processedStream)
+        assertEquals(fakeProcessedStream.toProcessedStreamOutputDTO(expanded), processedStream)
         verify(deviceRepository, times(1)).findById(deviceId)
         verify(processedStreamRepository, times(1)).findById(deviceId)
     }

@@ -10,6 +10,8 @@ import com.isel.sensiflow.model.repository.MetricRepository
 import com.isel.sensiflow.services.Role
 import com.isel.sensiflow.services.UserService
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
+import com.isel.sensiflow.services.dto.input.DeviceUpdateDTO
+import com.isel.sensiflow.services.dto.output.DeviceSimpleOutputDTO
 import com.isel.sensiflow.services.dto.output.MetricOutputDTO
 import com.isel.sensiflow.services.dto.output.PageDTO
 import jakarta.servlet.http.Cookie
@@ -47,18 +49,20 @@ class DeviceControllerTests {
 
     companion object {
         val mapper = jacksonObjectMapper()
+        private const val VALID_STREAM_URL = "rtsp://sensiflow.zapto.org:554/1/stream1"
+        private const val INVALID_STREAM_URL = "definitely not a valid url"
     }
 
     @Test
     fun `get device stats successfully`() {
-        val cookie = ensureCookieNotNull(cookie = getCookie())
+        val cookie = ensureCookieNotNull(cookie = getOwnerCookie())
 
         val responseDevice1 = createDevice(
             cookie,
             DeviceInputDTO(
                 name = "Test",
                 description = "Test",
-                streamURL = "Test.url"
+                streamURL = VALID_STREAM_URL
             )
         )
 
@@ -100,7 +104,7 @@ class DeviceControllerTests {
             method = HTTPMethod.GET,
             uri = "/devices/$id1/stats?page=0&size=10",
             authorization = cookie,
-            mapper = DevicesGroupControllerTests.mapper,
+            mapper = mapper,
             assertions = {
                 andExpect(MockMvcResultMatchers.status().isOk)
                     .andExpect(MockMvcResultMatchers.jsonPath("$.items").isArray)
@@ -112,13 +116,534 @@ class DeviceControllerTests {
 
     @Test
     fun `get the stats of a device that does not exist`() {
-        val cookie = ensureCookieNotNull(cookie = getCookie())
+        val cookie = ensureCookieNotNull(cookie = getOwnerCookie())
 
         mockMvc.request<Unit, ProblemDetail>(
             method = HTTPMethod.GET,
             uri = "/devices/-1/stats?page=0&size=10",
             authorization = cookie,
-            mapper = DevicesGroupControllerTests.mapper,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isNotFound)
+            }
+        )
+    }
+
+    @Test
+    fun `create a valid device`() {
+        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+        createDevice(
+            cookie = ownerCookie,
+            input = DeviceInputDTO(
+                name = "Test Device",
+                description = "Test Description",
+                streamURL = VALID_STREAM_URL
+            )
+        )
+    }
+
+    @Test
+    fun `create a device with and invalid body gives 400`() {
+        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+        mockMvc.request<InvalidBody, ProblemDetail>(
+            method = HTTPMethod.POST,
+            uri = "/devices",
+            body = InvalidBody(),
+            authorization = ownerCookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isBadRequest)
+            }
+        )
+    }
+
+    @Test
+    fun `create a device with no name gives 400`() {
+        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+        mockMvc.request<DeviceInputDTO, ProblemDetail>(
+            method = HTTPMethod.POST,
+            uri = "/devices",
+            body = DeviceInputDTO(
+                name = "",
+                description = "Test Description",
+                streamURL = VALID_STREAM_URL
+            ),
+            authorization = ownerCookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isBadRequest)
+                    .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(Constants.Problem.Title.VALIDATION_ERROR))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(400))
+            }
+        )
+    }
+
+    @Test
+    fun `create a device with no streamUrl gives 400`() {
+        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+        mockMvc.request<DeviceInputDTO, ProblemDetail>(
+            method = HTTPMethod.POST,
+            uri = "/devices",
+            body = DeviceInputDTO(
+                name = "name",
+                description = "Test Description",
+                streamURL = ""
+            ),
+            authorization = ownerCookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isBadRequest)
+                    .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(Constants.Problem.Title.VALIDATION_ERROR))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(400))
+            }
+        )
+    }
+
+    @Test
+    fun `create a device with a name bigger than max length gives 400`() {
+        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+        mockMvc.request<DeviceInputDTO, ProblemDetail>(
+            method = HTTPMethod.POST,
+            uri = "/devices",
+            body = DeviceInputDTO(
+                name = "a".repeat(Constants.Device.NAME_MAX_LENGTH + 1),
+                description = "Test Description",
+                streamURL = VALID_STREAM_URL
+            ),
+            authorization = ownerCookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isBadRequest)
+                    .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(Constants.Problem.Title.VALIDATION_ERROR))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(400))
+            }
+        )
+    }
+
+    @Test
+    fun `create a device with a description bigger than max length gives 400`() {
+        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+        mockMvc.request<DeviceInputDTO, ProblemDetail>(
+            method = HTTPMethod.POST,
+            uri = "/devices",
+            body = DeviceInputDTO(
+                name = "New Device",
+                description = "a".repeat(Constants.Device.DESCRIPTION_MAX_LENGTH + 1),
+                streamURL = VALID_STREAM_URL
+            ),
+            authorization = ownerCookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isBadRequest)
+                    .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(Constants.Problem.Title.VALIDATION_ERROR))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(400))
+            }
+        )
+    }
+
+    @Test
+    fun `create a device with a streamUrl bigger than max length gives 400`() {
+        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+        mockMvc.request<DeviceInputDTO, ProblemDetail>(
+            method = HTTPMethod.POST,
+            uri = "/devices",
+            body = DeviceInputDTO(
+                name = "New Device",
+                description = "asda",
+                streamURL = VALID_STREAM_URL + "a".repeat(Constants.Device.STREAM_URL_MAX_LENGTH + 1)
+            ),
+            authorization = ownerCookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isBadRequest)
+                    .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(Constants.Problem.Title.VALIDATION_ERROR))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(400))
+            }
+        )
+    }
+
+    @Test
+    fun `create a device with a streamUrl with invalid format gives 400`() {
+        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+        mockMvc.request<DeviceInputDTO, ProblemDetail>(
+            method = HTTPMethod.POST,
+            uri = "/devices",
+            body = DeviceInputDTO(
+                name = "New Device",
+                description = "asda",
+                streamURL = INVALID_STREAM_URL
+            ),
+            authorization = ownerCookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isBadRequest)
+                    .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(Constants.Problem.Title.VALIDATION_ERROR))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(400))
+            }
+        )
+    }
+
+    @Test
+    fun `create a device with a blank description is allowed`() {
+        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+        mockMvc.request<DeviceInputDTO, IDOutput>(
+            method = HTTPMethod.POST,
+            uri = "/devices",
+            body = DeviceInputDTO(
+                name = "New Device",
+                description = "",
+                streamURL = VALID_STREAM_URL
+            ),
+            authorization = ownerCookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isCreated)
+                    .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber)
+            }
+        )
+    }
+
+    @Test
+    fun `create a device without a description is allowed`() {
+        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+        mockMvc.request<DeviceInputDTO, IDOutput>(
+            method = HTTPMethod.POST,
+            uri = "/devices",
+            body = DeviceInputDTO(
+                name = "New Device",
+                description = null,
+                streamURL = VALID_STREAM_URL
+            ),
+            authorization = ownerCookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isCreated)
+                    .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber)
+            }
+        )
+    }
+
+    @Test
+    fun `delete a device`() {
+        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+        val createdDeviceId = createDevice(
+            cookie = ownerCookie,
+            input = DeviceInputDTO(
+                name = "Test Device",
+                description = "Test Description",
+                streamURL = VALID_STREAM_URL
+            )
+        )
+
+        mockMvc.request<NoBody, NoBody>(
+            method = HTTPMethod.DELETE,
+            uri = "/devices/${createdDeviceId?.id}",
+            authorization = ownerCookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isNoContent)
+            }
+        )
+
+        mockMvc.request<NoBody, ProblemDetail>(
+            method = HTTPMethod.GET,
+            uri = "/devices/${createdDeviceId?.id}",
+            authorization = ownerCookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isNotFound)
+                    .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(Constants.Problem.Title.NOT_FOUND))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(404))
+            }
+        )
+    }
+
+    @Test
+    fun `update a device with empty name gives 400`() {
+        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+        val createdDeviceId = createDevice(
+            cookie = ownerCookie,
+            input = DeviceInputDTO(
+                name = "Test Device",
+                description = "Test Description",
+                streamURL = VALID_STREAM_URL
+            )
+        )
+
+        mockMvc.request<DeviceUpdateDTO, ProblemDetail>(
+            method = HTTPMethod.PUT,
+            uri = "/devices/${createdDeviceId?.id}",
+            body = DeviceUpdateDTO(
+                name = "",
+                description = "Test Description",
+                streamURL = VALID_STREAM_URL
+            ),
+            authorization = ownerCookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isBadRequest)
+                    .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(Constants.Problem.Title.VALIDATION_ERROR))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(400))
+            }
+        )
+    }
+
+    @Test
+    fun `update a device with empty description is allowed`() {
+        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+        val createdDeviceId = createDevice(
+            cookie = ownerCookie,
+            input = DeviceInputDTO(
+                name = "Test Device",
+                description = "Test Description",
+                streamURL = VALID_STREAM_URL
+            )
+        )
+
+        mockMvc.request<DeviceUpdateDTO, ProblemDetail>(
+            method = HTTPMethod.PUT,
+            uri = "/devices/${createdDeviceId?.id}",
+            body = DeviceUpdateDTO(
+                name = "New Device",
+                description = "",
+                streamURL = VALID_STREAM_URL
+            ),
+            authorization = ownerCookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isNoContent)
+            }
+        )
+    }
+
+    @Test
+    fun `update a device with empty stream gives 400`() {
+        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+        val createdDeviceId = createDevice(
+            cookie = ownerCookie,
+            input = DeviceInputDTO(
+                name = "Test Device",
+                description = "Test Description",
+                streamURL = VALID_STREAM_URL
+            )
+        )
+
+        mockMvc.request<DeviceUpdateDTO, ProblemDetail>(
+            method = HTTPMethod.PUT,
+            uri = "/devices/${createdDeviceId?.id}",
+            body = DeviceUpdateDTO(
+                name = "New Device",
+                description = "New Description",
+                streamURL = ""
+            ),
+            authorization = ownerCookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isBadRequest)
+                    .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(Constants.Problem.Title.VALIDATION_ERROR))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(400))
+            }
+        )
+    }
+
+    @Test
+    fun `update a device with a stream with invalid format gives 400`() {
+        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+        val createdDeviceId = createDevice(
+            cookie = ownerCookie,
+            input = DeviceInputDTO(
+                name = "Test Device",
+                description = "Test Description",
+                streamURL = VALID_STREAM_URL
+            )
+        )
+
+        mockMvc.request<DeviceUpdateDTO, ProblemDetail>(
+            method = HTTPMethod.PUT,
+            uri = "/devices/${createdDeviceId?.id}",
+            body = DeviceUpdateDTO(
+                name = "New Device",
+                description = "New Description",
+                streamURL = INVALID_STREAM_URL
+            ),
+            authorization = ownerCookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isBadRequest)
+                    .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(Constants.Problem.Title.VALIDATION_ERROR))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(400))
+            }
+        )
+    }
+
+    @Test
+    fun `updating only the device's name is allowed`() {
+
+        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+
+        val deviceId = createDevice(
+            cookie = ownerCookie,
+            input = DeviceInputDTO(
+                name = "Test Device",
+                description = "Test Description",
+                streamURL = VALID_STREAM_URL
+            )
+        )?.id
+
+        mockMvc.request<DeviceUpdateDTO, ProblemDetail>(
+            method = HTTPMethod.PUT,
+            uri = "/devices/$deviceId",
+            body = DeviceUpdateDTO(
+                name = "New Device"
+            ),
+            authorization = ownerCookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isNoContent)
+            }
+        )
+    }
+
+    @Test
+    fun `updating only the device's description is allowed`() {
+
+        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+
+        val deviceId = createDevice(
+            cookie = ownerCookie,
+            input = DeviceInputDTO(
+                name = "Test Device",
+                description = "Test Description",
+                streamURL = VALID_STREAM_URL
+            )
+        )?.id
+
+        mockMvc.request<DeviceUpdateDTO, ProblemDetail>(
+            method = HTTPMethod.PUT,
+            uri = "/devices/$deviceId",
+            body = DeviceUpdateDTO(
+                description = "New Description"
+            ),
+            authorization = ownerCookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isNoContent)
+            }
+        )
+    }
+
+    @Test
+    fun `updating only the device's stream is allowed`() {
+
+        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+
+        val deviceId = createDevice(
+            cookie = ownerCookie,
+            input = DeviceInputDTO(
+                name = "Test Device",
+                description = "Test Description",
+                streamURL = VALID_STREAM_URL
+            )
+        )?.id
+
+        mockMvc.request<DeviceUpdateDTO, ProblemDetail>(
+            method = HTTPMethod.PUT,
+            uri = "/devices/$deviceId",
+            body = DeviceUpdateDTO(
+                streamURL = VALID_STREAM_URL + "b"
+            ),
+            authorization = ownerCookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isNoContent)
+            }
+        )
+    }
+
+    @Test
+    fun `adding a device, ensure it exists, update it then delete it, then ensure it does not exist`() {
+
+        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+        val createdDeviceId = createDevice(
+            cookie = ownerCookie,
+            input = DeviceInputDTO(
+                name = "Test Device",
+                description = "Test Description",
+                streamURL = VALID_STREAM_URL
+            )
+        )
+
+        mockMvc.request<NoBody, DeviceSimpleOutputDTO>(
+            method = HTTPMethod.GET,
+            uri = "/devices/${createdDeviceId?.id}",
+            authorization = ownerCookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isOk)
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(createdDeviceId?.id))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("Test Device"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.description").value("Test Description"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.streamURL").value(VALID_STREAM_URL))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.userID").isNumber)
+            }
+        )
+
+        mockMvc.request<DeviceInputDTO, NoBody>(
+            method = HTTPMethod.PUT,
+            uri = "/devices/${createdDeviceId?.id}",
+            body = DeviceInputDTO(
+                name = "Test Device Updated",
+                description = "Test Description Updated",
+                streamURL = VALID_STREAM_URL + "b"
+            ),
+            authorization = ownerCookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isNoContent)
+            }
+        )
+
+        mockMvc.request<NoBody, DeviceSimpleOutputDTO>(
+            method = HTTPMethod.GET,
+            uri = "/devices/${createdDeviceId?.id}",
+            authorization = ownerCookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isOk)
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(createdDeviceId?.id))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("Test Device Updated"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.description").value("Test Description Updated"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.streamURL").value(VALID_STREAM_URL + "b"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.userID").isNumber)
+            }
+        )
+
+        mockMvc.request<NoBody, NoBody>(
+            method = HTTPMethod.DELETE,
+            uri = "/devices/${createdDeviceId?.id}",
+            authorization = ownerCookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isNoContent)
+            }
+        )
+        mockMvc.request<NoBody, ProblemDetail>(
+            method = HTTPMethod.DELETE,
+            uri = "/devices/${createdDeviceId?.id}",
+            authorization = ownerCookie,
+            mapper = mapper,
             assertions = {
                 andExpect(MockMvcResultMatchers.status().isNotFound)
             }
@@ -139,9 +664,9 @@ class DeviceControllerTests {
         )
     }
 
-    private fun getCookie(): Cookie? {
+    private fun getOwnerCookie(): Cookie? {
         val inputLogin = createTestUser(userService, Role.OWNER)
-        val loginJson = DevicesGroupControllerTests.mapper.writeValueAsString(inputLogin)
+        val loginJson = mapper.writeValueAsString(inputLogin)
 
         val loginResult = mockMvc.perform(
             MockMvcRequestBuilders.post("/users/login")

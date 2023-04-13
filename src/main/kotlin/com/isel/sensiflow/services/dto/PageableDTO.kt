@@ -7,7 +7,7 @@ import com.isel.sensiflow.Constants
  * @param page The page number
  * @param size The page size
  */
-class PaginationInfo(page: Int?, size: Int?) {
+class PageableDTO(page: Int?, size: Int?) {
     val page: Int = page ?: Constants.Pagination.DEFAULT_PAGE
     val size: Int = size?.coerceAtMost(Constants.Pagination.MAX_PAGE_SIZE) ?: Constants.Pagination.DEFAULT_PAGE_SIZE
 }

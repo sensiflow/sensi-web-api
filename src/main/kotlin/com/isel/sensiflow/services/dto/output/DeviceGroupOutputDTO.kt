@@ -9,7 +9,7 @@ data class DeviceGroupOutputDTO(
     val description: String?
 )
 
-fun DeviceGroup.toDTO(): DeviceGroupOutputDTO {
+fun DeviceGroup.toDeviceGroupOutputDTO(): DeviceGroupOutputDTO {
     return DeviceGroupOutputDTO(
         id = this.id,
         name = this.name,

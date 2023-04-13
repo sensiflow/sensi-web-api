@@ -11,12 +11,12 @@ import com.isel.sensiflow.model.dao.addEmail
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.model.repository.MetricRepository
 import com.isel.sensiflow.model.repository.UserRepository
-import com.isel.sensiflow.model.repository.UserRoleRepository
-import com.isel.sensiflow.services.dto.PaginationInfo
+import com.isel.sensiflow.services.dto.PageableDTO
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
 import com.isel.sensiflow.services.dto.input.DeviceUpdateDTO
 import com.isel.sensiflow.services.dto.output.DeviceSimpleOutputDTO
-import com.isel.sensiflow.services.dto.output.toDTO
+import com.isel.sensiflow.services.dto.output.toDeviceOutputDTO
+import com.isel.sensiflow.services.dto.output.toMetricOutputDTO
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -35,8 +35,10 @@ import org.mockito.MockitoAnnotations
 import org.mockito.junit.MockitoJUnitRunner
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
 import java.sql.Timestamp
 import java.util.Optional
+import com.isel.sensiflow.services.any as kotlinAny
 
 @RunWith(MockitoJUnitRunner::class)
 class DeviceServiceTests {
@@ -52,9 +54,6 @@ class DeviceServiceTests {
 
     @Mock
     private lateinit var metricRepository: MetricRepository
-
-    @Mock
-    private lateinit var userRoleRepository: UserRoleRepository
 
     @BeforeEach
     fun initMocks() {
@@ -85,7 +84,7 @@ class DeviceServiceTests {
     private val fakeDevice = Device(
         id = 1,
         name = "Device 1",
-        streamURL = "https://example.com/device1/stream",
+        streamURL = "rtsp://example.com/device1/stream/buckbuckbunny",
         description = "Device 1 description",
         user = fakeUser
     )
@@ -112,7 +111,7 @@ class DeviceServiceTests {
 
         val createdDevice = deviceService.createDevice(fakeDeviceInput, userId)
 
-        assertEquals(fakeDevice.toDTO(expanded = false), createdDevice)
+        assertEquals(fakeDevice.toDeviceOutputDTO(expanded = false), createdDevice)
 
         verify(userRepository, times(1)).findById(userId)
         verify(deviceRepository, times(1)).save(any(Device::class.java))
@@ -149,7 +148,7 @@ class DeviceServiceTests {
 
         val createdDevice = deviceService.createDevice(deviceInputNoDescription, userId)
 
-        assertEquals(device.toDTO(expanded = false), createdDevice)
+        assertEquals(device.toDeviceOutputDTO(expanded = false), createdDevice)
 
         verify(userRepository, times(1)).findById(userId)
         verify(deviceRepository, times(1)).save(any(Device::class.java))
@@ -176,7 +175,7 @@ class DeviceServiceTests {
 
     @Test
     fun `simple get all devices expanded`() {
-        val paginationInfo = PaginationInfo(page = 1, size = 10)
+        val pageableDTO = PageableDTO(page = 1, size = 10)
         val devices = listOf(
             Device(
                 id = 1,
@@ -212,18 +211,18 @@ class DeviceServiceTests {
                 )
             )
         )
-        val page = PageImpl(devices, PageRequest.of(paginationInfo.page, paginationInfo.size), devices.size.toLong())
+        val page = PageImpl(devices, PageRequest.of(pageableDTO.page, pageableDTO.size), devices.size.toLong())
 
-        `when`(deviceRepository.findAll(PageRequest.of(paginationInfo.page, paginationInfo.size)))
+        `when`(deviceRepository.findAll(PageRequest.of(pageableDTO.page, pageableDTO.size)))
             .thenReturn(page)
 
-        val retrievedDevices = deviceService.getAllDevices(paginationInfo, expanded = true)
+        val retrievedDevices = deviceService.getAllDevices(pageableDTO, expanded = true)
 
-        val expected = devices.map { it.toDTO(expanded = true) }
+        val expected = devices.map { it.toDeviceOutputDTO(expanded = true) }
 
         assertEquals(expected, retrievedDevices.items)
         verify(deviceRepository, times(1))
-            .findAll(PageRequest.of(paginationInfo.page, paginationInfo.size))
+            .findAll(PageRequest.of(pageableDTO.page, pageableDTO.size))
     }
 
     @Test
@@ -238,7 +237,7 @@ class DeviceServiceTests {
             id = 1,
             name = "Updated Test Device",
             description = "This is an updated test device.",
-            streamURL = "https://example.com/device1/stream",
+            streamURL = "rtsp://example.com/device1/stream",
             user = fakeDevice.user
         )
         val deviceDto = DeviceUpdateDTO(
@@ -250,10 +249,9 @@ class DeviceServiceTests {
         `when`(deviceRepository.save(any(Device::class.java))).thenReturn(updatedDevice)
 
         // Act
-        val result = deviceService.updateDevice(deviceId, deviceDto)
+        deviceService.updateDevice(deviceId, deviceDto)
 
         // Assert
-        assertEquals(updatedDevice, result)
         verify(deviceRepository, times(1)).findById(deviceId)
         verify(deviceRepository, times(1)).save(any(Device::class.java))
     }
@@ -316,7 +314,7 @@ class DeviceServiceTests {
 
     /**
      * Helper function to test valid and invalid state transitions. This function just performs the transition
-     * and verifies the things that should happen when a transition is made with valid provided states.
+     * and verifies the things that should happen when a transition is made with valid processing states.
      */
     private fun updateStateTransition(from: DeviceProcessingState, to: DeviceProcessingState) {
 
@@ -360,7 +358,7 @@ class DeviceServiceTests {
     }
 
     @Test
-    fun `update a state with a state that doesn't exist fails`() {
+    fun `update a state with a processing state that doesn't exist fails`() {
         val nonExistantState = "nonExistantState"
 
         assertThrows<InvalidProcessingStateException> {
@@ -398,14 +396,19 @@ class DeviceServiceTests {
         }
 
         val (validTransitions, invalidTransitions) = allPossibleTransitions.partition { (from, to) ->
-            from.isValidTransition(to)
+            from.isValidTransition(to) || from == to
         }
 
         validTransitions.forEach { (fromState, toState) ->
 
+            val isSameStateTransition = fromState == toState
+
             updateStateTransition(fromState, toState)
 
-            verify(deviceRepository, times(1)).save(any(Device::class.java))
+            val expectedSaveCalls = if (isSameStateTransition) 0 else 1
+
+            // Save is only called when the state has actually changed
+            verify(deviceRepository, times(expectedSaveCalls)).save(any(Device::class.java))
 
             // Reset mock
             reset(deviceRepository)
@@ -428,7 +431,7 @@ class DeviceServiceTests {
     fun `get device stats successfully`() {
         // Arrange
         val deviceId = 1
-        val paginationInfo = PaginationInfo(page = 1, size = 10)
+        val pageableDTO = PageableDTO(page = 1, size = 10)
 
         val expectedPageItems = listOf<Metric>(
             Metric(
@@ -441,40 +444,43 @@ class DeviceServiceTests {
 
         val page = PageImpl(
             expectedPageItems,
-            PageRequest.of(paginationInfo.page, paginationInfo.size),
+            PageRequest.of(pageableDTO.page, pageableDTO.size),
             expectedPageItems.size.toLong()
         )
 
         `when`(deviceRepository.findById(deviceId)).thenReturn(Optional.of(fakeDevice))
-        `when`(metricRepository.findAllByDeviceID(fakeDevice, PageRequest.of(paginationInfo.page, paginationInfo.size)))
+        `when`(metricRepository.findAllByDeviceID(fakeDevice, PageRequest.of(pageableDTO.page, pageableDTO.size)))
             .thenReturn(page)
 
-        val expected = expectedPageItems.map { it.toDTO() }
+        val expected = expectedPageItems.map { it.toMetricOutputDTO() }
 
         // Act
-        val retrievedStats = deviceService.getDeviceStats(paginationInfo, deviceId)
+
+        val retrievedStats = deviceService.getDeviceStats(pageableDTO, deviceId)
 
         // Assert
         assertEquals(expected, retrievedStats.items)
         verify(metricRepository, times(1))
-            .findAllByDeviceID(fakeDevice, PageRequest.of(paginationInfo.page, paginationInfo.size))
+            .findAllByDeviceID(fakeDevice, PageRequest.of(pageableDTO.page, pageableDTO.size))
     }
 
     @Test
     fun `get device stats when device does not exist`() {
         // Arrange
         val deviceId = 1
-        val paginationInfo = PaginationInfo(page = 1, size = 10)
+        val pageableDTO = PageableDTO(page = 1, size = 10)
 
         `when`(deviceRepository.findById(deviceId)).thenReturn(Optional.empty())
+        `when`(metricRepository.findAllByDeviceID(kotlinAny(Device::class.java), kotlinAny(Pageable::class.java)))
+            .thenReturn(null)
 
         // Act
         assertThrows<DeviceNotFoundException> {
-            deviceService.getDeviceStats(paginationInfo, deviceId)
+            deviceService.getDeviceStats(pageableDTO, deviceId)
         }
 
         // Assert
         verify(metricRepository, times(0))
-            .findAllByDeviceID(fakeDevice, PageRequest.of(paginationInfo.page, paginationInfo.size))
+            .findAllByDeviceID(kotlinAny(Device::class.java), kotlinAny(Pageable::class.java))
     }
 }

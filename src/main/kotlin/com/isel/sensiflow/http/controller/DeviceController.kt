@@ -8,7 +8,7 @@ import com.isel.sensiflow.services.Role.MODERATOR
 import com.isel.sensiflow.services.Role.OWNER
 import com.isel.sensiflow.services.Role.USER
 import com.isel.sensiflow.services.UserID
-import com.isel.sensiflow.services.dto.PaginationInfo
+import com.isel.sensiflow.services.dto.PageableDTO
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
 import com.isel.sensiflow.services.dto.input.DeviceStateInputDTO
 import com.isel.sensiflow.services.dto.input.DeviceUpdateDTO
@@ -37,10 +37,10 @@ class DeviceController(
     @GetMapping
     fun getDevices(
         @RequestParam page: Int?,
-        @RequestParam size: Int?,
+        @RequestParam pageSize: Int?,
         @RequestParam expanded: Boolean = false
     ): PageDTO<DeviceOutputDTO> {
-        return deviceService.getAllDevices(PaginationInfo(page, size), expanded = expanded)
+        return deviceService.getAllDevices(PageableDTO(page, pageSize), expanded = expanded)
     }
 
     @Authentication(authorization = MODERATOR)
@@ -102,6 +102,6 @@ class DeviceController(
         @RequestParam size: Int,
     ): PageDTO<MetricOutputDTO> {
         return deviceService
-            .getDeviceStats(PaginationInfo(page, size), id)
+            .getDeviceStats(PageableDTO(page, size), id)
     }
 }

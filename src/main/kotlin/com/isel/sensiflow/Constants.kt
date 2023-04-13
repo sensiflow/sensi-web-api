@@ -2,11 +2,15 @@ package com.isel.sensiflow
 
 object Constants {
 
+    const val API_VERSION = "v1"
+    const val CONTEXT_PATH = "/api/$API_VERSION"
+
     object Device {
         const val NAME_MAX_LENGTH = 20
         const val DESCRIPTION_MAX_LENGTH = 100
         const val STREAM_URL_MAX_LENGTH = 200
         const val NAME_MIN_LENGTH = 3
+        const val STREAM_URL_REGEX = "^((http|https|rtsp|rtmp)://.)[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)$"
     }
 
     object User {
@@ -23,7 +27,6 @@ object Constants {
     object Roles {
         const val ROLE_NAME_MIN_LENGTH = 4
         const val ROLE_NAME_MAX_LENGTH = 9
-        const val DEFAULT_ROLE = "USER"
     }
 
     object InputValidation {
@@ -48,7 +51,6 @@ object Constants {
         const val DEVICE_NOT_FOUND = "Device with id %d not found"
         const val ROLE_NOT_FOUND = "Role with name %s not found"
         const val EMAIL_NOT_FOUND = "User with email %s not found"
-        const val DEVICE_OWNER_MISMATCH = "Device with id %d does not belong to user with id %d"
         const val DEVICE_NAME_EMPTY = "Name cannot be empty"
         const val DEVICE_STREAM_URL_EMPTY = "Stream URL cannot be empty"
         const val USER_ROLE_NAME_INVALID_LENGTH = "Role name must be between ${Roles.ROLE_NAME_MIN_LENGTH} and ${Roles.ROLE_NAME_MAX_LENGTH} characters"
@@ -67,6 +69,7 @@ object Constants {
         const val PROCESSED_STREAM_NOT_FOUND = "Processed stream with id %d not found"
         const val DEVICE_GROUP_NOT_FOUND = "Device group with id %d not found"
         const val DEVICE_STATE_REQUIRED = "Processing state is required"
+        const val DEVICE_STREAM_URL_INVALID = "Stream URL does not match the required format"
     }
 
     object Problem {
@@ -83,7 +86,6 @@ object Constants {
             const val UNAUTHORIZED = "$BASE_URI#unauthorized"
             const val UNAUTHENTICATED = "$BASE_URI#unauthenticated"
             const val INVALID_CREDENTIALS = "$BASE_URI#invalid-credentials"
-            const val OWNER_MISMATCH = BASE_URI
             const val INVALID_PROCESSING_STATE = "$BASE_URI#invalid-processing-state"
             const val INVALID_TOKEN = "$BASE_URI#invalid-token"
             const val INVALID_PROCESSING_STATE_TRANSITION = "$BASE_URI#invalid-processing-state-transition"
@@ -97,12 +99,10 @@ object Constants {
         }
 
         object Title {
-
             const val NOT_FOUND = "The requested resource was not found"
             const val INVALID_CREDENTIALS = "The provided credentials are invalid"
             const val UNAUTHORIZED = "You are not authorized to perform this action"
             const val UNAUTHENTICATED = "You must be authenticated to perform this action"
-            const val OWNER_MISMATCH = "You are not the owner of this resource"
             const val INVALID_PROCESSING_STATE = "The provided Processing State is invalid"
             const val INVALID_PROCESSING_STATE_TRANSITION = "An invalid Processing State Transition was requested"
             const val ALREADY_EXISTS = "The requested resource already exists"

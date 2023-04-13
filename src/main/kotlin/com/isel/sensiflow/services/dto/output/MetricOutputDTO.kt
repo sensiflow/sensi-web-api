@@ -18,7 +18,7 @@ data class MetricOutputDTO(
     override val peopleCount: Int
 ) : MetricDTO
 
-fun Metric.toDTO(): MetricOutputDTO {
+fun Metric.toMetricOutputDTO(): MetricOutputDTO {
     return MetricOutputDTO(
         deviceID = this.id.deviceID,
         startTime = this.id.startTime,

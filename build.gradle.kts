@@ -27,7 +27,7 @@ dependencies {
 
     implementation("org.postgresql:postgresql:42.5.4")
 
-    implementation("org.springframework.boot:spring-boot-starter-amqp")
+    implementation("org.springframework.amqp:spring-rabbit:3.0.3")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
@@ -40,7 +40,6 @@ dependencies {
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("com.h2database:h2")
     testImplementation("org.springframework.amqp:spring-rabbit-test")
 }
 

@@ -4,6 +4,7 @@ import com.isel.sensiflow.Constants
 import com.isel.sensiflow.model.dao.Device
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
 import org.springframework.web.bind.MethodArgumentNotValidException
 
@@ -25,9 +26,8 @@ data class DeviceInputDTO(
     )
     val name: String,
 
-    @field:NotBlank
     @field:Size(
-        min = 1,
+        min = 0,
         max = Constants.Device.DESCRIPTION_MAX_LENGTH,
         message = Constants.Error.DEVICE_DESCRIPTION_INVALID_LENGTH
     )
@@ -39,6 +39,10 @@ data class DeviceInputDTO(
         min = 1,
         max = Constants.Device.STREAM_URL_MAX_LENGTH,
         message = Constants.Error.DEVICE_STREAM_URL_INVALID_LENGTH
+    )
+    @field:Pattern(
+        regexp = Constants.Device.STREAM_URL_REGEX,
+        message = Constants.Error.DEVICE_STREAM_URL_INVALID
     )
     val streamURL: String,
 )
@@ -69,6 +73,10 @@ data class DeviceUpdateDTO(
         max = Constants.Device.STREAM_URL_MAX_LENGTH,
         message = Constants.Error.DEVICE_STREAM_URL_INVALID_LENGTH
     )
+    @field:Pattern(
+        regexp = Constants.Device.STREAM_URL_REGEX,
+        message = Constants.Error.DEVICE_STREAM_URL_INVALID
+    )
     val streamURL: String? = null,
 )
 
@@ -86,17 +94,21 @@ data class DeviceStateInputDTO(
  *
  * A device is empty if all the fields are null
  *
+ * TODO: Unit test
+ *
  * @return true if the device is empty, false otherwise
  */
-fun DeviceUpdateDTO.isEmpty(): Boolean =
+fun DeviceUpdateDTO.fieldsAreEmpty(): Boolean =
     this.name == null &&
         this.description == null &&
         this.streamURL == null
 
 /**
  * Checks if the device is equal to the input
+ *
+ * TODO: Unit test
  */
-fun Device.isEqual(input: DeviceUpdateDTO): Boolean =
+fun Device.isTheSameAs(input: DeviceUpdateDTO): Boolean =
     this.name == input.name &&
         this.description == input.description &&
         this.streamURL == input.streamURL

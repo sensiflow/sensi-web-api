@@ -37,7 +37,7 @@ fun Cookie.httpOnly(httpOnly: Boolean): Cookie {
 fun createAuthCookie(token: String, timeUntilExpire: Long): Cookie {
     return Cookie(Constants.User.AUTH_COOKIE_NAME, token)
         .apply {
-            path("/api")
+            path(Constants.CONTEXT_PATH)
             maxAge(timeUntilExpire)
             httpOnly(true)
         }

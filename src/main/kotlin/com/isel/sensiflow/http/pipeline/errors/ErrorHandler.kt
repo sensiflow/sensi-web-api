@@ -165,9 +165,9 @@ class ErrorHandler : ResponseEntityExceptionHandler() {
     }
 }
 
-private fun ProblemDetail.toResponseEntity(): ResponseEntity<Any>? {
+private fun ProblemDetail.toResponseEntity(): ResponseEntity<Any> {
     return ResponseEntity
         .status(this.status)
-        .contentType(MediaType.parseMediaType("application/problem+json"))
+        .contentType(MediaType.APPLICATION_PROBLEM_JSON)
         .body(this)
 }

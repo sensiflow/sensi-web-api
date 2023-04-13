@@ -44,7 +44,8 @@ class ProcessedStreamControllerTests {
     lateinit var userService: UserService
 
     companion object {
-        val mapper: ObjectMapper = jacksonObjectMapper()
+        private val mapper: ObjectMapper = jacksonObjectMapper()
+        private val VALID_STREAM_URL = "rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov"
     }
 
     @Test
@@ -56,7 +57,7 @@ class ProcessedStreamControllerTests {
             DeviceInputDTO(
                 name = "Test",
                 description = "Test",
-                streamURL = "Test.url"
+                streamURL = VALID_STREAM_URL
             )
         )?.id ?: fail("Failed to create device")
 
@@ -64,7 +65,7 @@ class ProcessedStreamControllerTests {
         val processedStreamID = if (processedStreams.isEmpty()) 1 else processedStreams.last().id + 1
         val processedStream = ProcessedStream(
             id = processedStreamID,
-            streamURL = "Test.url",
+            streamURL = VALID_STREAM_URL,
             device = deviceRepository.findById(id).get()
         )
 
@@ -78,7 +79,7 @@ class ProcessedStreamControllerTests {
             assertions = {
                 andExpect(MockMvcResultMatchers.status().isOk)
                     .andExpect(MockMvcResultMatchers.jsonPath("$.deviceID").value(id))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.streamUrl").value("Test.url"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.streamUrl").value(VALID_STREAM_URL))
             }
         )
     }
@@ -92,7 +93,7 @@ class ProcessedStreamControllerTests {
             DeviceInputDTO(
                 name = "Test",
                 description = "Test",
-                streamURL = "Test.url"
+                streamURL = VALID_STREAM_URL
             )
         )
 
@@ -102,7 +103,7 @@ class ProcessedStreamControllerTests {
         val processedStreamID = if (processedStreams.isEmpty()) 1 else processedStreams.last().id + 1
         val processedStream = ProcessedStream(
             id = processedStreamID,
-            streamURL = "Test.url",
+            streamURL = VALID_STREAM_URL,
             device = deviceRepository.findById(id).get()
         )
 
@@ -116,7 +117,7 @@ class ProcessedStreamControllerTests {
             assertions = {
                 andExpect(MockMvcResultMatchers.status().isOk)
                     .andExpect(MockMvcResultMatchers.jsonPath("$.deviceID").doesNotExist())
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.streamUrl").value("Test.url"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.streamUrl").value(VALID_STREAM_URL))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.device.id").value(id))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.device.name").value("Test"))
             }
@@ -154,7 +155,7 @@ class ProcessedStreamControllerTests {
 
     private fun getCookie(): Cookie? {
         val inputLogin = createTestUser(userService, Role.OWNER)
-        val loginJson = DevicesGroupControllerTests.mapper.writeValueAsString(inputLogin)
+        val loginJson = mapper.writeValueAsString(inputLogin)
 
         val loginResult = mockMvc.perform(
             MockMvcRequestBuilders.post("/users/login")

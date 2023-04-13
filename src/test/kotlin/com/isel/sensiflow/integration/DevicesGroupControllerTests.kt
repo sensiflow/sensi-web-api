@@ -42,7 +42,8 @@ class DevicesGroupControllerTests {
     lateinit var userService: UserService
 
     companion object {
-        val mapper = jacksonObjectMapper()
+        private val mapper = jacksonObjectMapper()
+        private const val VALID_STREAM_URL = "rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov"
         data class RandomInput(val random: String)
     }
 
@@ -173,7 +174,7 @@ class DevicesGroupControllerTests {
             DeviceInputDTO(
                 name = "Test",
                 description = "Test",
-                streamURL = "Test.url"
+                streamURL = VALID_STREAM_URL
             )
         )
 
@@ -182,7 +183,7 @@ class DevicesGroupControllerTests {
             DeviceInputDTO(
                 name = "Test2",
                 description = "Test2",
-                streamURL = "Test2.url"
+                streamURL = VALID_STREAM_URL + "b"
             )
         )
 
@@ -223,7 +224,7 @@ class DevicesGroupControllerTests {
             DeviceInputDTO(
                 name = "Test",
                 description = "Test",
-                streamURL = "Test.url"
+                streamURL = VALID_STREAM_URL
             )
         )
 
@@ -232,7 +233,7 @@ class DevicesGroupControllerTests {
             DeviceInputDTO(
                 name = "Test2",
                 description = "Test2",
-                streamURL = "Test2.url"
+                streamURL = VALID_STREAM_URL + "b"
             )
         )
 
@@ -324,7 +325,7 @@ class DevicesGroupControllerTests {
             assertions = {
                 andExpect(status().isOk)
                     .andExpect(jsonPath("$.name").value("changed"))
-                    .andExpect(jsonPath("$.description").doesNotExist())
+                    .andExpect(jsonPath("$.description").value(""))
             }
         )
     }
@@ -463,7 +464,7 @@ class DevicesGroupControllerTests {
             body = DeviceInputDTO(
                 name = "Test",
                 description = "Test",
-                streamURL = "Test.url"
+                streamURL = VALID_STREAM_URL
             ),
             authorization = cookie,
             mapper = mapper,
@@ -478,7 +479,7 @@ class DevicesGroupControllerTests {
             body = DeviceInputDTO(
                 name = "Test",
                 description = "Test",
-                streamURL = "Test.url"
+                streamURL = VALID_STREAM_URL
             ),
             authorization = cookie,
             mapper = mapper,

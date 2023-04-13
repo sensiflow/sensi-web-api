@@ -23,7 +23,7 @@ data class PageDTO<T>(
  * Converts a [Page] to a [PageDTO].
  * @param T The type of the items in the page
  */
-fun <T> Page<T>.toDTO(): PageDTO<T> {
+fun <T> Page<T>.toPageDTO(): PageDTO<T> {
 
     return PageDTO(
         totalElements = this.totalElements,

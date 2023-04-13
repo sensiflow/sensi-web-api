@@ -8,7 +8,7 @@ import com.isel.sensiflow.services.ID
 import com.isel.sensiflow.services.Role.MODERATOR
 import com.isel.sensiflow.services.Role.OWNER
 import com.isel.sensiflow.services.Role.USER
-import com.isel.sensiflow.services.dto.PaginationInfo
+import com.isel.sensiflow.services.dto.PageableDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupCreateDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupInputDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupUpdateDTO
@@ -97,5 +97,5 @@ class DeviceGroupController(val deviceGroupService: DeviceGroupService) {
         @RequestParam expanded: Boolean = false
     ): PageDTO<DeviceOutputDTO> =
         deviceGroupService
-            .getDevicesFromGroup(id, PaginationInfo(page, size), expanded)
+            .getDevicesFromGroup(id, PageableDTO(page, size), expanded)
 }

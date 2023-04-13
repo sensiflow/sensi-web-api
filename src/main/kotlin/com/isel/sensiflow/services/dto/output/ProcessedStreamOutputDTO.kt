@@ -17,18 +17,11 @@ data class ProcessedStreamExpandedOutputDTO(
     val device: DeviceSimpleOutputDTO
 ) : ProcessedStreamOutputDTO
 
-fun ProcessedStream.toDTO(expanded: Boolean): ProcessedStreamOutputDTO {
+fun ProcessedStream.toProcessedStreamOutputDTO(expanded: Boolean): ProcessedStreamOutputDTO {
     return if (expanded)
         ProcessedStreamExpandedOutputDTO(
             streamUrl = this.streamURL,
-            device = DeviceSimpleOutputDTO(
-                id = this.device.id,
-                name = this.device.name,
-                description = this.device.description,
-                processingState = this.device.processingState.toString(),
-                userID = this.device.user.id,
-                streamURL = this.device.streamURL
-            )
+            device = this.device.toDeviceOutputDTO(expanded = false) as DeviceSimpleOutputDTO
         )
     else
         ProcessedStreamSimpleOutputDTO(

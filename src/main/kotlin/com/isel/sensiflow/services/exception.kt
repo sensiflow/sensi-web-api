@@ -25,7 +25,11 @@ class RoleNotFoundException(name: String) : NotFoundException(Constants.Error.RO
  */
 sealed class AlreadyExistsException(message: String) : ServiceException(message)
 
-class EmailAlreadyExistsException(email: String) : AlreadyExistsException(Constants.Error.EMAIL_ALREADY_EXISTS.format(email))
+/**
+ * Indicates that the given email already exists.
+ */
+class EmailAlreadyExistsException(email: String) :
+    AlreadyExistsException(Constants.Error.EMAIL_ALREADY_EXISTS.format(email))
 
 /**
  * Indicates that the given processing state is invalid.
@@ -45,7 +49,7 @@ class InvalidProcessingStateTransitionException(from: DeviceProcessingState, to:
 
 /**
  * Indicates that the user is not authenticated.
- * Similar to ForbiddenException, but this exception is thrown when the user is not authenticated.
+ * Thrown when the user is not authenticated.
  * The user can authenticate to be able to perform the operation.
  */
 class UnauthenticatedException(message: String) : ServiceException(message)
