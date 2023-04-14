@@ -76,7 +76,7 @@ class ProcessedStreamTests {
     private val fakeProcessedStream = ProcessedStream(
         id = 1,
         device = fakeDevice,
-        streamURL = "https://example.com/device1/processedStream",
+        processedStreamURL = "https://example.com/device1/processedStream",
     )
 
     @Test
@@ -104,7 +104,7 @@ class ProcessedStreamTests {
         val expanded = true
 
         val expandedProcessedStream = ProcessedStreamExpandedOutputDTO(
-            streamUrl = fakeProcessedStream.streamURL,
+            processedStreamUrl = fakeProcessedStream.processedStreamURL,
             device = DeviceSimpleOutputDTO(
                 id = fakeDevice.id,
                 name = fakeDevice.name,

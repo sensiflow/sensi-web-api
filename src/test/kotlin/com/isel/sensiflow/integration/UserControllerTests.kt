@@ -41,6 +41,7 @@ class UserControllerTests {
 
     companion object {
         private val mapper = jacksonObjectMapper()
+        private var counter = 0
     }
 
     @Test
@@ -458,8 +459,8 @@ class UserControllerTests {
         )
     }
 
-    private fun getCookie(): Cookie? {
-        val loginInput = createTestUser(userService, role = OWNER)
+    private fun getCookie(emailCounter: Int = counter++): Cookie? {
+        val loginInput = createTestUser(userService, role = OWNER, emailCounter)
         val loginJson = mapper.writeValueAsString(loginInput)
 
         val loginResult = mockMvc.perform(

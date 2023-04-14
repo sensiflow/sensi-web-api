@@ -75,10 +75,11 @@ fun MockHttpServletRequestBuilder.addIfExists(authorization: Cookie?): MockHttpS
 
 fun createTestUser(
     userService: UserService,
-    role: Role
+    role: Role,
+    emailCount: Int,
 ): UserLoginInput {
     val user = UserRegisterInput(
-        email = "owner_test@email.com",
+        email = "test_$emailCount@email.com",
         firstName = "Test",
         lastName = "Test",
         password = "Password1_"

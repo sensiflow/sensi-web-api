@@ -48,17 +48,17 @@ class DeviceControllerTests {
     lateinit var userService: UserService
 
     companion object {
-        val mapper = jacksonObjectMapper()
+        private val mapper = jacksonObjectMapper()
+        private var counter = 0
         private const val VALID_STREAM_URL = "rtsp://sensiflow.zapto.org:554/1/stream1"
         private const val INVALID_STREAM_URL = "definitely not a valid url"
     }
 
     @Test
     fun `get device stats successfully`() {
-        val cookie = ensureCookieNotNull(cookie = getOwnerCookie())
+        val cookie = ensureCookieNotNull(cookie = getCookie(role = Role.USER))
 
         val responseDevice1 = createDevice(
-            cookie,
             DeviceInputDTO(
                 name = "Test",
                 description = "Test",
@@ -116,7 +116,7 @@ class DeviceControllerTests {
 
     @Test
     fun `get the stats of a device that does not exist`() {
-        val cookie = ensureCookieNotNull(cookie = getOwnerCookie())
+        val cookie = ensureCookieNotNull(cookie = getCookie(role = Role.USER))
 
         mockMvc.request<Unit, ProblemDetail>(
             method = HTTPMethod.GET,
@@ -131,9 +131,7 @@ class DeviceControllerTests {
 
     @Test
     fun `create a valid device`() {
-        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
         createDevice(
-            cookie = ownerCookie,
             input = DeviceInputDTO(
                 name = "Test Device",
                 description = "Test Description",
@@ -144,12 +142,12 @@ class DeviceControllerTests {
 
     @Test
     fun `create a device with and invalid body gives 400`() {
-        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+        val moderatorCookie = ensureCookieNotNull(getCookie(role = Role.MODERATOR))
         mockMvc.request<InvalidBody, ProblemDetail>(
             method = HTTPMethod.POST,
             uri = "/devices",
             body = InvalidBody(),
-            authorization = ownerCookie,
+            authorization = moderatorCookie,
             mapper = mapper,
             assertions = {
                 andExpect(MockMvcResultMatchers.status().isBadRequest)
@@ -159,7 +157,7 @@ class DeviceControllerTests {
 
     @Test
     fun `create a device with no name gives 400`() {
-        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+        val moderatorCookie = ensureCookieNotNull(getCookie(role = Role.MODERATOR))
         mockMvc.request<DeviceInputDTO, ProblemDetail>(
             method = HTTPMethod.POST,
             uri = "/devices",
@@ -168,7 +166,7 @@ class DeviceControllerTests {
                 description = "Test Description",
                 streamURL = VALID_STREAM_URL
             ),
-            authorization = ownerCookie,
+            authorization = moderatorCookie,
             mapper = mapper,
             assertions = {
                 andExpect(MockMvcResultMatchers.status().isBadRequest)
@@ -181,7 +179,7 @@ class DeviceControllerTests {
 
     @Test
     fun `create a device with no streamUrl gives 400`() {
-        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+        val moderatorCookie = ensureCookieNotNull(getCookie(role = Role.MODERATOR))
         mockMvc.request<DeviceInputDTO, ProblemDetail>(
             method = HTTPMethod.POST,
             uri = "/devices",
@@ -190,7 +188,7 @@ class DeviceControllerTests {
                 description = "Test Description",
                 streamURL = ""
             ),
-            authorization = ownerCookie,
+            authorization = moderatorCookie,
             mapper = mapper,
             assertions = {
                 andExpect(MockMvcResultMatchers.status().isBadRequest)
@@ -203,7 +201,7 @@ class DeviceControllerTests {
 
     @Test
     fun `create a device with a name bigger than max length gives 400`() {
-        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+        val moderatorCookie = ensureCookieNotNull(getCookie(role = Role.MODERATOR))
         mockMvc.request<DeviceInputDTO, ProblemDetail>(
             method = HTTPMethod.POST,
             uri = "/devices",
@@ -212,7 +210,7 @@ class DeviceControllerTests {
                 description = "Test Description",
                 streamURL = VALID_STREAM_URL
             ),
-            authorization = ownerCookie,
+            authorization = moderatorCookie,
             mapper = mapper,
             assertions = {
                 andExpect(MockMvcResultMatchers.status().isBadRequest)
@@ -225,7 +223,7 @@ class DeviceControllerTests {
 
     @Test
     fun `create a device with a description bigger than max length gives 400`() {
-        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+        val moderatorCookie = ensureCookieNotNull(getCookie(role = Role.MODERATOR))
         mockMvc.request<DeviceInputDTO, ProblemDetail>(
             method = HTTPMethod.POST,
             uri = "/devices",
@@ -234,7 +232,7 @@ class DeviceControllerTests {
                 description = "a".repeat(Constants.Device.DESCRIPTION_MAX_LENGTH + 1),
                 streamURL = VALID_STREAM_URL
             ),
-            authorization = ownerCookie,
+            authorization = moderatorCookie,
             mapper = mapper,
             assertions = {
                 andExpect(MockMvcResultMatchers.status().isBadRequest)
@@ -247,7 +245,7 @@ class DeviceControllerTests {
 
     @Test
     fun `create a device with a streamUrl bigger than max length gives 400`() {
-        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+        val moderatorCookie = ensureCookieNotNull(getCookie(role = Role.MODERATOR))
         mockMvc.request<DeviceInputDTO, ProblemDetail>(
             method = HTTPMethod.POST,
             uri = "/devices",
@@ -256,7 +254,7 @@ class DeviceControllerTests {
                 description = "asda",
                 streamURL = VALID_STREAM_URL + "a".repeat(Constants.Device.STREAM_URL_MAX_LENGTH + 1)
             ),
-            authorization = ownerCookie,
+            authorization = moderatorCookie,
             mapper = mapper,
             assertions = {
                 andExpect(MockMvcResultMatchers.status().isBadRequest)
@@ -269,7 +267,7 @@ class DeviceControllerTests {
 
     @Test
     fun `create a device with a streamUrl with invalid format gives 400`() {
-        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+        val moderatorCookie = ensureCookieNotNull(getCookie(role = Role.MODERATOR))
         mockMvc.request<DeviceInputDTO, ProblemDetail>(
             method = HTTPMethod.POST,
             uri = "/devices",
@@ -278,7 +276,7 @@ class DeviceControllerTests {
                 description = "asda",
                 streamURL = INVALID_STREAM_URL
             ),
-            authorization = ownerCookie,
+            authorization = moderatorCookie,
             mapper = mapper,
             assertions = {
                 andExpect(MockMvcResultMatchers.status().isBadRequest)
@@ -291,7 +289,7 @@ class DeviceControllerTests {
 
     @Test
     fun `create a device with a blank description is allowed`() {
-        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+        val moderatorCookie = ensureCookieNotNull(getCookie(role = Role.MODERATOR))
         mockMvc.request<DeviceInputDTO, IDOutput>(
             method = HTTPMethod.POST,
             uri = "/devices",
@@ -300,7 +298,7 @@ class DeviceControllerTests {
                 description = "",
                 streamURL = VALID_STREAM_URL
             ),
-            authorization = ownerCookie,
+            authorization = moderatorCookie,
             mapper = mapper,
             assertions = {
                 andExpect(MockMvcResultMatchers.status().isCreated)
@@ -312,7 +310,7 @@ class DeviceControllerTests {
 
     @Test
     fun `create a device without a description is allowed`() {
-        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+        val moderatorCookie = ensureCookieNotNull(getCookie(role = Role.MODERATOR))
         mockMvc.request<DeviceInputDTO, IDOutput>(
             method = HTTPMethod.POST,
             uri = "/devices",
@@ -321,7 +319,7 @@ class DeviceControllerTests {
                 description = null,
                 streamURL = VALID_STREAM_URL
             ),
-            authorization = ownerCookie,
+            authorization = moderatorCookie,
             mapper = mapper,
             assertions = {
                 andExpect(MockMvcResultMatchers.status().isCreated)
@@ -333,9 +331,8 @@ class DeviceControllerTests {
 
     @Test
     fun `delete a device`() {
-        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+        val ownerCookie = ensureCookieNotNull(getCookie(role = Role.OWNER))
         val createdDeviceId = createDevice(
-            cookie = ownerCookie,
             input = DeviceInputDTO(
                 name = "Test Device",
                 description = "Test Description",
@@ -369,9 +366,8 @@ class DeviceControllerTests {
 
     @Test
     fun `update a device with empty name gives 400`() {
-        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+        val moderatorCookie = ensureCookieNotNull(getCookie(role = Role.MODERATOR))
         val createdDeviceId = createDevice(
-            cookie = ownerCookie,
             input = DeviceInputDTO(
                 name = "Test Device",
                 description = "Test Description",
@@ -387,7 +383,7 @@ class DeviceControllerTests {
                 description = "Test Description",
                 streamURL = VALID_STREAM_URL
             ),
-            authorization = ownerCookie,
+            authorization = moderatorCookie,
             mapper = mapper,
             assertions = {
                 andExpect(MockMvcResultMatchers.status().isBadRequest)
@@ -400,9 +396,8 @@ class DeviceControllerTests {
 
     @Test
     fun `update a device with empty description is allowed`() {
-        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+        val moderatorCookie = ensureCookieNotNull(getCookie(role = Role.MODERATOR))
         val createdDeviceId = createDevice(
-            cookie = ownerCookie,
             input = DeviceInputDTO(
                 name = "Test Device",
                 description = "Test Description",
@@ -418,7 +413,7 @@ class DeviceControllerTests {
                 description = "",
                 streamURL = VALID_STREAM_URL
             ),
-            authorization = ownerCookie,
+            authorization = moderatorCookie,
             mapper = mapper,
             assertions = {
                 andExpect(MockMvcResultMatchers.status().isNoContent)
@@ -428,9 +423,8 @@ class DeviceControllerTests {
 
     @Test
     fun `update a device with empty stream gives 400`() {
-        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+        val moderatorCookie = ensureCookieNotNull(getCookie(role = Role.MODERATOR))
         val createdDeviceId = createDevice(
-            cookie = ownerCookie,
             input = DeviceInputDTO(
                 name = "Test Device",
                 description = "Test Description",
@@ -446,7 +440,7 @@ class DeviceControllerTests {
                 description = "New Description",
                 streamURL = ""
             ),
-            authorization = ownerCookie,
+            authorization = moderatorCookie,
             mapper = mapper,
             assertions = {
                 andExpect(MockMvcResultMatchers.status().isBadRequest)
@@ -459,9 +453,8 @@ class DeviceControllerTests {
 
     @Test
     fun `update a device with a stream with invalid format gives 400`() {
-        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+        val moderatorCookie = ensureCookieNotNull(getCookie(role = Role.MODERATOR))
         val createdDeviceId = createDevice(
-            cookie = ownerCookie,
             input = DeviceInputDTO(
                 name = "Test Device",
                 description = "Test Description",
@@ -477,7 +470,7 @@ class DeviceControllerTests {
                 description = "New Description",
                 streamURL = INVALID_STREAM_URL
             ),
-            authorization = ownerCookie,
+            authorization = moderatorCookie,
             mapper = mapper,
             assertions = {
                 andExpect(MockMvcResultMatchers.status().isBadRequest)
@@ -491,10 +484,9 @@ class DeviceControllerTests {
     @Test
     fun `updating only the device's name is allowed`() {
 
-        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+        val moderatorCookie = ensureCookieNotNull(getCookie(role = Role.MODERATOR))
 
         val deviceId = createDevice(
-            cookie = ownerCookie,
             input = DeviceInputDTO(
                 name = "Test Device",
                 description = "Test Description",
@@ -508,7 +500,7 @@ class DeviceControllerTests {
             body = DeviceUpdateDTO(
                 name = "New Device"
             ),
-            authorization = ownerCookie,
+            authorization = moderatorCookie,
             mapper = mapper,
             assertions = {
                 andExpect(MockMvcResultMatchers.status().isNoContent)
@@ -519,10 +511,9 @@ class DeviceControllerTests {
     @Test
     fun `updating only the device's description is allowed`() {
 
-        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+        val moderatorCookie = ensureCookieNotNull(getCookie(role = Role.MODERATOR))
 
         val deviceId = createDevice(
-            cookie = ownerCookie,
             input = DeviceInputDTO(
                 name = "Test Device",
                 description = "Test Description",
@@ -536,7 +527,7 @@ class DeviceControllerTests {
             body = DeviceUpdateDTO(
                 description = "New Description"
             ),
-            authorization = ownerCookie,
+            authorization = moderatorCookie,
             mapper = mapper,
             assertions = {
                 andExpect(MockMvcResultMatchers.status().isNoContent)
@@ -547,10 +538,9 @@ class DeviceControllerTests {
     @Test
     fun `updating only the device's stream is allowed`() {
 
-        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
+        val moderatorCookie = ensureCookieNotNull(getCookie(role = Role.MODERATOR))
 
         val deviceId = createDevice(
-            cookie = ownerCookie,
             input = DeviceInputDTO(
                 name = "Test Device",
                 description = "Test Description",
@@ -564,7 +554,7 @@ class DeviceControllerTests {
             body = DeviceUpdateDTO(
                 streamURL = VALID_STREAM_URL + "b"
             ),
-            authorization = ownerCookie,
+            authorization = moderatorCookie,
             mapper = mapper,
             assertions = {
                 andExpect(MockMvcResultMatchers.status().isNoContent)
@@ -574,10 +564,9 @@ class DeviceControllerTests {
 
     @Test
     fun `adding a device, ensure it exists, update it then delete it, then ensure it does not exist`() {
+        val ownerCookie = ensureCookieNotNull(getCookie(role = Role.OWNER))
 
-        val ownerCookie = ensureCookieNotNull(getOwnerCookie())
         val createdDeviceId = createDevice(
-            cookie = ownerCookie,
             input = DeviceInputDTO(
                 name = "Test Device",
                 description = "Test Description",
@@ -650,7 +639,10 @@ class DeviceControllerTests {
         )
     }
 
-    private fun createDevice(cookie: Cookie, input: DeviceInputDTO): IDOutput? {
+    private fun createDevice(input: DeviceInputDTO): IDOutput? {
+        val userRole = Role.MODERATOR
+        val cookie = ensureCookieNotNull(getCookie(role = userRole))
+
         return mockMvc.request<DeviceInputDTO, IDOutput>(
             method = HTTPMethod.POST,
             uri = "/devices",
@@ -664,8 +656,8 @@ class DeviceControllerTests {
         )
     }
 
-    private fun getOwnerCookie(): Cookie? {
-        val inputLogin = createTestUser(userService, Role.OWNER)
+    private fun getCookie(role: Role = Role.USER, emailCounter: Int = counter++): Cookie? {
+        val inputLogin = createTestUser(userService, role, emailCounter)
         val loginJson = mapper.writeValueAsString(inputLogin)
 
         val loginResult = mockMvc.perform(
