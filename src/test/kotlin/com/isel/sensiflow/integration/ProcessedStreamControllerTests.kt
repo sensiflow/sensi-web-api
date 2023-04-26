@@ -155,7 +155,7 @@ class ProcessedStreamControllerTests {
     }
 
     private fun getCookie(emailCounter: Int = counter++): Cookie? {
-        val inputLogin = createTestUser(userService, Role.OWNER, emailCounter)
+        val inputLogin = createTestUser(userService, Role.ADMIN, emailCounter)
         val loginJson = mapper.writeValueAsString(inputLogin)
 
         val loginResult = mockMvc.perform(

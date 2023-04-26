@@ -331,7 +331,7 @@ class DeviceControllerTests {
 
     @Test
     fun `delete a device`() {
-        val ownerCookie = ensureCookieNotNull(getCookie(role = Role.OWNER))
+        val ADMINCookie = ensureCookieNotNull(getCookie(role = Role.ADMIN))
         val createdDeviceId = createDevice(
             input = DeviceInputDTO(
                 name = "Test Device",
@@ -343,7 +343,7 @@ class DeviceControllerTests {
         mockMvc.request<NoBody, NoBody>(
             method = HTTPMethod.DELETE,
             uri = "/devices/${createdDeviceId?.id}",
-            authorization = ownerCookie,
+            authorization = ADMINCookie,
             mapper = mapper,
             assertions = {
                 andExpect(MockMvcResultMatchers.status().isNoContent)
@@ -353,7 +353,7 @@ class DeviceControllerTests {
         mockMvc.request<NoBody, ProblemDetail>(
             method = HTTPMethod.GET,
             uri = "/devices/${createdDeviceId?.id}",
-            authorization = ownerCookie,
+            authorization = ADMINCookie,
             mapper = mapper,
             assertions = {
                 andExpect(MockMvcResultMatchers.status().isNotFound)
@@ -564,7 +564,7 @@ class DeviceControllerTests {
 
     @Test
     fun `adding a device, ensure it exists, update it then delete it, then ensure it does not exist`() {
-        val ownerCookie = ensureCookieNotNull(getCookie(role = Role.OWNER))
+        val ADMINCookie = ensureCookieNotNull(getCookie(role = Role.ADMIN))
 
         val createdDeviceId = createDevice(
             input = DeviceInputDTO(
@@ -577,7 +577,7 @@ class DeviceControllerTests {
         mockMvc.request<NoBody, DeviceSimpleOutputDTO>(
             method = HTTPMethod.GET,
             uri = "/devices/${createdDeviceId?.id}",
-            authorization = ownerCookie,
+            authorization = ADMINCookie,
             mapper = mapper,
             assertions = {
                 andExpect(MockMvcResultMatchers.status().isOk)
@@ -597,7 +597,7 @@ class DeviceControllerTests {
                 description = "Test Description Updated",
                 streamURL = VALID_STREAM_URL + "b"
             ),
-            authorization = ownerCookie,
+            authorization = ADMINCookie,
             mapper = mapper,
             assertions = {
                 andExpect(MockMvcResultMatchers.status().isNoContent)
@@ -607,7 +607,7 @@ class DeviceControllerTests {
         mockMvc.request<NoBody, DeviceSimpleOutputDTO>(
             method = HTTPMethod.GET,
             uri = "/devices/${createdDeviceId?.id}",
-            authorization = ownerCookie,
+            authorization = ADMINCookie,
             mapper = mapper,
             assertions = {
                 andExpect(MockMvcResultMatchers.status().isOk)
@@ -622,7 +622,7 @@ class DeviceControllerTests {
         mockMvc.request<NoBody, NoBody>(
             method = HTTPMethod.DELETE,
             uri = "/devices/${createdDeviceId?.id}",
-            authorization = ownerCookie,
+            authorization = ADMINCookie,
             mapper = mapper,
             assertions = {
                 andExpect(MockMvcResultMatchers.status().isNoContent)
@@ -631,7 +631,7 @@ class DeviceControllerTests {
         mockMvc.request<NoBody, ProblemDetail>(
             method = HTTPMethod.DELETE,
             uri = "/devices/${createdDeviceId?.id}",
-            authorization = ownerCookie,
+            authorization = ADMINCookie,
             mapper = mapper,
             assertions = {
                 andExpect(MockMvcResultMatchers.status().isNotFound)

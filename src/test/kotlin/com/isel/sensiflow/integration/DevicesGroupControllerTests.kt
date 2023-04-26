@@ -5,7 +5,7 @@ import com.isel.sensiflow.Constants
 import com.isel.sensiflow.Constants.User.AUTH_COOKIE_NAME
 import com.isel.sensiflow.http.entities.output.IDOutput
 import com.isel.sensiflow.services.Role
-import com.isel.sensiflow.services.Role.OWNER
+import com.isel.sensiflow.services.Role.ADMIN
 import com.isel.sensiflow.services.Role.USER
 import com.isel.sensiflow.services.UserService
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
@@ -146,7 +146,7 @@ class DevicesGroupControllerTests {
 
     @Test
     fun `delete a group successfully`() {
-        val cookie = ensureCookieNotNull(cookie = getCookie(role = OWNER))
+        val cookie = ensureCookieNotNull(cookie = getCookie(role = ADMIN))
         val createResponse = createTestGroup(cookie)
         val id = createResponse?.id ?: fail("Failed to create test group")
 
@@ -191,7 +191,7 @@ class DevicesGroupControllerTests {
 
     @Test
     fun `delete a group that does not exist returns Not Found`() {
-        val cookie = ensureCookieNotNull(cookie = getCookie(role = OWNER))
+        val cookie = ensureCookieNotNull(cookie = getCookie(role = ADMIN))
         mockMvc.request<IDOutput, ProblemDetail>(
             method = HTTPMethod.DELETE,
             uri = "/groups/-1",

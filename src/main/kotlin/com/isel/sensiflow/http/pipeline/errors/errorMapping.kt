@@ -7,6 +7,7 @@ import com.isel.sensiflow.services.DeviceNotFoundException
 import com.isel.sensiflow.services.EmailAlreadyExistsException
 import com.isel.sensiflow.services.EmailNotFoundException
 import com.isel.sensiflow.services.InvalidCredentialsException
+import com.isel.sensiflow.services.InvalidParameterException
 import com.isel.sensiflow.services.InvalidProcessingStateException
 import com.isel.sensiflow.services.InvalidProcessingStateTransitionException
 import com.isel.sensiflow.services.InvalidTokenException
@@ -36,6 +37,7 @@ val ServiceException.httpCode: HttpStatus
 
         is InvalidProcessingStateException -> HttpStatus.BAD_REQUEST
         is InvalidProcessingStateTransitionException -> HttpStatus.BAD_REQUEST
+        is InvalidParameterException -> HttpStatus.BAD_REQUEST
         is EmailAlreadyExistsException -> HttpStatus.CONFLICT
 
         is AlreadyExistsException -> HttpStatus.CONFLICT
@@ -65,6 +67,7 @@ val ServiceException.errorURI: URI
         is InvalidProcessingStateTransitionException -> URI.create(Constants.Problem.URI.INVALID_PROCESSING_STATE_TRANSITION)
         is EmailAlreadyExistsException -> URI.create(Constants.Problem.URI.EMAIL_ALREADY_EXISTS)
         is ServiceInternalException -> URI.create(Constants.Problem.URI.SERVICE_INTERNAL)
+        is InvalidParameterException -> URI.create(Constants.Problem.URI.URI_VALIDATION_ERROR)
     }
 
 /**
@@ -81,4 +84,5 @@ val ServiceException.title: String
         is AlreadyExistsException -> Constants.Problem.Title.ALREADY_EXISTS
         is InvalidTokenException -> Constants.Problem.Title.INVALID_TOKEN
         is ServiceInternalException -> Constants.Problem.Title.INTERNAL_ERROR
+        is InvalidParameterException -> Constants.Problem.Title.VALIDATION_ERROR
     }

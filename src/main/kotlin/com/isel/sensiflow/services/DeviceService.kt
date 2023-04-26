@@ -1,7 +1,10 @@
 package com.isel.sensiflow.services
 
+import com.isel.sensiflow.amqp.InstanceMessage
+import com.isel.sensiflow.amqp.InstanceMessageProducer
 import com.isel.sensiflow.model.dao.Device
 import com.isel.sensiflow.model.dao.DeviceProcessingState
+import com.isel.sensiflow.model.dao.transitionToAction
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.model.repository.MetricRepository
 import com.isel.sensiflow.model.repository.UserRepository
@@ -26,7 +29,8 @@ import org.springframework.transaction.annotation.Transactional
 class DeviceService(
     private val deviceRepository: DeviceRepository,
     private val userRepository: UserRepository,
-    private val metricRepository: MetricRepository
+    private val metricRepository: MetricRepository,
+    private val instanceMessageProducer: InstanceMessageProducer
 ) {
 
     /**
@@ -125,14 +129,14 @@ class DeviceService(
      * Changes the processing state of a device.
      * @param deviceID The id of the device.
      * @param newStateInput The new state of the device.
+     * @throws DeviceNotFoundException If the device does not exist.
+     * @throws InvalidProcessingStateException If the new state is not valid.
+     * @throws InvalidProcessingStateTransitionException If the new state is not a valid transition from the current state.
      */
     @Transactional(isolation = Isolation.REPEATABLE_READ)
-    fun updateProcessingState(deviceID: Int, newStateInput: String?) {
-
-        val cleanStateInput: String = newStateInput ?: throw InvalidProcessingStateException("null")
-
-        val newProcessingState: DeviceProcessingState = DeviceProcessingState.fromString(cleanStateInput)
-            ?: throw InvalidProcessingStateException(cleanStateInput)
+    fun updateProcessingState(deviceID: Int, newStateInput: String) {
+        val newProcessingState: DeviceProcessingState = DeviceProcessingState.fromString(newStateInput)
+            ?: throw InvalidProcessingStateException(newStateInput)
 
         val storedDevice = deviceRepository.findById(deviceID)
             .orElseThrow { DeviceNotFoundException(deviceID) }
@@ -140,11 +144,7 @@ class DeviceService(
         if (storedDevice.processingState == newProcessingState)
             return
 
-        if (!storedDevice.processingState.isValidTransition(newProcessingState))
-            throw InvalidProcessingStateTransitionException(
-                from = storedDevice.processingState,
-                to = newProcessingState
-            )
+        val messageAction = storedDevice.processingState.transitionToAction(newProcessingState)
 
         val deviceWithUpdatedState = Device(
             id = storedDevice.id,
@@ -156,6 +156,14 @@ class DeviceService(
         )
 
         deviceRepository.save(deviceWithUpdatedState)
+
+        val queueMessage = InstanceMessage(
+            action = messageAction,
+            device_id = deviceID,
+            device_stream_url = storedDevice.streamURL
+        )
+
+        instanceMessageProducer.sendMessage(queueMessage)
     }
 
     /**

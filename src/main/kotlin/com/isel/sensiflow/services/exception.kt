@@ -42,6 +42,11 @@ class InvalidProcessingStateException(state: String) : ServiceException(
 )
 
 /**
+ * Indicates that the given parameter is invalid.
+ */
+class InvalidParameterException(message: String) : ServiceException(message)
+
+/**
  * Indicates that the given state transition is not valid.
  */
 class InvalidProcessingStateTransitionException(from: DeviceProcessingState, to: DeviceProcessingState) :

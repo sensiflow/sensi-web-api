@@ -3,7 +3,7 @@ package com.isel.sensiflow.services
 enum class Role(vararg val children: Role) {
     USER,
     MODERATOR(USER),
-    OWNER(MODERATOR, USER)
+    ADMIN(MODERATOR, USER)
 }
 
 /**

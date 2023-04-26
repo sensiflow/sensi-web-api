@@ -48,16 +48,16 @@ class DeviceGroupTests {
         MockitoAnnotations.openMocks(this)
     }
 
-    private val ownerRole = Userrole(
+    private val ADMINRole = Userrole(
         id = 1,
-        role = Role.OWNER.name
+        role = Role.ADMIN.name
     )
 
     private val fakeUserOwner = User(
         id = 1,
         firstName = "John",
         lastName = "Doe",
-        role = ownerRole,
+        role = ADMINRole,
         passwordHash = "hash",
         passwordSalt = "salt"
     )

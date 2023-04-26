@@ -70,6 +70,7 @@ object Constants {
         const val DEVICE_GROUP_NOT_FOUND = "Device group with id %d not found"
         const val DEVICE_STATE_REQUIRED = "Processing state is required"
         const val DEVICE_STREAM_URL_INVALID = "Stream URL does not match the required format"
+        const val DEVICE_ID_MUST_BE_POSITVE = "Device id must be positive"
     }
 
     object Problem {

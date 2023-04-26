@@ -1,5 +1,6 @@
 package com.isel.sensiflow.services
 
+import com.isel.sensiflow.amqp.InstanceMessageProducer
 import com.isel.sensiflow.model.dao.Device
 import com.isel.sensiflow.model.dao.DeviceProcessingState
 import com.isel.sensiflow.model.dao.Email
@@ -47,6 +48,9 @@ class DeviceServiceTests {
     private lateinit var deviceService: DeviceService
 
     @Mock
+    private lateinit var instanceMessageProducer: InstanceMessageProducer
+
+    @Mock
     private lateinit var deviceRepository: DeviceRepository
 
     @Mock
@@ -63,16 +67,16 @@ class DeviceServiceTests {
         MockitoAnnotations.openMocks(this)
     }
 
-    private val ownerRole = Userrole(
+    private val ADMINRole = Userrole(
         id = 1,
-        role = Role.OWNER.name
+        role = Role.ADMIN.name
     )
 
     private val fakeUser = User(
         id = 1,
         firstName = "John",
         lastName = "Doe",
-        role = ownerRole,
+        role = ADMINRole,
         passwordHash = "hash",
         passwordSalt = "salt"
     )
@@ -186,7 +190,7 @@ class DeviceServiceTests {
                     id = 1,
                     firstName = "John",
                     lastName = "Doe",
-                    role = ownerRole,
+                    role = ADMINRole,
                     passwordHash = "hash",
                     passwordSalt = "salt"
                 ).addEmail(fakeUserEmail)
@@ -200,7 +204,7 @@ class DeviceServiceTests {
                     id = 2,
                     firstName = "Jane",
                     lastName = "Doe",
-                    role = ownerRole,
+                    role = ADMINRole,
                     passwordHash = "hash",
                     passwordSalt = "salt"
                 ).addEmail(
@@ -360,18 +364,6 @@ class DeviceServiceTests {
     @Test
     fun `update a state with a processing state that doesn't exist fails`() {
         val nonExistantState = "nonExistantState"
-
-        assertThrows<InvalidProcessingStateException> {
-            deviceService.updateProcessingState(fakeDevice.id, nonExistantState)
-        }
-
-        verify(deviceRepository, times(0)).findById(fakeDevice.id)
-        verify(deviceRepository, times(0)).save(any(Device::class.java))
-    }
-
-    @Test
-    fun `update a state with a null state fails`() {
-        val nonExistantState = null
 
         assertThrows<InvalidProcessingStateException> {
             deviceService.updateProcessingState(fakeDevice.id, nonExistantState)

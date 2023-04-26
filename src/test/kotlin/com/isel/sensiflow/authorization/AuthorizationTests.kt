@@ -48,7 +48,7 @@ class AuthorizationTests {
     @Test
     fun `Roles higher in the hierarchy have access to endpoints of lower roles`() {
         val moderatorCookie = ensureCookieNotNull(cookie = getCookie(Role.MODERATOR))
-        val ownerCookie = ensureCookieNotNull(cookie = getCookie(Role.OWNER))
+        val ADMINCookie = ensureCookieNotNull(cookie = getCookie(Role.ADMIN))
 
         val input = DeviceInputDTO(
             name = "Test",
@@ -57,7 +57,7 @@ class AuthorizationTests {
         )
 
         createDevice(moderatorCookie, input)
-        createDevice(ownerCookie, input)
+        createDevice(ADMINCookie, input)
     }
 
     @Test

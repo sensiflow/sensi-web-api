@@ -5,8 +5,8 @@ import com.isel.sensiflow.http.entities.output.toIDOutput
 import com.isel.sensiflow.http.pipeline.authentication.Authentication
 import com.isel.sensiflow.services.DeviceGroupService
 import com.isel.sensiflow.services.ID
+import com.isel.sensiflow.services.Role.ADMIN
 import com.isel.sensiflow.services.Role.MODERATOR
-import com.isel.sensiflow.services.Role.OWNER
 import com.isel.sensiflow.services.Role.USER
 import com.isel.sensiflow.services.dto.PageableDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupCreateDTO
@@ -54,7 +54,7 @@ class DeviceGroupController(val deviceGroupService: DeviceGroupService) {
             .build()
     }
 
-    @Authentication(authorization = OWNER)
+    @Authentication(authorization = ADMIN)
     @DeleteMapping(RequestPaths.DeviceGroups.GROUP_ID)
     fun deleteGroup(
         @PathVariable id: Int

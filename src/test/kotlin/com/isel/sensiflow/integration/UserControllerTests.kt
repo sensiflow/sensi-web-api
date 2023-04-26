@@ -9,7 +9,7 @@ import com.isel.sensiflow.http.entities.output.IDOutput
 import com.isel.sensiflow.http.entities.output.UserOutput
 import com.isel.sensiflow.integration.HTTPMethod.GET
 import com.isel.sensiflow.integration.HTTPMethod.POST
-import com.isel.sensiflow.services.Role.OWNER
+import com.isel.sensiflow.services.Role.ADMIN
 import com.isel.sensiflow.services.UserService
 import jakarta.servlet.http.Cookie
 import org.junit.jupiter.api.Test
@@ -460,7 +460,7 @@ class UserControllerTests {
     }
 
     private fun getCookie(emailCounter: Int = counter++): Cookie? {
-        val loginInput = createTestUser(userService, role = OWNER, emailCounter)
+        val loginInput = createTestUser(userService, role = ADMIN, emailCounter)
         val loginJson = mapper.writeValueAsString(loginInput)
 
         val loginResult = mockMvc.perform(

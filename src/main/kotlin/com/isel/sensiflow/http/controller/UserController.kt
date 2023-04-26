@@ -1,5 +1,6 @@
 package com.isel.sensiflow.http.controller
 
+import com.isel.sensiflow.Constants
 import com.isel.sensiflow.Constants.User.AUTH_COOKIE_NAME
 import com.isel.sensiflow.http.controller.RequestPaths.Users
 import com.isel.sensiflow.http.entities.input.UserLoginInput
@@ -10,8 +11,8 @@ import com.isel.sensiflow.http.entities.output.toIDOutput
 import com.isel.sensiflow.http.pipeline.authentication.Authentication
 import com.isel.sensiflow.http.utils.createAuthCookie
 import com.isel.sensiflow.http.utils.removeCookie
+import com.isel.sensiflow.services.Role.ADMIN
 import com.isel.sensiflow.services.Role.MODERATOR
-import com.isel.sensiflow.services.Role.OWNER
 import com.isel.sensiflow.services.Role.USER
 import com.isel.sensiflow.services.UserID
 import com.isel.sensiflow.services.UserService
@@ -43,6 +44,10 @@ class UserController(private val userService: UserService) {
         response: HttpServletResponse
     ): IDOutput {
         val authInfo = userService.createUser(userInput)
+
+        val authCookie = createAuthCookie(authInfo.token, Constants.User.SESSION_EXPIRATION_TIME)
+
+        response.addCookie(authCookie)
 
         return authInfo.userID.toIDOutput()
     }
@@ -84,7 +89,7 @@ class UserController(private val userService: UserService) {
         response.removeCookie(authCookie)
     }
 
-    @Authentication(authorization = OWNER)
+    @Authentication(authorization = ADMIN)
     @PutMapping(Users.ROLE)
     fun updateRole(
         @PathVariable userID: UserID,

@@ -86,7 +86,7 @@ data class DeviceUpdateDTO(
 data class DeviceStateInputDTO(
     @field:NotBlank(message = Constants.Error.DEVICE_STATE_REQUIRED)
     @field:NotNull(message = Constants.Error.DEVICE_STATE_REQUIRED)
-    val state: String?
+    val state: String
 )
 
 /**

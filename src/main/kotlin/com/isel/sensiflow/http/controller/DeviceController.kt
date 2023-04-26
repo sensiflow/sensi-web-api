@@ -4,8 +4,8 @@ import com.isel.sensiflow.http.entities.output.IDOutput
 import com.isel.sensiflow.http.entities.output.toIDOutput
 import com.isel.sensiflow.http.pipeline.authentication.Authentication
 import com.isel.sensiflow.services.DeviceService
+import com.isel.sensiflow.services.Role.ADMIN
 import com.isel.sensiflow.services.Role.MODERATOR
-import com.isel.sensiflow.services.Role.OWNER
 import com.isel.sensiflow.services.Role.USER
 import com.isel.sensiflow.services.UserID
 import com.isel.sensiflow.services.dto.PageableDTO
@@ -76,7 +76,7 @@ class DeviceController(
         deviceService.updateDevice(id, deviceInputDTO)
     }
 
-    @Authentication(authorization = OWNER)
+    @Authentication(authorization = ADMIN)
     @DeleteMapping(RequestPaths.Device.DEVICE_ID)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun deleteDevice(@PathVariable id: Int) {
@@ -85,7 +85,7 @@ class DeviceController(
 
     @Authentication(authorization = MODERATOR)
     @PutMapping(RequestPaths.Device.PROCESSING_STATE)
-    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @ResponseStatus(HttpStatus.ACCEPTED)
     fun updateProcessingState(
         @PathVariable id: Int,
         @RequestBody @Valid deviceStateInputDTO: DeviceStateInputDTO,
