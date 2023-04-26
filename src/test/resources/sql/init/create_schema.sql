@@ -5,7 +5,7 @@ create table if not exists UserRole(
                                        "role" varchar(30) not null
 );
 
-insert into UserRole("role") values ('USER'),('OWNER'), ('MODERATOR');
+insert into UserRole("role") values ('USER'),('ADMIN'), ('MODERATOR');
 
 create table if not exists "user" (
                                       id serial primary key,
