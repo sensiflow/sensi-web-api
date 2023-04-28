@@ -16,7 +16,7 @@ class ProcessedStream(
     @Column(name = "deviceid", nullable = false)
     val id: Int = -1,
 
-    @Column(name = "streamurl", nullable = false, length = 200)
+    @Column(name = "processedstreamurl", nullable = false, length = 200)
     val processedStreamURL: String,
 
     @MapsId

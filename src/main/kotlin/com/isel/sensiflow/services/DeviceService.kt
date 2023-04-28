@@ -2,9 +2,9 @@ package com.isel.sensiflow.services
 
 import com.isel.sensiflow.amqp.InstanceMessage
 import com.isel.sensiflow.amqp.InstanceMessageProducer
+import com.isel.sensiflow.amqp.action
 import com.isel.sensiflow.model.dao.Device
 import com.isel.sensiflow.model.dao.DeviceProcessingState
-import com.isel.sensiflow.model.dao.transitionToAction
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.model.repository.MetricRepository
 import com.isel.sensiflow.model.repository.UserRepository
@@ -144,7 +144,8 @@ class DeviceService(
         if (storedDevice.processingState == newProcessingState)
             return
 
-        val messageAction = storedDevice.processingState.transitionToAction(newProcessingState)
+        if (!storedDevice.processingState.isValidTransition(newProcessingState))
+            throw InvalidProcessingStateTransitionException(storedDevice.processingState, newProcessingState)
 
         val deviceWithUpdatedState = Device(
             id = storedDevice.id,
@@ -158,7 +159,7 @@ class DeviceService(
         deviceRepository.save(deviceWithUpdatedState)
 
         val queueMessage = InstanceMessage(
-            action = messageAction,
+            action = storedDevice.processingState.action,
             device_id = deviceID,
             device_stream_url = storedDevice.streamURL
         )
