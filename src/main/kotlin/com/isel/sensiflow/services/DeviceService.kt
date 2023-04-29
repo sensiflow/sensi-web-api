@@ -228,7 +228,6 @@ class DeviceService(
     /**
      *  Completes the deletion of a device.
      *  @param deviceID The id of the device.
-     *  @param isError
      */
     fun completeDeviceDeletion(deviceID: Int) {
         val storedDevice = deviceRepository.findById(deviceID)
@@ -236,6 +235,8 @@ class DeviceService(
 
         if(!storedDevice.scheduledForDeletion)
             throw ServiceInternalException("The device is not scheduled for deletion.")
+
+
 
         deviceRepository.delete(storedDevice)
 
