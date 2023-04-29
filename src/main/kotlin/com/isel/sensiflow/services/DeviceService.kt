@@ -17,9 +17,11 @@ import com.isel.sensiflow.services.dto.input.DeviceUpdateDTO
 import com.isel.sensiflow.services.dto.input.fieldsAreEmpty
 import com.isel.sensiflow.services.dto.input.isTheSameAs
 import com.isel.sensiflow.services.dto.output.DeviceOutputDTO
+import com.isel.sensiflow.services.dto.output.DeviceProcessingStateOutput
 import com.isel.sensiflow.services.dto.output.MetricOutputDTO
 import com.isel.sensiflow.services.dto.output.PageDTO
 import com.isel.sensiflow.services.dto.output.toDeviceOutputDTO
+import com.isel.sensiflow.services.dto.output.toDeviceProcessingStateOutput
 import com.isel.sensiflow.services.dto.output.toMetricOutputDTO
 import com.isel.sensiflow.services.dto.output.toPageDTO
 import kotlinx.coroutines.Dispatchers
@@ -224,6 +226,22 @@ class DeviceService(
     }
 
     /**
+     *  Completes the deletion of a device.
+     *  @param deviceID The id of the device.
+     *  @param isError
+     */
+    fun completeDeviceDeletion(deviceID: Int) {
+        val storedDevice = deviceRepository.findById(deviceID)
+            .orElseThrow { DeviceNotFoundException(deviceID) }
+
+        if(!storedDevice.scheduledForDeletion)
+            throw ServiceInternalException("The device is not scheduled for deletion.")
+
+        deviceRepository.delete(storedDevice)
+
+    }
+
+    /**
      * Gets the stats of a device.
      * @param pageableDTO The pagination information.
      * @param deviceId The id of the device.
@@ -243,16 +261,21 @@ class DeviceService(
             .toPageDTO()
     }
 
-    fun getDeviceStateFlow(Id: ID): Flow<Boolean> =
+    /**
+     * Gets the processing state of a device.
+     */
+    fun getDeviceStateFlow(Id: ID): Flow<DeviceProcessingStateOutput> =
         flow {
             while (true) {
                 val device = deviceRepository.findById(Id)
                     .orElseThrow { DeviceNotFoundException(Id) }
 
                 if (!device.pendingUpdate) {
-                    emit(true)
+                    emit(device.processingState.toDeviceProcessingStateOutput())
                     break
                 }
+
+                emit(DeviceProcessingStateOutput.PENDING)
                 delay(1000)
             }
         }.flowOn(Dispatchers.IO)

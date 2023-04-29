@@ -10,7 +10,7 @@ import com.isel.sensiflow.services.ServiceInternalException
  * @property code the response code.
  * @property message the response message.
  */
-data class InstanceResponseMessage(
+data class DeviceStateResponseMessage(
     val device_id: Int,
     private val state: String,
     val code: Int,

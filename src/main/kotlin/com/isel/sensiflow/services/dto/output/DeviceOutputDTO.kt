@@ -12,7 +12,7 @@ interface DeviceOutputDTO {
     val name: String
     val description: String?
     val streamURL: String
-    val processingState: String
+    val processingState: DeviceProcessingStateOutput
 }
 
 /**
@@ -28,7 +28,7 @@ data class DeviceSimpleOutputDTO(
     override val name: String,
     override val description: String?,
     override val streamURL: String,
-    override val processingState: String,
+    override val processingState: DeviceProcessingStateOutput,
     val userID: UserID,
     // TODO: Add DeviceGroupId
 ) : DeviceOutputDTO
@@ -46,7 +46,7 @@ data class DeviceExpandedOutputDTO(
     override val name: String,
     override val description: String?,
     override val streamURL: String,
-    override val processingState: String,
+    override val processingState: DeviceProcessingStateOutput,
     val user: UserOutput,
     // TODO e: val deviceGroup: DeviceGroupOutputDTO Adiciona aqui o teu,
 ) : DeviceOutputDTO
@@ -56,8 +56,7 @@ data class DeviceExpandedOutputDTO(
  * @param expanded If true, the DeviceOutputDTO foreign key fields will be expanded to the full entity
  */
 fun Device.toDeviceOutputDTO(expanded: Boolean): DeviceOutputDTO {
-
-    val processingStateString = this.processingState.toString()
+    val processingStateOutput = this.processingStateOutput
 
     return if (expanded) {
         DeviceExpandedOutputDTO(
@@ -65,7 +64,7 @@ fun Device.toDeviceOutputDTO(expanded: Boolean): DeviceOutputDTO {
             name = this.name,
             description = this.description,
             streamURL = this.streamURL,
-            processingState = processingStateString,
+            processingState = processingStateOutput,
             user = this.user.toDTO().toOutput(),
             // TODO : deviceGroup = this.deviceGroup.toDTO(expanded = false)
         )
@@ -75,9 +74,15 @@ fun Device.toDeviceOutputDTO(expanded: Boolean): DeviceOutputDTO {
             name = this.name,
             description = this.description,
             streamURL = this.streamURL,
-            processingState = processingStateString,
+            processingState = processingStateOutput,
             userID = this.user.id,
             // TODO : deviceGroupId = this.deviceGroup.id,
         )
     }
 }
+
+val Device.processingStateOutput: DeviceProcessingStateOutput
+    get() = if(this.pendingUpdate)
+        DeviceProcessingStateOutput.PENDING
+    else
+        this.processingState.toDeviceProcessingStateOutput()

@@ -56,5 +56,5 @@ class Device(
     val deviceGroups: MutableSet<DeviceGroup> = mutableSetOf()
 
     @Column(name = "scheduled_for_deletion", nullable = false)
-    private val scheduledForDeletion: Boolean = false
+    var scheduledForDeletion: Boolean = false
 }
