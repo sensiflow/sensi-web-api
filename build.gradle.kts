@@ -34,6 +34,7 @@ dependencies {
     implementation("io.hypersistence:hypersistence-utils-hibernate-60:3.3.0")
 
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("junit:junit:4.13.1")
 
