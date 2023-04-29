@@ -84,7 +84,7 @@ class DeviceControllerTests {
                 ),
                 endTime = endingTimestampMetric1,
                 peopleCount = 1,
-                deviceID = device
+                device = device
             )
         )
 
@@ -96,7 +96,7 @@ class DeviceControllerTests {
                 ),
                 endTime = endingTimestampMetric2,
                 peopleCount = 5,
-                deviceID = device
+                device = device
             )
         )
 

@@ -46,7 +46,7 @@ class Device(
     @OneToOne(mappedBy = "device")
     var processedStream: ProcessedStream? = null
 
-    @OneToMany(mappedBy = "deviceID")
+    @OneToMany(mappedBy = "device")
     val metrics: MutableSet<Metric> = mutableSetOf()
 
     @ManyToMany(mappedBy = "devices")

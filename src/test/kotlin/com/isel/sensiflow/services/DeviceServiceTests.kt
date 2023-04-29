@@ -103,7 +103,7 @@ class DeviceServiceTests {
         id = MetricID(1, Timestamp.valueOf("2021-01-01 00:00:00")),
         endTime = Timestamp.valueOf("2021-01-01 00:00:01"),
         peopleCount = 1,
-        deviceID = fakeDevice
+        device = fakeDevice
     )
 
     @Test
@@ -430,7 +430,7 @@ class DeviceServiceTests {
                 id = fakeDeviceStats.id,
                 endTime = fakeDeviceStats.endTime,
                 peopleCount = fakeDeviceStats.peopleCount,
-                deviceID = fakeDevice
+                device = fakeDevice
             )
         )
 
@@ -441,7 +441,7 @@ class DeviceServiceTests {
         )
 
         `when`(deviceRepository.findById(deviceId)).thenReturn(Optional.of(fakeDevice))
-        `when`(metricRepository.findAllByDeviceID(fakeDevice, PageRequest.of(pageableDTO.page, pageableDTO.size)))
+        `when`(metricRepository.findAllByDeviceId(fakeDevice.id, PageRequest.of(pageableDTO.page, pageableDTO.size)))
             .thenReturn(page)
 
         val expected = expectedPageItems.map { it.toMetricOutputDTO() }
@@ -453,7 +453,7 @@ class DeviceServiceTests {
         // Assert
         assertEquals(expected, retrievedStats.items)
         verify(metricRepository, times(1))
-            .findAllByDeviceID(fakeDevice, PageRequest.of(pageableDTO.page, pageableDTO.size))
+            .findAllByDeviceId(fakeDevice.id, PageRequest.of(pageableDTO.page, pageableDTO.size))
     }
 
     @Test
@@ -463,7 +463,7 @@ class DeviceServiceTests {
         val pageableDTO = PageableDTO(page = 1, size = 10)
 
         `when`(deviceRepository.findById(deviceId)).thenReturn(Optional.empty())
-        `when`(metricRepository.findAllByDeviceID(kotlinAny(Device::class.java), kotlinAny(Pageable::class.java)))
+        `when`(metricRepository.findAllByDeviceId(kotlinAny(Int::class.java), kotlinAny(Pageable::class.java)))
             .thenReturn(null)
 
         // Act
@@ -473,6 +473,6 @@ class DeviceServiceTests {
 
         // Assert
         verify(metricRepository, times(0))
-            .findAllByDeviceID(kotlinAny(Device::class.java), kotlinAny(Pageable::class.java))
+            .findAllByDeviceId(kotlinAny(Int::class.java), kotlinAny(Pageable::class.java))
     }
 }

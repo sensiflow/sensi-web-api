@@ -25,5 +25,5 @@ class Metric(
     @MapsId("deviceID")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "deviceID", nullable = false)
-    val deviceID: Device
+    val device: Device
 )

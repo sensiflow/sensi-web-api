@@ -1,5 +1,6 @@
 package com.isel.sensiflow.services
 
+import com.isel.sensiflow.Constants
 import com.isel.sensiflow.amqp.InstanceMessage
 import com.isel.sensiflow.amqp.InstanceMessageProducer
 import com.isel.sensiflow.amqp.action
@@ -19,6 +20,11 @@ import com.isel.sensiflow.services.dto.output.PageDTO
 import com.isel.sensiflow.services.dto.output.toDeviceOutputDTO
 import com.isel.sensiflow.services.dto.output.toMetricOutputDTO
 import com.isel.sensiflow.services.dto.output.toPageDTO
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -62,7 +68,7 @@ class DeviceService(
      * @return The requested device.
      * @throws DeviceNotFoundException If the device does not exist.
      */
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Transactional(isolation = Isolation.READ_COMMITTED, readOnly = true)
     fun getDeviceById(deviceId: Int, expanded: Boolean): DeviceOutputDTO {
         return deviceRepository.findById(deviceId)
             .orElseThrow { DeviceNotFoundException(deviceId) }
@@ -74,7 +80,7 @@ class DeviceService(
      * @param pageableDTO The pagination information.
      * @return A [PageDTO] of devices.
      */
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Transactional(isolation = Isolation.READ_COMMITTED, readOnly = true)
     fun getAllDevices(pageableDTO: PageableDTO, expanded: Boolean): PageDTO<DeviceOutputDTO> {
         val pageable: Pageable = PageRequest.of(pageableDTO.page, pageableDTO.size)
         return deviceRepository
@@ -174,7 +180,7 @@ class DeviceService(
      * @throws DeviceNotFoundException If the device does not exist.
      * @return A [PageDTO] of [MetricOutputDTO].
      */
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Transactional(isolation = Isolation.READ_COMMITTED, readOnly = true)
     fun getDeviceStats(pageableDTO: PageableDTO, deviceId: Int): PageDTO<MetricOutputDTO> {
         val pageable: Pageable = PageRequest.of(pageableDTO.page, pageableDTO.size)
 
@@ -182,7 +188,7 @@ class DeviceService(
             .orElseThrow { DeviceNotFoundException(deviceId) }
 
         return metricRepository
-            .findAllByDeviceID(storedDevice, pageable)
+            .findAllByDeviceId(storedDevice.id, pageable)
             .map { metric -> metric.toMetricOutputDTO() }
             .toPageDTO()
     }
