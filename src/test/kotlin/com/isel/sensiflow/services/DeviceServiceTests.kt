@@ -1,7 +1,8 @@
 package com.isel.sensiflow.services
 
-import com.isel.sensiflow.amqp.InstanceMessageProducer
+import com.isel.sensiflow.amqp.instanceController.MessageSender
 import com.isel.sensiflow.model.dao.Device
+import com.isel.sensiflow.model.dao.DeviceGroup
 import com.isel.sensiflow.model.dao.DeviceProcessingState
 import com.isel.sensiflow.model.dao.Email
 import com.isel.sensiflow.model.dao.Metric
@@ -9,12 +10,15 @@ import com.isel.sensiflow.model.dao.MetricID
 import com.isel.sensiflow.model.dao.User
 import com.isel.sensiflow.model.dao.Userrole
 import com.isel.sensiflow.model.dao.addEmail
+import com.isel.sensiflow.model.repository.DeviceGroupRepository
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.model.repository.MetricRepository
+import com.isel.sensiflow.model.repository.ProcessedStreamRepository
 import com.isel.sensiflow.model.repository.UserRepository
 import com.isel.sensiflow.services.dto.PageableDTO
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
 import com.isel.sensiflow.services.dto.input.DeviceUpdateDTO
+import com.isel.sensiflow.services.dto.input.DevicesGroupCreateDTO
 import com.isel.sensiflow.services.dto.output.DeviceSimpleOutputDTO
 import com.isel.sensiflow.services.dto.output.toDeviceOutputDTO
 import com.isel.sensiflow.services.dto.output.toMetricOutputDTO
@@ -25,6 +29,7 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyInt
+import org.mockito.ArgumentMatchers.anyList
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.doNothing
@@ -47,8 +52,11 @@ class DeviceServiceTests {
     @InjectMocks
     private lateinit var deviceService: DeviceService
 
+    @InjectMocks
+    private lateinit var deviceGroupService: DeviceGroupService
+
     @Mock
-    private lateinit var instanceMessageProducer: InstanceMessageProducer
+    private lateinit var instanceControllerMessageSender: MessageSender
 
     @Mock
     private lateinit var deviceRepository: DeviceRepository
@@ -58,6 +66,12 @@ class DeviceServiceTests {
 
     @Mock
     private lateinit var metricRepository: MetricRepository
+
+    @Mock
+    private lateinit var deviceGroupRepository: DeviceGroupRepository
+
+    @Mock
+    private lateinit var processedStreamRepository: ProcessedStreamRepository
 
     @BeforeEach
     fun initMocks() {
@@ -295,7 +309,7 @@ class DeviceServiceTests {
 
         // Assert
         verify(deviceRepository, times(1)).findById(deviceId)
-        verify(deviceRepository, times(1)).deleteById(deviceId)
+        verify(deviceRepository, times(1)).flagForDeletion(deviceId)
     }
 
     @Test
@@ -312,6 +326,39 @@ class DeviceServiceTests {
         // Assert
         verify(deviceRepository, times(1)).findById(nonExistingDevice)
         verify(deviceRepository, times(0)).deleteById(anyInt())
+    }
+
+    @Test
+    fun `delete a device that is on a group`() {
+        // Arrange
+        val groupDTO = DevicesGroupCreateDTO(
+            name = "Test group",
+        )
+
+        val fakeDeviceGroup = DeviceGroup(
+            name = groupDTO.name,
+            description = null
+        )
+
+        `when`(deviceGroupRepository.save(any(DeviceGroup::class.java))).thenReturn(fakeDeviceGroup)
+        `when`(deviceRepository.findAllById(anyList())).thenReturn(listOf(fakeDevice))
+        `when`(deviceRepository.findById(anyInt())).thenReturn(Optional.of(fakeDevice))
+        `when`(deviceGroupRepository.findById(anyInt())).thenReturn(Optional.of(fakeDeviceGroup))
+
+        // Act
+        val result = deviceGroupService.createDevicesGroup(groupDTO, listOf(fakeDevice.id))
+
+        // Assert
+        assertEquals(fakeDeviceGroup, result)
+
+        verify(deviceGroupRepository, times(1)).save(any(DeviceGroup::class.java))
+
+        deviceService.deleteDevice(fakeDevice.id)
+
+        verify(deviceRepository, times(1)).flagForDeletion(fakeDevice.id)
+        verify(deviceGroupRepository, times(1)).save(any(DeviceGroup::class.java))
+        verify(processedStreamRepository, times(1)).deleteAllByDevice(fakeDevice)
+        verify(metricRepository, times(1)).deleteAllByDevice(fakeDevice)
     }
 
     /* State transition tests */
@@ -333,7 +380,7 @@ class DeviceServiceTests {
 
         `when`(deviceRepository.findById(existingDevice.id)).thenReturn(Optional.of(existingDevice))
 
-        deviceService.updateProcessingState(fakeDevice.id, to.name)
+        deviceService.startUpdateProcessingState(fakeDevice.id, to.name)
 
         verify(deviceRepository, times(1)).findById(existingDevice.id)
     }
@@ -354,7 +401,7 @@ class DeviceServiceTests {
         `when`(deviceRepository.findById(nonExistantDevice)).thenReturn(Optional.empty())
 
         assertThrows<DeviceNotFoundException> {
-            deviceService.updateProcessingState(nonExistantDevice, DeviceProcessingState.ACTIVE.name)
+            deviceService.startUpdateProcessingState(nonExistantDevice, DeviceProcessingState.ACTIVE.name)
         }
 
         verify(deviceRepository, times(1)).findById(nonExistantDevice)
@@ -366,7 +413,7 @@ class DeviceServiceTests {
         val nonExistantState = "nonExistantState"
 
         assertThrows<InvalidProcessingStateException> {
-            deviceService.updateProcessingState(fakeDevice.id, nonExistantState)
+            deviceService.startUpdateProcessingState(fakeDevice.id, nonExistantState)
         }
 
         verify(deviceRepository, times(0)).findById(fakeDevice.id)

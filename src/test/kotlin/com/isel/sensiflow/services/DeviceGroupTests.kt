@@ -264,7 +264,7 @@ class DeviceGroupTests {
         // Arrange
         val existingGroup = 1
         `when`(deviceGroupRepository.findById(existingGroup)).thenReturn(Optional.of(fakeDeviceGroup))
-        `when`(deviceRepository.findAllById(listOf(fakeDevice.id, 5))).thenThrow(java.lang.IllegalArgumentException::class.java)
+        `when`(deviceRepository.findAllById(listOf(fakeDevice.id, 5))).thenThrow(IllegalArgumentException("5"))
 
         // Act
         assertThrows<DeviceNotFoundException> {
@@ -410,7 +410,7 @@ class DeviceGroupTests {
         fakeDeviceGroup.devices.addAll(listOf(fakeDevice))
 
         `when`(deviceGroupRepository.save(any(DeviceGroup::class.java))).thenReturn(fakeDeviceGroup)
-        `when`(deviceRepository.findAllById(listOf(fakeDevice.id, 88))).thenThrow(IllegalArgumentException::class.java)
+        `when`(deviceRepository.findAllById(listOf(fakeDevice.id, 88))).thenThrow(IllegalArgumentException("88"))
 
         assertThrows<DeviceNotFoundException> {
             deviceGroupService.createDevicesGroup(groupDTO, listOf(fakeDevice.id, 88))

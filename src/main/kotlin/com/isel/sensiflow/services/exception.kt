@@ -23,13 +23,13 @@ class RoleNotFoundException(name: String) : NotFoundException(Constants.Error.RO
 /**
  * Indicates that the resource already exists.
  */
-sealed class AlreadyExistsException(message: String) : ServiceException(message)
+sealed class ResourceConflictException(message: String) : ServiceException(message)
 
 /**
  * Indicates that the given email already exists.
  */
 class EmailAlreadyExistsException(email: String) :
-    AlreadyExistsException(Constants.Error.EMAIL_ALREADY_EXISTS.format(email))
+    ResourceConflictException(Constants.Error.EMAIL_ALREADY_EXISTS.format(email))
 
 /**
  * Indicates that the given processing state is invalid.
@@ -39,6 +39,10 @@ class InvalidProcessingStateException(state: String) : ServiceException(
         state,
         DeviceProcessingState.valuesRepresentation()
     )
+)
+
+class DeviceAlreadyUpdatingException(id: Int) : ResourceConflictException(
+    Constants.Error.DEVICE_ALREADY_UPDATING.format(id)
 )
 
 /**

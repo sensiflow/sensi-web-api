@@ -43,6 +43,8 @@ create table if not exists Device(
                                      description varchar(255),
                                      processingState varchar(15) not null default 'INACTIVE',
                                      userID int,
+                                     pending_update boolean NOT null default false,
+                                     scheduled_for_deletion boolean NOT null default false,
                                      foreign key (userID) references "user"(id)
 );
 

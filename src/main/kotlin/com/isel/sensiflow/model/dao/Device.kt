@@ -38,6 +38,9 @@ class Device(
     @Type(PostgreSQLEnumType::class)
     val processingState: DeviceProcessingState = DeviceProcessingState.INACTIVE,
 
+    @Column(name = "pending_update", nullable = false)
+    val pendingUpdate: Boolean = false,
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "userid")
     val user: User
@@ -51,4 +54,7 @@ class Device(
 
     @ManyToMany(mappedBy = "devices")
     val deviceGroups: MutableSet<DeviceGroup> = mutableSetOf()
+
+    @Column(name = "scheduled_for_deletion", nullable = false)
+    private val scheduledForDeletion: Boolean = false
 }

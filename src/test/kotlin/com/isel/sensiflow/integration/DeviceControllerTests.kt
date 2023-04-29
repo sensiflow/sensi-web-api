@@ -11,6 +11,7 @@ import com.isel.sensiflow.services.Role
 import com.isel.sensiflow.services.UserService
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
 import com.isel.sensiflow.services.dto.input.DeviceUpdateDTO
+import com.isel.sensiflow.services.dto.input.DevicesGroupCreateDTO
 import com.isel.sensiflow.services.dto.output.DeviceSimpleOutputDTO
 import com.isel.sensiflow.services.dto.output.MetricOutputDTO
 import com.isel.sensiflow.services.dto.output.PageDTO
@@ -628,6 +629,7 @@ class DeviceControllerTests {
                 andExpect(MockMvcResultMatchers.status().isNoContent)
             }
         )
+
         mockMvc.request<NoBody, ProblemDetail>(
             method = HTTPMethod.DELETE,
             uri = "/devices/${createdDeviceId?.id}",
@@ -635,6 +637,52 @@ class DeviceControllerTests {
             mapper = mapper,
             assertions = {
                 andExpect(MockMvcResultMatchers.status().isNotFound)
+            }
+        )
+    }
+
+    @Test
+    fun `Adding devices to a group then deleting a device added`() {
+        val cookie = ensureCookieNotNull(cookie = getCookie(role = Role.ADMIN))
+
+        val id1 = createDevice(
+            DeviceInputDTO(
+                name = "Test",
+                description = "Test",
+                streamURL = VALID_STREAM_URL
+            )
+        )?.id
+
+        val id2 = createDevice(
+            DeviceInputDTO(
+                name = "Test",
+                description = "Test",
+                streamURL = VALID_STREAM_URL
+            )
+        )?.id
+
+        mockMvc.request<DevicesGroupCreateDTO, IDOutput>(
+            method = HTTPMethod.POST,
+            uri = "/groups?devices=$id1,$id2",
+            body = DevicesGroupCreateDTO(
+                name = "Test",
+                description = "Test"
+            ),
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isCreated)
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.id").exists())
+            }
+        )
+
+        mockMvc.request<NoBody, ProblemDetail>(
+            method = HTTPMethod.DELETE,
+            uri = "/devices/$id2",
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isNoContent)
             }
         )
     }

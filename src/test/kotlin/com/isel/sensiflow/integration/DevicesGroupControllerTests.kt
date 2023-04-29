@@ -538,35 +538,22 @@ class DevicesGroupControllerTests {
     fun `create a group and add devices successfully`() {
         val cookie = ensureCookieNotNull(cookie = getCookie(role = Role.MODERATOR))
 
-        val id1 = mockMvc.request<DeviceInputDTO, IDOutput>(
-            method = HTTPMethod.POST,
-            uri = "/devices",
-            body = DeviceInputDTO(
+        val id1 = createDevice(
+            cookie,
+            DeviceInputDTO(
                 name = "Test",
                 description = "Test",
                 streamURL = VALID_STREAM_URL
-            ),
-            authorization = cookie,
-            mapper = mapper,
-            assertions = {
-                andExpect(status().isCreated)
-                    .andExpect(jsonPath("$.id").exists())
-            }
+            )
         )
-        val id2 = mockMvc.request<DeviceInputDTO, IDOutput>(
-            method = HTTPMethod.POST,
-            uri = "/devices",
-            body = DeviceInputDTO(
+
+        val id2 = createDevice(
+            cookie,
+            DeviceInputDTO(
                 name = "Test",
                 description = "Test",
                 streamURL = VALID_STREAM_URL
-            ),
-            authorization = cookie,
-            mapper = mapper,
-            assertions = {
-                andExpect(status().isCreated)
-                    .andExpect(jsonPath("$.id").exists())
-            }
+            )
         )
 
         mockMvc.request<DevicesGroupCreateDTO, IDOutput>(

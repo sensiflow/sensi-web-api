@@ -23,4 +23,9 @@ object RequestPaths {
         const val GET_USER = "/{userID}"
         const val ROLE = "{userID}/role"
     }
+
+    object SSE {
+        const val SSE = "/server-events"
+        const val SSE_DEVICE_STATE = "$SSE/device-state/"
+    }
 }

@@ -36,6 +36,9 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.2")
+
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.6.2")
     implementation("junit:junit:4.13.1")
 
     developmentOnly("org.springframework.boot:spring-boot-devtools")

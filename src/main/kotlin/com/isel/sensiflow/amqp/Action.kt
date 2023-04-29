@@ -8,6 +8,7 @@ import com.isel.sensiflow.model.dao.DeviceProcessingState
 enum class Action {
     START,
     STOP,
+    REMOVE,
     PAUSE
 }
 

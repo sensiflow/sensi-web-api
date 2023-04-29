@@ -71,6 +71,7 @@ object Constants {
         const val DEVICE_STATE_REQUIRED = "Processing state is required"
         const val DEVICE_STREAM_URL_INVALID = "Stream URL does not match the required format"
         const val DEVICE_ID_MUST_BE_POSITVE = "Device id must be positive"
+        const val DEVICE_ALREADY_UPDATING = "A request to update this device has already been made, please wait for it to finish"
     }
 
     object Problem {
@@ -97,6 +98,7 @@ object Constants {
             const val URI_REQUIRED_PATH_PARAMETER_MISSING = "$BASE_URI#required-uri-parameter-missing"
             const val URI_METHOD_NOT_ALLOWED = "$BASE_URI#method-not-allowed"
             const val SERVICE_INTERNAL = "$BASE_URI#internal-server-error"
+            const val DEVICE_ALREADY_UPDATING = "$BASE_URI#device-already-updating"
         }
 
         object Title {
@@ -114,6 +116,7 @@ object Constants {
             const val REQUIRED_PARAMETER_MISSING = "A required parameter is missing"
             const val INVALID_JSON_BODY = "The provided JSON body has an invalid structure"
             const val INTERNAL_ERROR = "An internal error occurred"
+            const val DEVICE_ALREADY_UPDATING = "A device update is ongoing"
         }
     }
 }

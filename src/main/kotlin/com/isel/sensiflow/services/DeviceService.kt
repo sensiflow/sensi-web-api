@@ -1,13 +1,15 @@
 package com.isel.sensiflow.services
 
-import com.isel.sensiflow.Constants
+import com.isel.sensiflow.amqp.Action
 import com.isel.sensiflow.amqp.InstanceMessage
-import com.isel.sensiflow.amqp.InstanceMessageProducer
 import com.isel.sensiflow.amqp.action
+import com.isel.sensiflow.amqp.instanceController.MessageSender
 import com.isel.sensiflow.model.dao.Device
 import com.isel.sensiflow.model.dao.DeviceProcessingState
+import com.isel.sensiflow.model.repository.DeviceGroupRepository
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.model.repository.MetricRepository
+import com.isel.sensiflow.model.repository.ProcessedStreamRepository
 import com.isel.sensiflow.model.repository.UserRepository
 import com.isel.sensiflow.services.dto.PageableDTO
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
@@ -36,19 +38,21 @@ class DeviceService(
     private val deviceRepository: DeviceRepository,
     private val userRepository: UserRepository,
     private val metricRepository: MetricRepository,
-    private val instanceMessageProducer: InstanceMessageProducer
+    private val processedStreamRepository: ProcessedStreamRepository,
+    private val instanceControllerMessageSender: MessageSender,
+    private val deviceGroupRepository: DeviceGroupRepository
 ) {
 
     /**
      * Creates a new device.
      * @param deviceInput The input data for the device.
-     * @param userId The id of the user that owns the device.
+     * @param userID The id of the user that owns the device.
      * @return The created device.
      */
     @Transactional(isolation = Isolation.REPEATABLE_READ)
-    fun createDevice(deviceInput: DeviceInputDTO, userId: Int): DeviceOutputDTO {
-        val user = userRepository.findById(userId)
-            .orElseThrow { UserNotFoundException(userId) }
+    fun createDevice(deviceInput: DeviceInputDTO, userID: Int): DeviceOutputDTO {
+        val user = userRepository.findById(userID)
+            .orElseThrow { UserNotFoundException(userID) }
         val newDevice = Device(
             name = deviceInput.name,
             streamURL = deviceInput.streamURL,
@@ -63,15 +67,15 @@ class DeviceService(
 
     /**
      * Gets a device by its id.
-     * @param deviceId The id of the device.
+     * @param deviceID The id of the device.
      * @param expanded If the device should contain embedded entities.
      * @return The requested device.
      * @throws DeviceNotFoundException If the device does not exist.
      */
     @Transactional(isolation = Isolation.READ_COMMITTED, readOnly = true)
-    fun getDeviceById(deviceId: Int, expanded: Boolean): DeviceOutputDTO {
-        return deviceRepository.findById(deviceId)
-            .orElseThrow { DeviceNotFoundException(deviceId) }
+    fun getDeviceById(deviceID: Int, expanded: Boolean): DeviceOutputDTO {
+        return deviceRepository.findById(deviceID)
+            .orElseThrow { DeviceNotFoundException(deviceID) }
             .toDeviceOutputDTO(expanded)
     }
 
@@ -94,15 +98,15 @@ class DeviceService(
      *
      * All provided fields are overwritten, except if in the input the field is null.
      *
-     * @param deviceId The id of the device.
+     * @param deviceID The id of the device.
      * @param deviceUpdateInput The input data for the device to update.
      * @return The updated [Device].
      */
     @Transactional(isolation = Isolation.REPEATABLE_READ)
-    fun updateDevice(deviceId: Int, deviceUpdateInput: DeviceUpdateDTO) {
+    fun updateDevice(deviceID: Int, deviceUpdateInput: DeviceUpdateDTO) {
 
-        val storedDevice = deviceRepository.findById(deviceId)
-            .orElseThrow { DeviceNotFoundException(deviceId) }
+        val storedDevice = deviceRepository.findById(deviceID)
+            .orElseThrow { DeviceNotFoundException(deviceID) }
 
         if (deviceUpdateInput.fieldsAreEmpty() || storedDevice.isTheSameAs(deviceUpdateInput))
             return
@@ -120,15 +124,32 @@ class DeviceService(
 
     /**
      * Deletes a device.
-     * @param deviceId The id of the device.
+     * @param deviceID The id of the device.
      * @throws DeviceNotFoundException If the device does not exist.
      */
     @Transactional(isolation = Isolation.REPEATABLE_READ)
-    fun deleteDevice(deviceId: Int) {
-        deviceRepository.findById(deviceId)
-            .orElseThrow { DeviceNotFoundException(deviceId) }
+    fun deleteDevice(deviceID: Int) {
+        val device = deviceRepository.findById(deviceID)
+            .orElseThrow { DeviceNotFoundException(deviceID) }
 
-        deviceRepository.deleteById(deviceId)
+        device.deviceGroups.forEach { deviceGroup ->
+            deviceGroup.devices.remove(device)
+            deviceGroupRepository.save(deviceGroup)
+        }
+
+        processedStreamRepository.deleteAllByDevice(device)
+
+        metricRepository.deleteAllByDevice(device)
+
+        val queueMessage = InstanceMessage(
+            action = Action.REMOVE,
+            device_id = deviceID,
+            device_stream_url = null
+        )
+
+        deviceRepository.flagForDeletion(deviceID)
+
+        instanceControllerMessageSender.sendMessage(queueMessage)
     }
 
     /**
@@ -140,12 +161,15 @@ class DeviceService(
      * @throws InvalidProcessingStateTransitionException If the new state is not a valid transition from the current state.
      */
     @Transactional(isolation = Isolation.REPEATABLE_READ)
-    fun updateProcessingState(deviceID: Int, newStateInput: String) {
+    fun startUpdateProcessingState(deviceID: Int, newStateInput: String) {
         val newProcessingState: DeviceProcessingState = DeviceProcessingState.fromString(newStateInput)
             ?: throw InvalidProcessingStateException(newStateInput)
 
         val storedDevice = deviceRepository.findById(deviceID)
             .orElseThrow { DeviceNotFoundException(deviceID) }
+
+        if (storedDevice.pendingUpdate)
+            throw DeviceAlreadyUpdatingException(deviceID)
 
         if (storedDevice.processingState == newProcessingState)
             return
@@ -159,7 +183,8 @@ class DeviceService(
             streamURL = storedDevice.streamURL,
             description = storedDevice.description,
             user = storedDevice.user,
-            processingState = newProcessingState
+            processingState = storedDevice.processingState,
+            pendingUpdate = true
         )
 
         deviceRepository.save(deviceWithUpdatedState)
@@ -170,7 +195,32 @@ class DeviceService(
             device_stream_url = storedDevice.streamURL
         )
 
-        instanceMessageProducer.sendMessage(queueMessage)
+        instanceControllerMessageSender.sendMessage(queueMessage)
+    }
+
+    /**
+     * Forces an update on the processing state of a device.
+     * @param deviceID The id of the device.
+     * @param newProcessingState The new state of the device.
+     */
+    fun completeUpdateState(deviceID: Int, newProcessingState: DeviceProcessingState?) {
+        val storedDevice = deviceRepository.findById(deviceID)
+            .orElseThrow { DeviceNotFoundException(deviceID) }
+
+        if (!storedDevice.pendingUpdate)
+            throw ServiceInternalException("The device is not pending an update.")
+
+        val deviceWithUpdatedState = Device(
+            id = storedDevice.id,
+            name = storedDevice.name,
+            streamURL = storedDevice.streamURL,
+            description = storedDevice.description,
+            user = storedDevice.user,
+            processingState = newProcessingState ?: storedDevice.processingState,
+            pendingUpdate = false
+        )
+
+        deviceRepository.save(deviceWithUpdatedState)
     }
 
     /**
@@ -192,4 +242,18 @@ class DeviceService(
             .map { metric -> metric.toMetricOutputDTO() }
             .toPageDTO()
     }
+
+    fun getDeviceStateFlow(Id: ID): Flow<Boolean> =
+        flow {
+            while (true) {
+                val device = deviceRepository.findById(Id)
+                    .orElseThrow { DeviceNotFoundException(Id) }
+
+                if (!device.pendingUpdate) {
+                    emit(true)
+                    break
+                }
+                delay(1000)
+            }
+        }.flowOn(Dispatchers.IO)
 }

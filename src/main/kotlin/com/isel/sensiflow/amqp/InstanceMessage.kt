@@ -27,7 +27,7 @@ data class InstanceMessage(
         regexp = Constants.Device.STREAM_URL_REGEX,
         message = Constants.Error.DEVICE_STREAM_URL_INVALID
     )
-    val device_stream_url: String
+    val device_stream_url: String?
 ) {
     companion object {
         private val validator = Validation.buildDefaultValidatorFactory().validator

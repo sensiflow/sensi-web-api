@@ -1,7 +1,7 @@
 package com.isel.sensiflow.http.pipeline.errors
 
 import com.isel.sensiflow.Constants
-import com.isel.sensiflow.services.AlreadyExistsException
+import com.isel.sensiflow.services.DeviceAlreadyUpdatingException
 import com.isel.sensiflow.services.DeviceGroupNotFoundException
 import com.isel.sensiflow.services.DeviceNotFoundException
 import com.isel.sensiflow.services.EmailAlreadyExistsException
@@ -13,6 +13,7 @@ import com.isel.sensiflow.services.InvalidProcessingStateTransitionException
 import com.isel.sensiflow.services.InvalidTokenException
 import com.isel.sensiflow.services.NotFoundException
 import com.isel.sensiflow.services.ProcessedStreamNotFoundException
+import com.isel.sensiflow.services.ResourceConflictException
 import com.isel.sensiflow.services.RoleNotFoundException
 import com.isel.sensiflow.services.ServiceException
 import com.isel.sensiflow.services.ServiceInternalException
@@ -38,9 +39,8 @@ val ServiceException.httpCode: HttpStatus
         is InvalidProcessingStateException -> HttpStatus.BAD_REQUEST
         is InvalidProcessingStateTransitionException -> HttpStatus.BAD_REQUEST
         is InvalidParameterException -> HttpStatus.BAD_REQUEST
-        is EmailAlreadyExistsException -> HttpStatus.CONFLICT
 
-        is AlreadyExistsException -> HttpStatus.CONFLICT
+        is ResourceConflictException -> HttpStatus.CONFLICT
         is ServiceInternalException -> HttpStatus.INTERNAL_SERVER_ERROR
 
         else -> {
@@ -68,6 +68,7 @@ val ServiceException.errorURI: URI
         is EmailAlreadyExistsException -> URI.create(Constants.Problem.URI.EMAIL_ALREADY_EXISTS)
         is ServiceInternalException -> URI.create(Constants.Problem.URI.SERVICE_INTERNAL)
         is InvalidParameterException -> URI.create(Constants.Problem.URI.URI_VALIDATION_ERROR)
+        is DeviceAlreadyUpdatingException -> URI.create(Constants.Problem.URI.DEVICE_ALREADY_UPDATING)
     }
 
 /**
@@ -81,7 +82,8 @@ val ServiceException.title: String
         is UnauthenticatedException -> Constants.Problem.Title.UNAUTHENTICATED
         is InvalidProcessingStateException -> Constants.Problem.Title.INVALID_PROCESSING_STATE
         is InvalidProcessingStateTransitionException -> Constants.Problem.Title.INVALID_PROCESSING_STATE_TRANSITION
-        is AlreadyExistsException -> Constants.Problem.Title.ALREADY_EXISTS
+        is DeviceAlreadyUpdatingException -> Constants.Problem.Title.DEVICE_ALREADY_UPDATING
+        is ResourceConflictException -> Constants.Problem.Title.ALREADY_EXISTS
         is InvalidTokenException -> Constants.Problem.Title.INVALID_TOKEN
         is ServiceInternalException -> Constants.Problem.Title.INTERNAL_ERROR
         is InvalidParameterException -> Constants.Problem.Title.VALIDATION_ERROR
