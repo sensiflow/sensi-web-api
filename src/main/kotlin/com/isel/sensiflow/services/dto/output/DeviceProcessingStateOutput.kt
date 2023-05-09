@@ -9,8 +9,8 @@ enum class DeviceProcessingStateOutput {
     INACTIVE;
 }
 
-fun DeviceProcessingState.toDeviceProcessingStateOutput(): DeviceProcessingStateOutput = when(this){
-        DeviceProcessingState.ACTIVE -> DeviceProcessingStateOutput.ACTIVE
-        DeviceProcessingState.PAUSED -> DeviceProcessingStateOutput.PAUSED
-        DeviceProcessingState.INACTIVE -> DeviceProcessingStateOutput.INACTIVE
-    }
+fun DeviceProcessingState.toDeviceProcessingStateOutput(): DeviceProcessingStateOutput = when (this) {
+    DeviceProcessingState.ACTIVE -> DeviceProcessingStateOutput.ACTIVE
+    DeviceProcessingState.PAUSED -> DeviceProcessingStateOutput.PAUSED
+    DeviceProcessingState.INACTIVE -> DeviceProcessingStateOutput.INACTIVE
+}

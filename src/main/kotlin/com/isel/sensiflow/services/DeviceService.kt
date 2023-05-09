@@ -1,5 +1,6 @@
 package com.isel.sensiflow.services
 
+import com.isel.sensiflow.Constants
 import com.isel.sensiflow.amqp.Action
 import com.isel.sensiflow.amqp.InstanceMessage
 import com.isel.sensiflow.amqp.action
@@ -32,8 +33,10 @@ import kotlinx.coroutines.flow.flowOn
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
+import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.annotation.Isolation
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionTemplate
 
 @Service
 class DeviceService(
@@ -42,7 +45,7 @@ class DeviceService(
     private val metricRepository: MetricRepository,
     private val processedStreamRepository: ProcessedStreamRepository,
     private val instanceControllerMessageSender: MessageSender,
-    private val deviceGroupRepository: DeviceGroupRepository
+    private val deviceGroupRepository: DeviceGroupRepository,
 ) {
 
     /**
@@ -192,7 +195,7 @@ class DeviceService(
         deviceRepository.save(deviceWithUpdatedState)
 
         val queueMessage = InstanceMessage(
-            action = storedDevice.processingState.action,
+            action = newProcessingState.action,
             device_id = deviceID,
             device_stream_url = storedDevice.streamURL
         )
@@ -233,13 +236,10 @@ class DeviceService(
         val storedDevice = deviceRepository.findById(deviceID)
             .orElseThrow { DeviceNotFoundException(deviceID) }
 
-        if(!storedDevice.scheduledForDeletion)
+        if (!storedDevice.scheduledForDeletion)
             throw ServiceInternalException("The device is not scheduled for deletion.")
 
-
-
         deviceRepository.delete(storedDevice)
-
     }
 
     /**
@@ -263,6 +263,27 @@ class DeviceService(
     }
 
     /**
+     * TODO: Comment
+     */
+    fun getPeopleCountFlow(deviceID: ID): Flow<Int> {
+        return flow<Int> {
+            while (true) {
+                val storedDevice = deviceRepository.findById(deviceID)
+                    .orElseThrow { DeviceNotFoundException(deviceID) }
+
+                if (storedDevice.processingState != DeviceProcessingState.ACTIVE)
+                    break
+
+                val latestMetric = metricRepository.findByMaxStartTime(deviceID)
+
+                if (latestMetric.isPresent) emit(latestMetric.get().peopleCount)
+
+                delay(Constants.Device.PEOPLE_COUNT_RETRIEVAL_DELAY)
+            }
+        }.flowOn(Dispatchers.IO)
+    }
+
+    /**
      * Gets the processing state of a device.
      */
     fun getDeviceStateFlow(Id: ID): Flow<DeviceProcessingStateOutput> =
@@ -277,7 +298,7 @@ class DeviceService(
                 }
 
                 emit(DeviceProcessingStateOutput.PENDING)
-                delay(1000)
+                delay(Constants.Device.DEVICE_PROCESSING_STATE_RETRIEVAL_DELAY)
             }
         }.flowOn(Dispatchers.IO)
 }

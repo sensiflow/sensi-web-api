@@ -82,7 +82,7 @@ fun Device.toDeviceOutputDTO(expanded: Boolean): DeviceOutputDTO {
 }
 
 val Device.processingStateOutput: DeviceProcessingStateOutput
-    get() = if(this.pendingUpdate)
+    get() = if (this.pendingUpdate)
         DeviceProcessingStateOutput.PENDING
     else
         this.processingState.toDeviceProcessingStateOutput()

@@ -71,13 +71,4 @@ create table if not exists ProcessedStream(
                                               foreign key (deviceID) references Device(id)
 );
 
-create table if not exists Instance(
-                                       id varchar(50) UNIQUE NOT null,
-                                       device_id int,
-                                       status VARCHAR(255) NOT null CHECK (status IN ('ACTIVE', 'INACTIVE', 'PAUSED')),
-                                       created_at TIMESTAMP,
-                                       updated_at TIMESTAMP CONSTRAINT updated_at_check CHECK (updated_at >= created_at),
-                                       scheduled_for_deletion boolean NOT null default false
-);
-
 commit;

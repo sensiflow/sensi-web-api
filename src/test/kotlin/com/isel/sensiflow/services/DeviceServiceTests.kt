@@ -533,7 +533,7 @@ class DeviceServiceTests {
             streamURL = fakeDevice.streamURL,
             description = fakeDevice.description,
             processingState = DeviceProcessingState.INACTIVE,
-            pendingUpdate=true,
+            pendingUpdate = true,
             user = fakeDevice.user
         )
         `when`(deviceRepository.findById(deviceID)).thenReturn(Optional.of(device))
