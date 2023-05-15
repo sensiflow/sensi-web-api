@@ -19,6 +19,7 @@ import com.isel.sensiflow.services.dto.PageableDTO
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
 import com.isel.sensiflow.services.dto.input.DeviceUpdateDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupCreateDTO
+import com.isel.sensiflow.services.dto.output.DeviceProcessingStateOutput
 import com.isel.sensiflow.services.dto.output.DeviceSimpleOutputDTO
 import com.isel.sensiflow.services.dto.output.toDeviceOutputDTO
 import com.isel.sensiflow.services.dto.output.toMetricOutputDTO
@@ -185,7 +186,7 @@ class DeviceServiceTests {
             streamURL = fakeDevice.streamURL,
             description = fakeDevice.description,
             userID = fakeDevice.user.id,
-            processingState = "INACTIVE"
+            processingState = DeviceProcessingStateOutput.INACTIVE
         )
         assertEquals(expected, retrievedDevice)
         verify(deviceRepository, times(1)).findById(deviceId)
@@ -521,5 +522,82 @@ class DeviceServiceTests {
         // Assert
         verify(metricRepository, times(0))
             .findAllByDeviceId(kotlinAny(Int::class.java), kotlinAny(Pageable::class.java))
+    }
+
+    @Test
+    fun `update device's state successfully after receiving a message from the rabbit queue`() {
+        val deviceID = fakeDevice.id + 1
+        val device = Device(
+            id = deviceID,
+            name = fakeDevice.name,
+            streamURL = fakeDevice.streamURL,
+            description = fakeDevice.description,
+            processingState = DeviceProcessingState.INACTIVE,
+            pendingUpdate = true,
+            user = fakeDevice.user
+        )
+        `when`(deviceRepository.findById(deviceID)).thenReturn(Optional.of(device))
+
+        deviceService.completeUpdateState(deviceID, DeviceProcessingState.ACTIVE)
+
+        verify(deviceRepository, times(1)).save(any(Device::class.java))
+    }
+
+    @Test
+    fun `update device's state after receiving a message from the rabbit queue when the device does not exist throws DeviceNotFoundException`() {
+        val deviceID = fakeDevice.id
+        `when`(deviceRepository.findById(deviceID)).thenReturn(Optional.empty())
+
+        assertThrows<DeviceNotFoundException> {
+            deviceService.completeUpdateState(deviceID, DeviceProcessingState.ACTIVE)
+        }
+
+        verify(deviceRepository, times(0)).save(any(Device::class.java))
+    }
+
+    @Test
+    fun `update device's state after receiving a message from the rabbit queue when the device's state is not pending throws ServiceInternalException`() {
+        val deviceID = fakeDevice.id
+        `when`(deviceRepository.findById(deviceID)).thenReturn(Optional.of(fakeDevice))
+
+        assertThrows<ServiceInternalException> {
+            deviceService.completeUpdateState(deviceID, DeviceProcessingState.INACTIVE)
+        }
+
+        verify(deviceRepository, times(0)).save(any(Device::class.java))
+    }
+
+    @Test
+    fun `delete a device after receiving a message from the rabbit queue successfully`() {
+        val deviceID = fakeDevice.id
+        `when`(deviceRepository.findById(deviceID)).thenReturn(Optional.of(fakeDevice))
+        fakeDevice.scheduledForDeletion = true
+        deviceService.completeDeviceDeletion(deviceID)
+
+        verify(deviceRepository, times(1)).delete(fakeDevice)
+    }
+
+    @Test
+    fun `delete a device after receiving a message from the rabbit queue when the device does not exist throws DeviceNotFoundException`() {
+        val deviceID = fakeDevice.id
+        `when`(deviceRepository.findById(deviceID)).thenReturn(Optional.empty())
+
+        assertThrows<DeviceNotFoundException> {
+            deviceService.completeDeviceDeletion(deviceID)
+        }
+
+        verify(deviceRepository, times(0)).delete(fakeDevice)
+    }
+
+    @Test
+    fun `delete a device after receiving a message from the rabbit queue when the device is not scheduled for deletion throws ServiceInternalException`() {
+        val deviceID = fakeDevice.id
+        `when`(deviceRepository.findById(deviceID)).thenReturn(Optional.of(fakeDevice))
+
+        assertThrows<ServiceInternalException> {
+            deviceService.completeDeviceDeletion(deviceID)
+        }
+
+        verify(deviceRepository, times(0)).delete(fakeDevice)
     }
 }

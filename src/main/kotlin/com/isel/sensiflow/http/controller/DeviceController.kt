@@ -110,7 +110,10 @@ class DeviceController(
             .getDeviceStats(PageableDTO(page, size), id)
     }
 
-    @RequestMapping(RequestPaths.Device.DEVICE_ID + RequestPaths.SSE.SSE_DEVICE_STATE, produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
+    @RequestMapping(
+        RequestPaths.Device.DEVICE_ID + RequestPaths.SSE.SSE_DEVICE_STATE,
+        produces = [MediaType.TEXT_EVENT_STREAM_VALUE]
+    )
     @Authentication(USER)
     fun subscribeToChangeOfDeviceState(@PathVariable("id") id: ID): SseEmitter {
         return launchServerSentEvent { sseEmitter ->

@@ -6,6 +6,8 @@ object Constants {
     const val CONTEXT_PATH = "/api/$API_VERSION"
 
     object Device {
+        const val PEOPLE_COUNT_RETRIEVAL_DELAY: Long = 1000 // 1 second
+        const val DEVICE_PROCESSING_STATE_RETRIEVAL_DELAY: Long = 3000 // 1 second
         const val NAME_MAX_LENGTH = 20
         const val DESCRIPTION_MAX_LENGTH = 100
         const val STREAM_URL_MAX_LENGTH = 200
@@ -118,5 +120,10 @@ object Constants {
             const val INTERNAL_ERROR = "An internal error occurred"
             const val DEVICE_ALREADY_UPDATING = "A device update is ongoing"
         }
+    }
+
+    object Cache {
+        const val DEVICE = "device"
+        const val DEVICE_LIST = "deviceList"
     }
 }

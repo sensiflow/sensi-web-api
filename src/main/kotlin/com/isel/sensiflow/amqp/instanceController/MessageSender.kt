@@ -16,12 +16,12 @@ class MessageSender(
     }
 
     @Value("\${rabbit.mq.ctl_queue}")
-    private lateinit var controllerQueue: String
+    private lateinit var controllerQueueRoutingKey: String
 
     /**
      * Send a [InstanceMessage] to the queue.
      */
     fun sendMessage(message: InstanceMessage) {
-        rabbitTemplate.convertAndSend(controllerQueue, mapper.writeValueAsString(message))
+        rabbitTemplate.convertAndSend(controllerQueueRoutingKey, mapper.writeValueAsString(message))
     }
 }

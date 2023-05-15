@@ -10,6 +10,7 @@ import com.isel.sensiflow.services.ProcessedStreamService
 import com.isel.sensiflow.services.Role
 import com.isel.sensiflow.services.dto.output.DeviceSimpleOutputDTO
 import com.isel.sensiflow.services.dto.output.ProcessedStreamExpandedOutputDTO
+import com.isel.sensiflow.services.dto.output.toDeviceProcessingStateOutput
 import com.isel.sensiflow.services.dto.output.toProcessedStreamOutputDTO
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -111,7 +112,7 @@ class ProcessedStreamTests {
                 streamURL = fakeDevice.streamURL,
                 description = fakeDevice.description,
                 userID = fakeDevice.user.id,
-                processingState = fakeDevice.processingState.name
+                processingState = fakeDevice.processingState.toDeviceProcessingStateOutput()
             )
         )
 

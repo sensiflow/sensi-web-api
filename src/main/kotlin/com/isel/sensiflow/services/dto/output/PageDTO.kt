@@ -24,7 +24,6 @@ data class PageDTO<T>(
  * @param T The type of the items in the page
  */
 fun <T> Page<T>.toPageDTO(): PageDTO<T> {
-
     return PageDTO(
         totalElements = this.totalElements,
         totalPages = this.totalPages,
