@@ -42,15 +42,8 @@ class UserController(private val userService: UserService) {
     fun createUser(
         @RequestBody @Valid userInput: UserRegisterInput,
         response: HttpServletResponse
-    ): IDOutput {
-        val authInfo = userService.createUser(userInput)
-
-        val authCookie = createAuthCookie(authInfo.token, Constants.User.SESSION_EXPIRATION_TIME)
-
-        response.addCookie(authCookie)
-
-        return authInfo.userID.toIDOutput()
-    }
+    ): IDOutput =
+        userService.createUser(userInput).toIDOutput()
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping(Users.GET_USER)

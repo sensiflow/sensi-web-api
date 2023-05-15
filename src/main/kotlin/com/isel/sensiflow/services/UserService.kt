@@ -37,7 +37,7 @@ class UserService(
      * @throws EmailAlreadyExistsException if the email already exists
      */
     @Transactional(isolation = Isolation.REPEATABLE_READ)
-    fun createUser(userInput: UserRegisterInput, role: Role = Role.USER): AuthInformationDTO {
+    fun createUser(userInput: UserRegisterInput, role: Role = Role.USER): UserID {
         emailRepository
             .findByEmail(userInput.email)
             .ifPresent {
@@ -69,16 +69,9 @@ class UserService(
             )
         )
 
-        val persistedUser = userRepository.save(user.addEmail(email))
-        val sessionToken = sessionTokenRepository.save(
-            SessionToken(
-                user = persistedUser,
-                token = generateUUID(),
-                expiration = generateExpirationDate(SESSION_EXPIRATION_TIME).toTimeStamp()
-            )
-        )
+        userRepository.save(user.addEmail(email))
 
-        return AuthInformationDTO(sessionToken.token, user.id)
+        return user.id
     }
 
     /**

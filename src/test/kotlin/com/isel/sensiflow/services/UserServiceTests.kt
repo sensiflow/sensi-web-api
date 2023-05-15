@@ -106,10 +106,9 @@ class UserServiceTests {
         `when`(userRepository.save(ArgumentMatchers.any(User::class.java))).thenReturn(fakeUser)
         `when`(tokenRepository.save(ArgumentMatchers.any(SessionToken::class.java))).thenReturn(fakeToken)
 
-        val resultAuthInfo = userService.createUser(fakeUserInput)
+        val userID = userService.createUser(fakeUserInput)
 
-        assertEquals(fakeToken.token, resultAuthInfo.token)
-        assertEquals(fakeUser.id, resultAuthInfo.userID)
+        assertEquals(fakeUser.id, userID)
 
         verify(emailRepository, times(1)).findByEmail(fakeUserEmail.email)
         verify(userRepository, times(2)).save(ArgumentMatchers.any(User::class.java))

@@ -26,6 +26,6 @@ object RequestPaths {
 
     object SSE {
         const val SSE = "/server-events"
-        const val SSE_DEVICE_STATE = "$SSE/device-state/"
+        const val SSE_DEVICE_STATE = "$SSE/processing-state/"
     }
 }
