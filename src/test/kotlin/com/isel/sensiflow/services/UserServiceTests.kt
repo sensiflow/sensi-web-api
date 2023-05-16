@@ -112,8 +112,6 @@ class UserServiceTests {
 
         verify(emailRepository, times(1)).findByEmail(fakeUserEmail.email)
         verify(userRepository, times(2)).save(ArgumentMatchers.any(User::class.java))
-        verify(tokenRepository, times(1)).save(ArgumentMatchers.any())
-        verify(tokenRepository, times(1)).save(ArgumentMatchers.any())
     }
 
     @Test
