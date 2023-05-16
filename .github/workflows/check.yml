@@ -21,7 +21,7 @@ jobs:
         with:
           version: '3-management'
           ports: '5672:5672 15672:15672'
-          config: ${{ github.workspace }}/.ci/rabbitmq.conf
+          config: ${{ github.workspace }}/.ci/rabbit-init/rabbitmq.conf
           definitions: ${{ github.workspace }}/.ci/rabbit-init/definitions.json
           container-name: 'rabbitmq'
       - name: Set up JDK 17
