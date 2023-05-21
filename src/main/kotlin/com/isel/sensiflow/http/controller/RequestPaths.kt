@@ -20,8 +20,8 @@ object RequestPaths {
         const val USERS = "/users"
         const val LOGIN = "/login"
         const val LOGOUT = "/logout"
-        const val GET_USER = "/{userID}"
-        const val ROLE = "{userID}/role"
+        const val GET_USER = "/{id}"
+        const val ROLE = "{id}/role"
     }
 
     object SSE {

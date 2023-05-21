@@ -64,11 +64,11 @@ class InvalidProcessingStateTransitionException(from: DeviceProcessingState, to:
 class UnauthenticatedException(message: String) : ServiceException(message)
 
 /**
- * Indicates that the user is not authorized to perform the operation.
+ * Indicates that the user is not authorized to perform the operation. (note that this happens when the user is authenticated)
  * The user may require additional permissions or roles to perform the operation.
  * Similar to UnauthenticatedException, but this exception is thrown when the user is authenticated.
  */
-class UnauthorizedException(message: String) : ServiceException(message)
+class ActionForbiddenException(message: String) : ServiceException(message)
 
 /**
  * Indicates that the user provided an invalid token.

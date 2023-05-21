@@ -35,7 +35,7 @@ object Constants {
         const val EMAIL_MAX_LENGTH = 100
         const val NAME_MIN_LENGTH = 3
         const val NAME_MAX_LENGTH = 20
-        const val PASSWORD_MIN_SIZE = 3
+        const val PASSWORD_MIN_SIZE = 5
         const val PASSWORD_MAX_SIZE = 20
         const val PASSWORD_REGEX = """^(?=.*[a-z])(?=.*[A-Z])(?=.*[*.!@$%^&(){}\[\]:;<>,.?/~_+-=|]).{$PASSWORD_MIN_SIZE,$PASSWORD_MAX_SIZE}$"""
     }

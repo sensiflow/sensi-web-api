@@ -67,6 +67,7 @@ fun User.toDTO(): UserDTO {
         throw IllegalStateException("User email not initialized")
 
     return UserDTO(
+        id = this.id,
         email = email.email,
         role = this.role.toRole(),
         firstName = this.firstName,

@@ -5,10 +5,12 @@ import com.isel.sensiflow.Constants
 import com.isel.sensiflow.Constants.Problem.URI.URI_VALIDATION_ERROR
 import com.isel.sensiflow.http.entities.input.UserLoginInput
 import com.isel.sensiflow.http.entities.input.UserRegisterInput
+import com.isel.sensiflow.http.entities.input.UserUpdateInput
 import com.isel.sensiflow.http.entities.output.IDOutput
 import com.isel.sensiflow.http.entities.output.UserOutput
 import com.isel.sensiflow.integration.HTTPMethod.GET
 import com.isel.sensiflow.integration.HTTPMethod.POST
+import com.isel.sensiflow.services.ID
 import com.isel.sensiflow.services.Role.ADMIN
 import com.isel.sensiflow.services.UserService
 import jakarta.servlet.http.Cookie
@@ -458,6 +460,154 @@ class UserControllerTests {
             }
         )
     }
+
+    @Test
+    fun `update a user sucessfully`(){
+        val (id, cookie, loginInput) = createAdminTestUser()
+
+        val updateBody = UserUpdateInput(
+            firstName = "Test1",
+            lastName = "Test1",
+            password = "Password1_.2"
+        )
+
+        val user = mockMvc.request<UserLoginInput, UserOutput>(
+            method = GET,
+            uri = "/users/${id}",
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isOk)
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.firstName").value("Test"))
+                    .andExpect(jsonPath("$.lastName").value("Test"))
+                    .andExpect(jsonPath("$.role").value("ADMIN"))
+            }
+        )
+
+        mockMvc.request<UserUpdateInput,ProblemDetail>(
+            method = HTTPMethod.PUT,
+            uri = "/users/${id}",
+            body = updateBody,
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isNoContent)
+            }
+        )
+
+        //Can log in with the new password
+        mockMvc.request<UserLoginInput, IDOutput>(
+            method = POST,
+            uri = "/users/login",
+            authorization = cookie,
+            body= UserLoginInput(email = loginInput.email, password = updateBody.password!!),
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isOk)
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.id").value(id))
+            }
+        )
+
+        mockMvc.request<NoBody, UserOutput>(
+            method = GET,
+            uri = "/users/${id}",
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isOk)
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.firstName").value(updateBody.firstName))
+                    .andExpect(jsonPath("$.lastName").value(updateBody.lastName))
+                    .andExpect(jsonPath("$.role").value("ADMIN"))
+            }
+        )
+    }
+
+
+    @Test
+    fun `try to update a different user `(){
+        val (id1, cookie1, loginInput1) = createAdminTestUser()
+        val (id2, cookie2, loginInput2) = createAdminTestUser()
+
+        val updateBody = UserUpdateInput(
+            firstName = "Test1",
+            lastName = "Test1",
+            password = "Password1_.2"
+        )
+
+
+        mockMvc.request<UserUpdateInput,ProblemDetail>(
+            method = HTTPMethod.PUT,
+            uri = "/users/${id1}",
+            body = updateBody,
+            authorization = cookie2,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isForbidden)
+            }
+        )
+
+        //Can log in with the new password
+        mockMvc.request<UserLoginInput, ProblemDetail>(
+            method = POST,
+            uri = "/users/login",
+            body= UserLoginInput(email = loginInput1.email, password = updateBody.password!!),
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isUnauthorized)
+            }
+        )
+
+        mockMvc.request<NoBody, UserOutput>(
+            method = GET,
+            uri = "/users/${id1}",
+            authorization = cookie2,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isOk)
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.firstName").value("Test"))
+                    .andExpect(jsonPath("$.lastName").value("Test"))
+                    .andExpect(jsonPath("$.role").value("ADMIN"))
+            }
+        )
+
+
+    }
+
+    private fun createAdminTestUser() : TestUserInfo {
+        val loginInput = createTestUser(userService, role = ADMIN, counter++)
+        val loginJson = mapper.writeValueAsString(loginInput)
+
+        val loginResult = mockMvc.perform(
+            post("/users/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(loginJson)
+        ).andExpect(status().isOk)
+
+        val id = mapper.readValue(
+                loginResult
+                    .andReturn()
+                    .response
+                    .contentAsString,
+            IDOutput::class.java).id
+
+        val cookie = loginResult
+            .andReturn()
+            .response
+            .getCookie(Constants.User.AUTH_COOKIE_NAME)
+        require(cookie != null)
+
+        return TestUserInfo(id,cookie,loginInput)
+    }
+
+    private data class TestUserInfo(
+        val id: ID,
+        val cookie: Cookie,
+        val loginInput: UserLoginInput
+    )
 
     private fun getCookie(emailCounter: Int = counter++): Cookie? {
         val loginInput = createTestUser(userService, role = ADMIN, emailCounter)

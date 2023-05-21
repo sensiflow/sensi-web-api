@@ -18,7 +18,7 @@ import com.isel.sensiflow.services.RoleNotFoundException
 import com.isel.sensiflow.services.ServiceException
 import com.isel.sensiflow.services.ServiceInternalException
 import com.isel.sensiflow.services.UnauthenticatedException
-import com.isel.sensiflow.services.UnauthorizedException
+import com.isel.sensiflow.services.ActionForbiddenException
 import com.isel.sensiflow.services.UserNotFoundException
 import org.springframework.http.HttpStatus
 import java.net.URI
@@ -34,7 +34,7 @@ val ServiceException.httpCode: HttpStatus
 
         is UnauthenticatedException -> HttpStatus.UNAUTHORIZED
 
-        is UnauthorizedException -> HttpStatus.FORBIDDEN
+        is ActionForbiddenException -> HttpStatus.FORBIDDEN
 
         is InvalidProcessingStateException -> HttpStatus.BAD_REQUEST
         is InvalidProcessingStateTransitionException -> HttpStatus.BAD_REQUEST
@@ -60,7 +60,7 @@ val ServiceException.errorURI: URI
         is ProcessedStreamNotFoundException -> URI.create(Constants.Problem.URI.PROCESSED_STREAM_NOT_FOUND)
         is DeviceNotFoundException -> URI.create(Constants.Problem.URI.DEVICE_NOT_FOUND)
         is InvalidCredentialsException -> URI.create(Constants.Problem.URI.INVALID_CREDENTIALS)
-        is UnauthorizedException -> URI.create(Constants.Problem.URI.UNAUTHORIZED)
+        is ActionForbiddenException -> URI.create(Constants.Problem.URI.UNAUTHORIZED)
         is UnauthenticatedException -> URI.create(Constants.Problem.URI.UNAUTHENTICATED)
         is InvalidProcessingStateException -> URI.create(Constants.Problem.URI.INVALID_PROCESSING_STATE)
         is InvalidTokenException -> URI.create(Constants.Problem.URI.INVALID_TOKEN)
@@ -78,7 +78,7 @@ val ServiceException.title: String
     get() = when (this) {
         is NotFoundException -> Constants.Problem.Title.NOT_FOUND
         is InvalidCredentialsException -> Constants.Problem.Title.INVALID_CREDENTIALS
-        is UnauthorizedException -> Constants.Problem.Title.UNAUTHORIZED
+        is ActionForbiddenException -> Constants.Problem.Title.UNAUTHORIZED
         is UnauthenticatedException -> Constants.Problem.Title.UNAUTHENTICATED
         is InvalidProcessingStateException -> Constants.Problem.Title.INVALID_PROCESSING_STATE
         is InvalidProcessingStateTransitionException -> Constants.Problem.Title.INVALID_PROCESSING_STATE_TRANSITION

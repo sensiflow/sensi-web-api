@@ -3,6 +3,7 @@ package com.isel.sensiflow.services
 import com.isel.sensiflow.Constants.User.SESSION_EXPIRATION_TIME
 import com.isel.sensiflow.http.entities.input.UserLoginInput
 import com.isel.sensiflow.http.entities.input.UserRegisterInput
+import com.isel.sensiflow.http.entities.input.UserUpdateInput
 import com.isel.sensiflow.model.dao.Email
 import com.isel.sensiflow.model.dao.SessionToken
 import com.isel.sensiflow.model.dao.User
@@ -240,4 +241,39 @@ class UserServiceTests {
             userService.validateSessionToken(fakeToken.token)
         }
     }
+
+    @Test
+    fun `change a users info`(){
+        `when`(userRepository.findById(fakeUser.id)).thenReturn(Optional.of(fakeUser))
+        val userInput = UserUpdateInput(
+            password = "newPassword1.",
+            firstName = "newFirstName",
+            lastName = "newLastName"
+        )
+        userService.updateUser(fakeUser.id,fakeUser.id , userInput)
+        verify(userRepository, times(1)).save(ArgumentMatchers.any(User::class.java))
+    }
+
+    @Test
+    fun `change a users info with the old info`(){
+        `when`(userRepository.findById(fakeUser.id)).thenReturn(Optional.of(fakeUser))
+        val userInput = UserUpdateInput(
+            password = "Passord2.0",
+            firstName = fakeUser.firstName,
+            lastName = fakeUser.lastName
+        )
+        userService.updateUser(fakeUser.id,fakeUser.id, userInput)
+        verify(userRepository, times(0)).save(ArgumentMatchers.any(User::class.java))
+    }
+
+    @Test
+    fun `try to update a user without sending any fields`(){
+        `when`(userRepository.findById(fakeUser.id)).thenReturn(Optional.of(fakeUser))
+        val userInput = UserUpdateInput()
+
+        userService.updateUser(fakeUser.id,fakeUser.id, userInput)
+
+        verify(userRepository, times(0)).save(ArgumentMatchers.any(User::class.java))
+    }
+
 }
