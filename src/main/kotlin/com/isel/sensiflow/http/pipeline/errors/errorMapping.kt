@@ -1,6 +1,7 @@
 package com.isel.sensiflow.http.pipeline.errors
 
 import com.isel.sensiflow.Constants
+import com.isel.sensiflow.services.ActionForbiddenException
 import com.isel.sensiflow.services.DeviceAlreadyUpdatingException
 import com.isel.sensiflow.services.DeviceGroupNotFoundException
 import com.isel.sensiflow.services.DeviceNotFoundException
@@ -18,7 +19,6 @@ import com.isel.sensiflow.services.RoleNotFoundException
 import com.isel.sensiflow.services.ServiceException
 import com.isel.sensiflow.services.ServiceInternalException
 import com.isel.sensiflow.services.UnauthenticatedException
-import com.isel.sensiflow.services.ActionForbiddenException
 import com.isel.sensiflow.services.UserNotFoundException
 import org.springframework.http.HttpStatus
 import java.net.URI

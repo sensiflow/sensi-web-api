@@ -8,7 +8,6 @@ import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
 import org.springframework.web.bind.MethodArgumentNotValidException
 
-
 /**
  * Represents the input of a user update request.
  * All fields are required
@@ -17,7 +16,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException
  * @param lastName Last name of the user
  * @throws MethodArgumentNotValidException if any of the fields is not valid.
  */
-data class UserUpdateInput (
+data class UserUpdateInput(
 
     @field:NotBlankNullable(
         message = Constants.Error.PASSWORD_EMPTY
@@ -57,19 +56,18 @@ data class UserUpdateInput (
  */
 fun UserUpdateInput.fieldsAreEmpty(): Boolean =
     this.password == null &&
-    this.firstName == null &&
-    this.lastName == null
+        this.firstName == null &&
+        this.lastName == null
 
 /**
  * Checks if the input is the same as the user
  */
 fun User.isTheSameAS(other: UserUpdateInput): Boolean {
-    if(other.password == null) return false
+    if (other.password == null) return false
 
     val hashedInputPassword = hashPassword(other.password, this.passwordSalt)
 
     return this.passwordHash == hashedInputPassword &&
         this.firstName == other.firstName &&
         this.lastName == other.lastName
-
 }

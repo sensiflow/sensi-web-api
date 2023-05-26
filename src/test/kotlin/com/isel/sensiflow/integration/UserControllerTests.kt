@@ -462,7 +462,7 @@ class UserControllerTests {
     }
 
     @Test
-    fun `update a user sucessfully`(){
+    fun `update a user sucessfully`() {
         val (id, cookie, loginInput) = createAdminTestUser()
 
         val updateBody = UserUpdateInput(
@@ -473,7 +473,7 @@ class UserControllerTests {
 
         val user = mockMvc.request<UserLoginInput, UserOutput>(
             method = GET,
-            uri = "/users/${id}",
+            uri = "/users/$id",
             authorization = cookie,
             mapper = mapper,
             assertions = {
@@ -485,9 +485,9 @@ class UserControllerTests {
             }
         )
 
-        mockMvc.request<UserUpdateInput,ProblemDetail>(
+        mockMvc.request<UserUpdateInput, ProblemDetail>(
             method = HTTPMethod.PUT,
-            uri = "/users/${id}",
+            uri = "/users/$id",
             body = updateBody,
             authorization = cookie,
             mapper = mapper,
@@ -496,12 +496,12 @@ class UserControllerTests {
             }
         )
 
-        //Can log in with the new password
+        // Can log in with the new password
         mockMvc.request<UserLoginInput, IDOutput>(
             method = POST,
             uri = "/users/login",
             authorization = cookie,
-            body= UserLoginInput(email = loginInput.email, password = updateBody.password!!),
+            body = UserLoginInput(email = loginInput.email, password = updateBody.password!!),
             mapper = mapper,
             assertions = {
                 andExpect(status().isOk)
@@ -512,7 +512,7 @@ class UserControllerTests {
 
         mockMvc.request<NoBody, UserOutput>(
             method = GET,
-            uri = "/users/${id}",
+            uri = "/users/$id",
             authorization = cookie,
             mapper = mapper,
             assertions = {
@@ -525,9 +525,8 @@ class UserControllerTests {
         )
     }
 
-
     @Test
-    fun `try to update a different user `(){
+    fun `try to update a different user `() {
         val (id1, cookie1, loginInput1) = createAdminTestUser()
         val (id2, cookie2, loginInput2) = createAdminTestUser()
 
@@ -537,10 +536,9 @@ class UserControllerTests {
             password = "Password1_.2"
         )
 
-
-        mockMvc.request<UserUpdateInput,ProblemDetail>(
+        mockMvc.request<UserUpdateInput, ProblemDetail>(
             method = HTTPMethod.PUT,
-            uri = "/users/${id1}",
+            uri = "/users/$id1",
             body = updateBody,
             authorization = cookie2,
             mapper = mapper,
@@ -549,11 +547,11 @@ class UserControllerTests {
             }
         )
 
-        //Can log in with the new password
+        // Can log in with the new password
         mockMvc.request<UserLoginInput, ProblemDetail>(
             method = POST,
             uri = "/users/login",
-            body= UserLoginInput(email = loginInput1.email, password = updateBody.password!!),
+            body = UserLoginInput(email = loginInput1.email, password = updateBody.password!!),
             mapper = mapper,
             assertions = {
                 andExpect(status().isUnauthorized)
@@ -562,7 +560,7 @@ class UserControllerTests {
 
         mockMvc.request<NoBody, UserOutput>(
             method = GET,
-            uri = "/users/${id1}",
+            uri = "/users/$id1",
             authorization = cookie2,
             mapper = mapper,
             assertions = {
@@ -573,11 +571,9 @@ class UserControllerTests {
                     .andExpect(jsonPath("$.role").value("ADMIN"))
             }
         )
-
-
     }
 
-    private fun createAdminTestUser() : TestUserInfo {
+    private fun createAdminTestUser(): TestUserInfo {
         val loginInput = createTestUser(userService, role = ADMIN, counter++)
         val loginJson = mapper.writeValueAsString(loginInput)
 
@@ -588,11 +584,12 @@ class UserControllerTests {
         ).andExpect(status().isOk)
 
         val id = mapper.readValue(
-                loginResult
-                    .andReturn()
-                    .response
-                    .contentAsString,
-            IDOutput::class.java).id
+            loginResult
+                .andReturn()
+                .response
+                .contentAsString,
+            IDOutput::class.java
+        ).id
 
         val cookie = loginResult
             .andReturn()
@@ -600,7 +597,7 @@ class UserControllerTests {
             .getCookie(Constants.User.AUTH_COOKIE_NAME)
         require(cookie != null)
 
-        return TestUserInfo(id,cookie,loginInput)
+        return TestUserInfo(id, cookie, loginInput)
     }
 
     private data class TestUserInfo(

@@ -5,7 +5,7 @@ import com.isel.sensiflow.services.Role
 import com.isel.sensiflow.services.UserID
 
 data class UserDTO(
-    val id : UserID,
+    val id: UserID,
     val email: String,
     val role: Role,
     val firstName: String,

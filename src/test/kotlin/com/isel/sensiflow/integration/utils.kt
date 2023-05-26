@@ -8,7 +8,6 @@ import com.isel.sensiflow.services.Role
 import com.isel.sensiflow.services.UserService
 import com.isel.sensiflow.services.dto.output.PageDTO
 import jakarta.servlet.http.Cookie
-import org.springframework.amqp.rabbit.test.RabbitListenerTestHarness
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.ResultActions

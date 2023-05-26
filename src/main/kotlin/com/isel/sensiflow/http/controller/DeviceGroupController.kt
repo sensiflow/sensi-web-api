@@ -12,6 +12,7 @@ import com.isel.sensiflow.services.dto.PageableDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupCreateDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupInputDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupUpdateDTO
+import com.isel.sensiflow.services.dto.output.AddDevicesToGroupOutputDTO
 import com.isel.sensiflow.services.dto.output.DeviceGroupOutputDTO
 import com.isel.sensiflow.services.dto.output.DeviceOutputDTO
 import com.isel.sensiflow.services.dto.output.PageDTO
@@ -37,9 +38,19 @@ class DeviceGroupController(val deviceGroupService: DeviceGroupService) {
     @GetMapping(RequestPaths.DeviceGroups.GROUP_ID)
     fun getGroup(
         @PathVariable id: Int,
+        @RequestParam expanded: Boolean = false
     ): DeviceGroupOutputDTO {
-        return deviceGroupService.getGroup(id)
+        return deviceGroupService.getGroup(id, expanded)
     }
+
+    @Authentication(authorization = USER)
+    @GetMapping()
+    fun getGroups(
+        @RequestParam page: Int? = null,
+        @RequestParam size: Int? = null,
+        @RequestParam expanded: Boolean = false
+    ): PageDTO<DeviceGroupOutputDTO> =
+        deviceGroupService.getGroups(PageableDTO(page, size), expanded)
 
     @Authentication(authorization = MODERATOR)
     @PutMapping(RequestPaths.DeviceGroups.GROUP_ID)
@@ -67,12 +78,22 @@ class DeviceGroupController(val deviceGroupService: DeviceGroupService) {
     }
 
     @Authentication(authorization = MODERATOR)
-    @PutMapping(RequestPaths.DeviceGroups.GROUPS_DEVICES)
-    fun updateDevicesGroup(
+    @PostMapping(RequestPaths.DeviceGroups.GROUPS_DEVICES)
+    fun addDevicesToGroup(
         @PathVariable id: Int,
-        @RequestBody @Valid inputDTO: DevicesGroupInputDTO
+        @RequestBody devicesIDs: DevicesGroupInputDTO
+    ): AddDevicesToGroupOutputDTO { // TODO: VER ALTERNATIVAS AO RETORNO DESTE ENDPOINT
+        deviceGroupService.addDevicesToGroup(id, devicesIDs)
+        return AddDevicesToGroupOutputDTO()
+    }
+
+    @Authentication(authorization = ADMIN)
+    @DeleteMapping(RequestPaths.DeviceGroups.GROUPS_DEVICES)
+    fun removeDevicesFromGroup(
+        @PathVariable id: Int,
+        @RequestParam deviceIDs: List<ID>
     ): ResponseEntity<Unit> {
-        deviceGroupService.updateDevicesGroup(id, inputDTO)
+        deviceGroupService.removeDevicesFromGroup(id, deviceIDs)
 
         return ResponseEntity
             .noContent()

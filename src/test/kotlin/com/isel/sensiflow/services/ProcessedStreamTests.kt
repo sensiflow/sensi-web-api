@@ -112,7 +112,8 @@ class ProcessedStreamTests {
                 streamURL = fakeDevice.streamURL,
                 description = fakeDevice.description,
                 userID = fakeDevice.user.id,
-                processingState = fakeDevice.processingState.toDeviceProcessingStateOutput()
+                processingState = fakeDevice.processingState.toDeviceProcessingStateOutput(),
+                deviceGroupsID = emptyList()
             )
         )
 

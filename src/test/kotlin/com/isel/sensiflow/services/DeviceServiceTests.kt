@@ -186,7 +186,8 @@ class DeviceServiceTests {
             streamURL = fakeDevice.streamURL,
             description = fakeDevice.description,
             userID = fakeDevice.user.id,
-            processingState = DeviceProcessingStateOutput.INACTIVE
+            processingState = DeviceProcessingStateOutput.INACTIVE,
+            deviceGroupsID = emptyList()
         )
         assertEquals(expected, retrievedDevice)
         verify(deviceRepository, times(1)).findById(deviceId)

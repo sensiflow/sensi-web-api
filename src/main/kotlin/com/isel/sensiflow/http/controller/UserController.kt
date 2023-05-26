@@ -11,7 +11,6 @@ import com.isel.sensiflow.http.entities.output.toIDOutput
 import com.isel.sensiflow.http.pipeline.authentication.Authentication
 import com.isel.sensiflow.http.utils.createAuthCookie
 import com.isel.sensiflow.http.utils.removeCookie
-import com.isel.sensiflow.services.ActionForbiddenException
 import com.isel.sensiflow.services.Role.ADMIN
 import com.isel.sensiflow.services.Role.MODERATOR
 import com.isel.sensiflow.services.Role.USER
@@ -60,7 +59,7 @@ class UserController(private val userService: UserService) {
         @PathVariable id: UserID,
         userID: UserID,
         @RequestBody @Valid userInput: UserUpdateInput,
-    ){
+    ) {
         userService.updateUser(id, userID, userInput)
     }
 

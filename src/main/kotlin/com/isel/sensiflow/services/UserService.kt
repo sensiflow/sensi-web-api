@@ -202,7 +202,7 @@ class UserService(
         val user = userRepository.findById(userID)
             .orElseThrow { UserNotFoundException(userID) }
 
-        if (userInput.fieldsAreEmpty() || user.isTheSameAS(userInput) ) {
+        if (userInput.fieldsAreEmpty() || user.isTheSameAS(userInput)) {
             return
         }
 

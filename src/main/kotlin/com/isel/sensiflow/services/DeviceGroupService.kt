@@ -1,5 +1,7 @@
 package com.isel.sensiflow.services
 
+import com.isel.sensiflow.Constants.Pagination.DEFAULT_PAGE
+import com.isel.sensiflow.Constants.Pagination.DEFAULT_PAGE_SIZE
 import com.isel.sensiflow.model.dao.DeviceGroup
 import com.isel.sensiflow.model.repository.DeviceGroupRepository
 import com.isel.sensiflow.model.repository.DeviceRepository
@@ -9,6 +11,7 @@ import com.isel.sensiflow.services.dto.input.DevicesGroupCreateDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupInputDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupUpdateDTO
 import com.isel.sensiflow.services.dto.output.DeviceGroupOutputDTO
+import com.isel.sensiflow.services.dto.output.DeviceGroupSimpleOutputDTO
 import com.isel.sensiflow.services.dto.output.DeviceOutputDTO
 import com.isel.sensiflow.services.dto.output.PageDTO
 import com.isel.sensiflow.services.dto.output.toDeviceGroupOutputDTO
@@ -58,20 +61,48 @@ class DeviceGroupService(
     }
 
     /**
-     * Updates the list of devices in a group.
-     * @param groupID The id of the group to update
-     * @param input The input data with the new list of devices
+     * Adds devices to a group.
+     * @param groupID The id of the group to add the devices to
+     * @param input The input data with the list of device IDs to add
      * @throws DeviceGroupNotFoundException If the group does not exist
+     * @throws DeviceNotFoundException If any of the devices does not exist
+     * @throws InvalidParameterException If any of the devices to add is already in the group
      */
     @Transactional(isolation = Isolation.REPEATABLE_READ)
-    fun updateDevicesGroup(groupID: ID, input: DevicesGroupInputDTO): DeviceGroup {
+    fun addDevicesToGroup(groupID: ID, input: DevicesGroupInputDTO): DeviceGroup {
         val group = deviceGroupRepository.findById(groupID)
             .orElseThrow { DeviceGroupNotFoundException(groupID) }
 
-        val newDevices = deviceRepository.requireFindAllById(input.deviceIDs)
+        val isAnyDeviceRepeated = group.devices.any { device ->
+            device.id in input.deviceIDs
+        }
 
-        group.devices.clear()
-        group.devices.addAll(newDevices)
+        if (isAnyDeviceRepeated)
+            throw InvalidParameterException("This group already contains one or more of the devices to add")
+
+        val devicesToAdd = deviceRepository.requireFindAllById(input.deviceIDs)
+
+        group.devices.addAll(devicesToAdd.toSet())
+        deviceGroupRepository.save(group)
+        return group
+    }
+
+    /**
+     * Removes devices from a group.
+     * @param groupID The id of the group to remove the devices from
+     * @param deviceIDs The list of device IDs to remove
+     * @throws DeviceGroupNotFoundException If the group does not exist
+     * @throws DeviceNotFoundException If any of the devices does not exist
+     */
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    fun removeDevicesFromGroup(groupID: ID, deviceIDs: List<Int>): DeviceGroup {
+        val group = deviceGroupRepository.findById(groupID)
+            .orElseThrow { DeviceGroupNotFoundException(groupID) }
+
+        val devicesToRemove = deviceRepository.requireFindAllById(deviceIDs)
+
+        group.devices.removeAll(devicesToRemove.toSet())
+        deviceGroupRepository.save(group)
         return group
     }
 
@@ -98,17 +129,47 @@ class DeviceGroupService(
     }
 
     /**
-     * Gets a device group.
+     * Gets a device group. The group can be expanded or not.
      * @param groupID The id of the group to get
-     * @return The device group as [DeviceGroupOutputDTO]
+     * @return The device group as [DeviceGroupSimpleOutputDTO]
      * @throws DeviceGroupNotFoundException If the group does not exist
      */
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    fun getGroup(groupID: ID): DeviceGroupOutputDTO {
+    fun getGroup(groupID: ID, expanded: Boolean): DeviceGroupOutputDTO {
         return deviceGroupRepository
             .findById(groupID)
             .orElseThrow { DeviceGroupNotFoundException(groupID) }
-            .toDeviceGroupOutputDTO()
+            .toDeviceGroupOutputDTO(
+                expanded = expanded,
+                devicesPaginationModel = PageableDTO(
+                    page = DEFAULT_PAGE,
+                    size = DEFAULT_PAGE_SIZE
+                )
+            )
+    }
+    /**
+     * Gets all device groups. The list can be paginated. The groups can be expanded or not.
+     *
+     * @param pageableDTO The pagination info
+     * @param expanded If the groups should be expanded or not (include the list of devices)
+     * @return The list of device groups as [PageDTO] of [DeviceGroupOutputDTO]
+     */
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    fun getGroups(pageableDTO: PageableDTO, expanded: Boolean): PageDTO<DeviceGroupOutputDTO> {
+        val pageable: Pageable = PageRequest.of(pageableDTO.page, pageableDTO.size)
+
+        return deviceGroupRepository
+            .findAll(pageable)
+            .map {
+                it.toDeviceGroupOutputDTO(
+                    expanded = expanded,
+                    devicesPaginationModel = PageableDTO(
+                        page = DEFAULT_PAGE,
+                        size = DEFAULT_PAGE_SIZE
+                    )
+                )
+            }
+            .toPageDTO()
     }
 
     /**

@@ -3,7 +3,6 @@ package com.isel.sensiflow.http.entities.output
 import com.isel.sensiflow.model.dao.User
 import com.isel.sensiflow.services.UserID
 
-
 /**
  * Represents the output of a [User]
  */
