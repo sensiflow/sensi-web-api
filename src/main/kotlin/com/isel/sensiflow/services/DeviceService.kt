@@ -256,7 +256,7 @@ class DeviceService(
 
         return metricRepository
             .findAllByDeviceId(storedDevice.id, pageable)
-            .map { metric -> metric.toMetricOutputDTO() }
+            .map { metric -> println(metric) ; println(metric.toMetricOutputDTO()) ; metric.toMetricOutputDTO() }
             .toPageDTO()
     }
 

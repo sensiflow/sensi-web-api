@@ -64,7 +64,8 @@ fun <T> List<T>.toPageDTO(paginationModel: PageableDTO): PageDTO<T> {
         totalElements = this.size.toLong(),
         totalPages = totalPages,
         isFirst = paginationModel.page == 0,
-        isLast = totalPages == paginationModel.page + 1,
+        isLast = totalPages == 0 && paginationModel.page == 0 ||
+            totalPages == paginationModel.page + 1,
         items = items
     )
 }

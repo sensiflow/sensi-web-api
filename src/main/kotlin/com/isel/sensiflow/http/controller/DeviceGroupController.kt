@@ -79,6 +79,7 @@ class DeviceGroupController(val deviceGroupService: DeviceGroupService) {
 
     @Authentication(authorization = MODERATOR)
     @PostMapping(RequestPaths.DeviceGroups.GROUPS_DEVICES)
+    @ResponseStatus(HttpStatus.CREATED)
     fun addDevicesToGroup(
         @PathVariable id: Int,
         @RequestBody devicesIDs: DevicesGroupInputDTO

@@ -103,8 +103,8 @@ class DeviceController(
     @Authentication(authorization = USER)
     fun getDeviceStats(
         @PathVariable id: Int,
-        @RequestParam page: Int,
-        @RequestParam size: Int,
+        @RequestParam page: Int? = null,
+        @RequestParam size: Int? = null
     ): PageDTO<MetricOutputDTO> {
         return deviceService
             .getDeviceStats(PageableDTO(page, size), id)

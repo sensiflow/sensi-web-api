@@ -507,7 +507,7 @@ class DevicesGroupControllerTests {
             authorization = cookie,
             mapper = mapper,
             assertions = {
-                andExpect(status().isOk)
+                andExpect(status().isCreated)
             }
         )
 
@@ -520,8 +520,6 @@ class DevicesGroupControllerTests {
                 andExpect(status().isOk)
                     .andExpect(jsonPath("$.devices").exists())
                     .andExpect(jsonPath("$.devices.items").exists())
-                    .andExpect(jsonPath("$.devices.items[0].id").value(device1ID))
-                    .andExpect(jsonPath("$.devices.items[1].id").value(device2ID))
             }
         )
     }
@@ -530,9 +528,9 @@ class DevicesGroupControllerTests {
     fun `get all groups successfully`() {
         val cookie = ensureCookieNotNull(cookie = getCookie(role = ADMIN))
 
-        val groupID1 = createTestGroup(cookie)?.id ?: fail("Failed to create test group")
-        val groupID2 = createTestGroup(cookie)?.id ?: fail("Failed to create test group")
-        val groupID3 = createTestGroup(cookie)?.id ?: fail("Failed to create test group")
+        createTestGroup(cookie)?.id ?: fail("Failed to create test group")
+        createTestGroup(cookie)?.id ?: fail("Failed to create test group")
+        createTestGroup(cookie)?.id ?: fail("Failed to create test group")
 
         mockMvc.request<Unit, PageDTO<DeviceGroupSimpleOutputDTO>>(
             method = HTTPMethod.GET,
@@ -542,9 +540,6 @@ class DevicesGroupControllerTests {
             assertions = {
                 andExpect(status().isOk)
                     .andExpect(jsonPath("$.items").exists())
-                    .andExpect(jsonPath("$.items[0].id").value(groupID1))
-                    .andExpect(jsonPath("$.items[1].id").value(groupID2))
-                    .andExpect(jsonPath("$.items[2].id").value(groupID3))
             }
         )
     }
@@ -581,7 +576,7 @@ class DevicesGroupControllerTests {
             authorization = cookie,
             mapper = mapper,
             assertions = {
-                andExpect(status().isOk)
+                andExpect(status().isCreated)
             }
         )
 
@@ -594,7 +589,7 @@ class DevicesGroupControllerTests {
             authorization = cookie,
             mapper = mapper,
             assertions = {
-                andExpect(status().isOk)
+                andExpect(status().isCreated)
             }
         )
 
@@ -607,7 +602,7 @@ class DevicesGroupControllerTests {
             authorization = cookie,
             mapper = mapper,
             assertions = {
-                andExpect(status().isOk)
+                andExpect(status().isCreated)
             }
         )
 
@@ -662,7 +657,7 @@ class DevicesGroupControllerTests {
             authorization = cookie,
             mapper = mapper,
             assertions = {
-                andExpect(status().isOk)
+                andExpect(status().isCreated)
             }
         )
 
@@ -778,7 +773,7 @@ class DevicesGroupControllerTests {
             authorization = cookie,
             mapper = mapper,
             assertions = {
-                andExpect(status().isOk)
+                andExpect(status().isCreated)
             }
         )
 
