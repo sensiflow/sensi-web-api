@@ -7,6 +7,7 @@ import com.isel.sensiflow.http.pipeline.authentication.AuthenticationInterceptor
 import com.isel.sensiflow.http.pipeline.authentication.UserIDArgumentResolver
 import org.springframework.context.annotation.Bean
 import org.springframework.stereotype.Component
+import org.springframework.web.servlet.config.annotation.CorsRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 
 @Component
@@ -26,5 +27,14 @@ class AppConfig(
 
     override fun addInterceptors(registry: org.springframework.web.servlet.config.annotation.InterceptorRegistry) {
         registry.addInterceptor(authenticationInterceptor)
+    }
+
+    override fun addCorsMappings(registry: CorsRegistry) {
+        registry
+            .addMapping("/**")
+            .allowedOriginPatterns("http://localhost:[*]")
+            .allowedMethods("GET", "POST", "OPTIONS", "PUT", "DELETE")
+            .allowedHeaders("*")
+            .allowCredentials(true)
     }
 }
