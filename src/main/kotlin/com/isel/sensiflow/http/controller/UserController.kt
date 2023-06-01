@@ -5,6 +5,7 @@ import com.isel.sensiflow.http.controller.RequestPaths.Users
 import com.isel.sensiflow.http.entities.input.UserLoginInput
 import com.isel.sensiflow.http.entities.input.UserRegisterInput
 import com.isel.sensiflow.http.entities.input.UserUpdateInput
+import com.isel.sensiflow.http.entities.output.AuthOutput
 import com.isel.sensiflow.http.entities.output.IDOutput
 import com.isel.sensiflow.http.entities.output.UserOutput
 import com.isel.sensiflow.http.entities.output.toIDOutput
@@ -16,19 +17,23 @@ import com.isel.sensiflow.services.Role.MODERATOR
 import com.isel.sensiflow.services.Role.USER
 import com.isel.sensiflow.services.UserID
 import com.isel.sensiflow.services.UserService
+import com.isel.sensiflow.services.dto.PageableDTO
 import com.isel.sensiflow.services.dto.input.UserRoleInput
+import com.isel.sensiflow.services.dto.output.PageDTO
 import com.isel.sensiflow.services.dto.toOutput
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
@@ -52,6 +57,15 @@ class UserController(private val userService: UserService) {
     ): UserOutput =
         userService.getUser(id).toOutput()
 
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping()
+    @Authentication(authorization = USER)
+    fun getUsers(
+        @RequestParam page: Int?,
+        @RequestParam pageSize: Int?
+    ): PageDTO<UserOutput> =
+        userService.getUsers(PageableDTO(page, pageSize))
+
     @Authentication(authorization = USER)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PutMapping(Users.GET_USER)
@@ -68,15 +82,15 @@ class UserController(private val userService: UserService) {
     fun login(
         @RequestBody @Valid userInput: UserLoginInput,
         response: HttpServletResponse
-    ): IDOutput {
+    ): AuthOutput {
         val authInfo = userService.authenticateUser(userInput)
 
         val authCookie = createAuthCookie(authInfo.token, authInfo.timeUntilExpire)
 
         response.addCookie(authCookie)
 
-        return authInfo.userID.toIDOutput()
-    }
+        return AuthOutput(authInfo.userID,authInfo.timeUntilExpire)
+    }//TODO: change documentation
 
     @Authentication(authorization = USER)
     @ResponseStatus(HttpStatus.NO_CONTENT)

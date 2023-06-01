@@ -24,7 +24,7 @@ class DbInit(
                 email = "admin@gmail.com",
                 password = "Admin123.",
                 firstName = "Admin",
-                lastName = "Admin"
+                lastName = "Account"
             ),
             Role.ADMIN
         )

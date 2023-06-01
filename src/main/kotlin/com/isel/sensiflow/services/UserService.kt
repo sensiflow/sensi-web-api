@@ -13,13 +13,20 @@ import com.isel.sensiflow.model.dao.User
 import com.isel.sensiflow.model.dao.addEmail
 import com.isel.sensiflow.model.dao.hasExpired
 import com.isel.sensiflow.model.dao.toDTO
+import com.isel.sensiflow.model.dao.toRole
 import com.isel.sensiflow.model.repository.EmailRepository
 import com.isel.sensiflow.model.repository.SessionTokenRepository
 import com.isel.sensiflow.model.repository.UserRepository
 import com.isel.sensiflow.model.repository.UserRoleRepository
 import com.isel.sensiflow.services.dto.AuthInformationDTO
+import com.isel.sensiflow.services.dto.PageableDTO
 import com.isel.sensiflow.services.dto.UserDTO
 import com.isel.sensiflow.services.dto.input.UserRoleInput
+import com.isel.sensiflow.services.dto.output.PageDTO
+import com.isel.sensiflow.services.dto.output.toPageDTO
+import com.isel.sensiflow.services.dto.toOutput
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Isolation
 import org.springframework.transaction.annotation.Transactional
@@ -91,6 +98,22 @@ class UserService(
             }
         return user.toDTO()
     }
+
+    /**
+     * Gets all Users.
+     * @param pageableDTO The pagination information used to get the users
+     * @return a [PageDTO] containing the users
+     */
+    @Transactional(isolation = Isolation.READ_COMMITTED, readOnly = true)
+    fun getUsers(pageableDTO: PageableDTO): PageDTO<UserOutput> {
+        val pageable: Pageable = PageRequest.of(pageableDTO.page, pageableDTO.size)
+
+        return userRepository
+            .findAll(pageable)
+            .map { it.toDTO().toOutput() }
+            .toPageDTO()
+    }
+
 
     /**
      * Invalidates a session token, removing it from the database
@@ -165,6 +188,7 @@ class UserService(
      * @param input the [UserRoleInput] containing the new role
      * @throws UserNotFoundException if the user is not found
      */
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     fun updateRole(userID: UserID, input: UserRoleInput) {
         val user = userRepository.findById(userID)
             .orElseThrow { UserNotFoundException(userID) }
@@ -192,17 +216,25 @@ class UserService(
      * a new last name, if it is not provided the last name will not be updated;
      * @throws UserNotFoundException if the user is not found
      */
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     fun updateUser(
         userID: UserID,
         invokerUserID: UserID,
         userInput: UserUpdateInput
     ) {
-        if (invokerUserID != userID) throw ActionForbiddenException("You can only update your own user")
+//TODO: documentaçao deste endpoint e do mudar a role, e dizer q um mod pode mudar coisas do user , mas nao d o admin
+        val updaterUser =  userRepository.findById(invokerUserID)
+            .orElseThrow { UserNotFoundException(invokerUserID) }
 
         val user = userRepository.findById(userID)
             .orElseThrow { UserNotFoundException(userID) }
 
-        if (userInput.fieldsAreEmpty() || user.isTheSameAS(userInput)) {
+        //TODO: test this
+        if (invokerUserID != userID && !updaterUser.role.toRole().isHigherThan(user.role.toRole()) && updaterUser.role.toRole() != Role.ADMIN ){
+            throw ActionForbiddenException("You don't have permission to update this user")
+        }
+
+        if (userInput.fieldsAreEmpty() || user.isTheSameAS(userInput) ) {
             return
         }
 

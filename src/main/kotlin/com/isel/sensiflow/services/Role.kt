@@ -14,3 +14,12 @@ enum class Role(vararg val children: Role) {
 fun Role.hasAccessTo(role: Role): Boolean {
     return this == role || this.children.contains(role)
 }
+
+/**
+ * Checks if the role is higher than the given role.
+ * @param role the role to check
+ * @return true if the role is higher than the given role, false otherwise
+ */
+fun Role.isHigherThan(role: Role): Boolean {
+    return this.children.contains(role)
+}

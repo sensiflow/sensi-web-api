@@ -40,11 +40,11 @@ class User(
     @OneToMany(mappedBy = "user")
     val devices: MutableSet<Device> = mutableSetOf()
 
-    @OneToOne(mappedBy = "user")
+    @OneToOne(mappedBy = "user", cascade = [jakarta.persistence.CascadeType.REMOVE], orphanRemoval = true)
     lateinit var email: Email
 
-    @OneToMany(mappedBy = "user")
-    val sessionTokens: MutableSet<SessionToken> = mutableSetOf()
+    @OneToMany(mappedBy = "user", cascade = [jakarta.persistence.CascadeType.REMOVE], orphanRemoval = true )
+    val sessionTokens: MutableSet<SessionToken> = mutableSetOf() //TODO: pensar na tabela dos tokens se é necessario
 
     fun isEmailInitialized() = this::email.isInitialized
 }
