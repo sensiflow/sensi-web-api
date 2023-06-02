@@ -3,6 +3,9 @@ package com.isel.sensiflow.services
 import com.isel.sensiflow.Constants.User.SESSION_EXPIRATION_TIME
 import com.isel.sensiflow.http.entities.input.UserLoginInput
 import com.isel.sensiflow.http.entities.input.UserRegisterInput
+import com.isel.sensiflow.http.entities.input.UserUpdateInput
+import com.isel.sensiflow.http.entities.input.fieldsAreEmpty
+import com.isel.sensiflow.http.entities.input.isTheSameAS
 import com.isel.sensiflow.http.entities.output.UserOutput
 import com.isel.sensiflow.model.dao.Email
 import com.isel.sensiflow.model.dao.SessionToken
@@ -37,7 +40,7 @@ class UserService(
      * @throws EmailAlreadyExistsException if the email already exists
      */
     @Transactional(isolation = Isolation.REPEATABLE_READ)
-    fun createUser(userInput: UserRegisterInput, role: Role = Role.USER): AuthInformationDTO {
+    fun createUser(userInput: UserRegisterInput, role: Role = Role.USER): UserID {
         emailRepository
             .findByEmail(userInput.email)
             .ifPresent { throw EmailAlreadyExistsException(userInput.email) }
@@ -67,16 +70,9 @@ class UserService(
             )
         )
 
-        val persistedUser = userRepository.save(user.addEmail(email))
-        val sessionToken = sessionTokenRepository.save(
-            SessionToken(
-                user = persistedUser,
-                token = generateUUID(),
-                expiration = generateExpirationDate(SESSION_EXPIRATION_TIME).toTimeStamp()
-            )
-        )
+        userRepository.save(user.addEmail(email))
 
-        return AuthInformationDTO(sessionToken.token, user.id)
+        return user.id
     }
 
     /**
@@ -178,5 +174,44 @@ class UserService(
                 passwordSalt = user.passwordSalt
             )
         )
+    }
+
+    /**
+     * Updates the user's information
+     *
+     * @param userID the user's id to be updated
+     * @param invokerUserID the user's id that invoked the action
+     * @param userInput the user's information containing:
+     * a new password, if it is not provided the password will not be updated;
+     * a new first name, if it is not provided the first name will not be updated;
+     * a new last name, if it is not provided the last name will not be updated;
+     * @throws UserNotFoundException if the user is not found
+     */
+    fun updateUser(
+        userID: UserID,
+        invokerUserID: UserID,
+        userInput: UserUpdateInput
+    ) {
+        if (invokerUserID != userID) throw ActionForbiddenException("You can only update your own user")
+
+        val user = userRepository.findById(userID)
+            .orElseThrow { UserNotFoundException(userID) }
+
+        if (userInput.fieldsAreEmpty() || user.isTheSameAS(userInput)) {
+            return
+        }
+
+        val updatedUser = User(
+            id = user.id,
+            firstName = userInput.firstName ?: user.firstName,
+            lastName = userInput.lastName ?: user.lastName,
+            passwordHash = userInput.password?.let {
+                hashPassword(it, user.passwordSalt)
+            } ?: user.passwordHash,
+            passwordSalt = user.passwordSalt,
+            role = user.role
+        ).addEmail(user.email)
+
+        userRepository.save(updatedUser)
     }
 }

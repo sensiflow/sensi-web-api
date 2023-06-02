@@ -186,7 +186,8 @@ class DeviceServiceTests {
             streamURL = fakeDevice.streamURL,
             description = fakeDevice.description,
             userID = fakeDevice.user.id,
-            processingState = DeviceProcessingStateOutput.INACTIVE
+            processingState = DeviceProcessingStateOutput.INACTIVE,
+            deviceGroupsID = emptyList()
         )
         assertEquals(expected, retrievedDevice)
         verify(deviceRepository, times(1)).findById(deviceId)
@@ -301,32 +302,32 @@ class DeviceServiceTests {
     fun `simple delete device`() {
         // Arrange
         val deviceId = 1
-
-        `when`(deviceRepository.findById(deviceId)).thenReturn(Optional.of(fakeDevice))
+        val deviceIds = listOf(deviceId)
+        val devicesToDelete = listOf(fakeDevice)
+        `when`(deviceRepository.findAllById(deviceIds)).thenReturn(devicesToDelete)
         doNothing().`when`(deviceRepository).deleteById(deviceId)
 
         // Act
-        deviceService.deleteDevice(deviceId)
+        deviceService.deleteDevices(deviceIds)
 
         // Assert
-        verify(deviceRepository, times(1)).findById(deviceId)
-        verify(deviceRepository, times(1)).flagForDeletion(deviceId)
+        verify(deviceRepository, times(1)).findAllById(deviceIds)
+        verify(deviceRepository, times(1)).flagForDeletion(devicesToDelete)
     }
 
     @Test
     fun `delete device when device does not exist`() {
         // Arrange
         val nonExistingDevice = 1
-        `when`(deviceRepository.findById(nonExistingDevice)).thenReturn(Optional.empty())
-
+        val deviceIds = listOf(nonExistingDevice)
+        `when`(deviceRepository.findAllById(deviceIds)).thenReturn(emptyList())
         // Act
         assertThrows<DeviceNotFoundException> {
-            deviceService.deleteDevice(nonExistingDevice)
+            deviceService.deleteDevices(deviceIds)
         }
 
         // Assert
-        verify(deviceRepository, times(1)).findById(nonExistingDevice)
-        verify(deviceRepository, times(0)).deleteById(anyInt())
+        verify(deviceRepository, times(0)).flagForDeletion(anyList())
     }
 
     @Test
@@ -353,13 +354,14 @@ class DeviceServiceTests {
         assertEquals(fakeDeviceGroup, result)
 
         verify(deviceGroupRepository, times(1)).save(any(DeviceGroup::class.java))
+        val devicesToDelete = listOf(fakeDevice)
+        val deviceIds = listOf(fakeDevice.id)
+        deviceService.deleteDevices(deviceIds)
 
-        deviceService.deleteDevice(fakeDevice.id)
-
-        verify(deviceRepository, times(1)).flagForDeletion(fakeDevice.id)
-        verify(deviceGroupRepository, times(1)).save(any(DeviceGroup::class.java))
-        verify(processedStreamRepository, times(1)).deleteAllByDevice(fakeDevice)
-        verify(metricRepository, times(1)).deleteAllByDevice(fakeDevice)
+        verify(deviceRepository, times(1)).flagForDeletion(devicesToDelete)
+        verify(deviceGroupRepository, times(1)).saveAll(anyList())
+        verify(processedStreamRepository, times(1)).deleteAllByDeviceIn(devicesToDelete)
+        verify(metricRepository, times(1)).deleteAllByDeviceIn(devicesToDelete)
     }
 
     /* State transition tests */

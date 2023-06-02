@@ -12,7 +12,8 @@ object Constants {
         const val DESCRIPTION_MAX_LENGTH = 100
         const val STREAM_URL_MAX_LENGTH = 200
         const val NAME_MIN_LENGTH = 3
-        const val STREAM_URL_REGEX = "^((http|https|rtsp|rtmp)://.)[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)$"
+        const val STREAM_URL_REGEX =
+            "rtsp://(?:([^\\s@/]+?)[@])?([^\\s/:]+)(?:[:]([0-9]+))?(?:(/[^\\s?#]+)([?][^\\s#]+)?)?([#]\\S*)?"
     }
 
     object User {
@@ -35,7 +36,7 @@ object Constants {
         const val EMAIL_MAX_LENGTH = 100
         const val NAME_MIN_LENGTH = 3
         const val NAME_MAX_LENGTH = 20
-        const val PASSWORD_MIN_SIZE = 3
+        const val PASSWORD_MIN_SIZE = 5
         const val PASSWORD_MAX_SIZE = 20
         const val PASSWORD_REGEX = """^(?=.*[a-z])(?=.*[A-Z])(?=.*[*.!@$%^&(){}\[\]:;<>,.?/~_+-=|]).{$PASSWORD_MIN_SIZE,$PASSWORD_MAX_SIZE}$"""
     }

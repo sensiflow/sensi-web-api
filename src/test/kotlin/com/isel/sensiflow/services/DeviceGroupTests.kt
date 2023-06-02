@@ -1,5 +1,6 @@
 package com.isel.sensiflow.services
 
+import com.isel.sensiflow.Constants
 import com.isel.sensiflow.model.dao.Device
 import com.isel.sensiflow.model.dao.DeviceGroup
 import com.isel.sensiflow.model.dao.User
@@ -223,17 +224,16 @@ class DeviceGroupTests {
     }
 
     @Test
-    fun `update the list of devices of a group successfully`() {
+    fun `add devices to a group successfully`() {
         // Arrange
         val deviceGroupID = 1
-        val deviceList = listOf(fakeDevice, fakeDevice2)
         val inputList = listOf(fakeDevice.id)
-        fakeDeviceGroup.devices.addAll(deviceList)
+
         `when`(deviceGroupRepository.findById(deviceGroupID)).thenReturn(Optional.of(fakeDeviceGroup))
         `when`(deviceRepository.findAllById(listOf(fakeDevice.id))).thenReturn(listOf(fakeDevice))
 
         // Act
-        deviceGroupService.updateDevicesGroup(deviceGroupID, DevicesGroupInputDTO(inputList))
+        deviceGroupService.addDevicesToGroup(deviceGroupID, DevicesGroupInputDTO(inputList))
 
         // Assert
         assertEquals(fakeDeviceGroup.devices, listOf(fakeDevice).toSet())
@@ -242,38 +242,91 @@ class DeviceGroupTests {
     }
 
     @Test
-    fun `update the list of devices of a group that does not exist`() {
+    fun `add devices that were already added to a group`() {
         // Arrange
-        val nonExistingGroup = 1
-        `when`(deviceGroupRepository.findById(nonExistingGroup)).thenReturn(Optional.empty())
+        val deviceGroupID = 1
+        val inputList = listOf(fakeDevice.id)
+
+        `when`(deviceGroupRepository.findById(deviceGroupID)).thenReturn(Optional.of(fakeDeviceGroup))
+        `when`(deviceRepository.findAllById(listOf(fakeDevice.id))).thenReturn(listOf(fakeDevice))
+
+        // Act
+        deviceGroupService.addDevicesToGroup(deviceGroupID, DevicesGroupInputDTO(inputList))
+
+        assertThrows<InvalidParameterException> {
+            deviceGroupService.addDevicesToGroup(deviceGroupID, DevicesGroupInputDTO(inputList))
+        }
+        // Assert
+        assertEquals(fakeDeviceGroup.devices, listOf(fakeDevice).toSet())
+        verify(deviceGroupRepository, times(2)).findById(deviceGroupID)
+        verify(deviceRepository, times(1)).findAllById(listOf(fakeDevice.id))
+    }
+
+    @Test
+    fun `add devices to a group that does not exist`() {
+        // Arrange
+        val inputList = listOf(fakeDevice.id)
+
+        `when`(deviceGroupRepository.findById(fakeDeviceGroup.id)).thenReturn(Optional.empty())
+
+        assertThrows<DeviceGroupNotFoundException> {
+            deviceGroupService.addDevicesToGroup(fakeDeviceGroup.id, DevicesGroupInputDTO(inputList))
+        }
+
+        verify(deviceGroupRepository, times(1)).findById(fakeDeviceGroup.id)
+    }
+
+    @Test
+    fun `add a device that does not exist to a group`() {
+        // Arrange
+        val deviceGroupID = 1
+        val inputList = listOf(-1)
+
+        `when`(deviceGroupRepository.findById(deviceGroupID)).thenReturn(Optional.of(fakeDeviceGroup))
+
+        assertThrows<DeviceNotFoundException> {
+            deviceGroupService.addDevicesToGroup(fakeDeviceGroup.id, DevicesGroupInputDTO(inputList))
+        }
+
+        verify(deviceGroupRepository, times(1)).findById(deviceGroupID)
+    }
+
+    @Test
+    fun `delete a device from a group`() {
+        // Arrange
+        val deviceGroupID = 1
+        val inputList = listOf(fakeDevice.id)
+
+        `when`(deviceGroupRepository.findById(deviceGroupID)).thenReturn(Optional.of(fakeDeviceGroup))
+        `when`(deviceRepository.findAllById(listOf(fakeDevice.id))).thenReturn(listOf(fakeDevice))
+
+        // Act
+        deviceGroupService.addDevicesToGroup(deviceGroupID, DevicesGroupInputDTO(inputList))
+        deviceGroupService.removeDevicesFromGroup(deviceGroupID, inputList)
+
+        // Assert
+        verify(deviceGroupRepository, times(2)).findById(deviceGroupID)
+        verify(deviceRepository, times(2)).findAllById(listOf(fakeDevice.id))
+        verify(deviceGroupRepository, times(2)).save(fakeDeviceGroup)
+    }
+
+    @Test
+    fun `delete a device from a group that does not exist`() {
+        // Arrange
+        val inputList = listOf(fakeDevice.id)
+
+        `when`(deviceGroupRepository.findById(fakeDeviceGroup.id)).thenReturn(Optional.empty())
         `when`(deviceRepository.findAllById(listOf(fakeDevice.id))).thenReturn(listOf(fakeDevice))
 
         // Act
         assertThrows<DeviceGroupNotFoundException> {
-            deviceGroupService.updateDevicesGroup(nonExistingGroup, DevicesGroupInputDTO(listOf(fakeDevice.id)))
+            deviceGroupService.removeDevicesFromGroup(fakeDeviceGroup.id, inputList)
         }
 
         // Assert
-        verify(deviceGroupRepository, times(1)).findById(nonExistingGroup)
+        verify(deviceGroupRepository, times(1)).findById(fakeDeviceGroup.id)
         verify(deviceRepository, times(0)).findAllById(listOf(fakeDevice.id))
-    }
-
-    @Test
-    fun `update a group with devices that dont exist`() {
-
-        // Arrange
-        val existingGroup = 1
-        `when`(deviceGroupRepository.findById(existingGroup)).thenReturn(Optional.of(fakeDeviceGroup))
-        `when`(deviceRepository.findAllById(listOf(fakeDevice.id, 5))).thenThrow(IllegalArgumentException("5"))
-
-        // Act
-        assertThrows<DeviceNotFoundException> {
-            deviceGroupService.updateDevicesGroup(existingGroup, DevicesGroupInputDTO(listOf(fakeDevice.id, 5)))
-        }
-
-        // Assert
-        verify(deviceGroupRepository, times(1)).findById(existingGroup)
-        verify(deviceRepository, times(1)).findAllById(listOf(fakeDevice.id, 5))
+        verify(deviceGroupRepository, times(0)).save(fakeDeviceGroup)
     }
 
     @Test
@@ -332,9 +385,29 @@ class DeviceGroupTests {
 
         `when`(deviceGroupRepository.findById(fakeDeviceGroup.id)).thenReturn(Optional.of(fakeDeviceGroup))
 
-        val result = deviceGroupService.getGroup(fakeDeviceGroup.id)
+        val result = deviceGroupService.getGroup(fakeDeviceGroup.id, expanded = false)
 
-        assertEquals(fakeDeviceGroup.toDeviceGroupOutputDTO(), result)
+        assertEquals(fakeDeviceGroup.toDeviceGroupOutputDTO(expanded = false), result)
+        verify(deviceGroupRepository, times(1)).findById(fakeDeviceGroup.id)
+    }
+
+    @Test
+    fun `get a device group expanded`() {
+
+        `when`(deviceGroupRepository.findById(fakeDeviceGroup.id)).thenReturn(Optional.of(fakeDeviceGroup))
+
+        val result = deviceGroupService.getGroup(fakeDeviceGroup.id, expanded = true)
+
+        assertEquals(
+            fakeDeviceGroup.toDeviceGroupOutputDTO(
+                expanded = true,
+                devicesPaginationModel = PageableDTO(
+                    page = Constants.Pagination.DEFAULT_PAGE,
+                    size = Constants.Pagination.DEFAULT_PAGE_SIZE
+                )
+            ),
+            result
+        )
         verify(deviceGroupRepository, times(1)).findById(fakeDeviceGroup.id)
     }
 
@@ -344,10 +417,37 @@ class DeviceGroupTests {
         `when`(deviceGroupRepository.findById(fakeDeviceGroup.id)).thenReturn(Optional.empty())
 
         assertThrows<DeviceGroupNotFoundException> {
-            deviceGroupService.getGroup(fakeDeviceGroup.id)
+            deviceGroupService.getGroup(fakeDeviceGroup.id, expanded = false)
         }
 
         verify(deviceGroupRepository, times(1)).findById(fakeDeviceGroup.id)
+    }
+
+    @Test
+    fun `get all groups successfully`() {
+        // Arrange
+        val pageableDTO = PageableDTO(0, 10)
+
+        val expectedPageItems = listOf<DeviceGroup>(
+            fakeDeviceGroup
+        )
+
+        val page = PageImpl(
+            expectedPageItems,
+            PageRequest.of(pageableDTO.page, pageableDTO.size),
+            expectedPageItems.size.toLong()
+        )
+
+        `when`(deviceGroupRepository.findAll(PageRequest.of(pageableDTO.page, pageableDTO.size))).thenReturn(page)
+
+        val expected = expectedPageItems.map { it.toDeviceGroupOutputDTO(expanded = false) }
+        val retrievedStats = deviceGroupService
+            .getGroups(pageableDTO = pageableDTO, expanded = false)
+
+        // Assert
+        assertEquals(expected, retrievedStats.items)
+        verify(deviceGroupRepository, times(1))
+            .findAll(PageRequest.of(pageableDTO.page, pageableDTO.size))
     }
 
     @Test

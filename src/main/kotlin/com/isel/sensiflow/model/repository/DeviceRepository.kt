@@ -2,7 +2,6 @@ package com.isel.sensiflow.model.repository
 
 import com.isel.sensiflow.model.dao.Device
 import com.isel.sensiflow.services.DeviceNotFoundException
-import com.isel.sensiflow.services.ID
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
@@ -22,8 +21,8 @@ interface DeviceRepository : JpaRepository<Device, Int> {
     override fun findAll(): List<Device>
 
     @Modifying
-    @Query("UPDATE Device d SET d.scheduledForDeletion = true WHERE d.id = :deviceID")
-    fun flagForDeletion(deviceID: ID)
+    @Query("UPDATE Device d SET d.scheduledForDeletion = true WHERE d IN :device")
+    fun flagForDeletion(device: List<Device>)
 }
 
 /**

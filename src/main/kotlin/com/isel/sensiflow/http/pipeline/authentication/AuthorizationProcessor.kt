@@ -1,7 +1,7 @@
 package com.isel.sensiflow.http.pipeline.authentication
 
+import com.isel.sensiflow.services.ActionForbiddenException
 import com.isel.sensiflow.services.Role
-import com.isel.sensiflow.services.UnauthorizedException
 import com.isel.sensiflow.services.UserID
 import com.isel.sensiflow.services.UserService
 import com.isel.sensiflow.services.hasAccessTo
@@ -16,10 +16,10 @@ class AuthorizationProcessor(
      * Checks if the user has the required role to access the resource.
      * @param userID the user id.
      * @param role the required role.
-     * @throws UnauthorizedException if the user does not have the required role.
+     * @throws ActionForbiddenException if the user does not have the required role.
      */
     fun process(userID: UserID, role: Role) {
         val user = userService.getUser(userID)
-        if (!user.role.hasAccessTo(role)) throw UnauthorizedException("User $userID is not authorized to access this resource")
+        if (!user.role.hasAccessTo(role)) throw ActionForbiddenException("User $userID is not authorized to access this resource")
     }
 }

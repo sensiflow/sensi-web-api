@@ -57,6 +57,9 @@ tasks.withType<KotlinCompile> {
 tasks.withType<Test> {
     useJUnitPlatform()
     this.environment(
-        "JDBC_DATABASE_URL" to "jdbc:postgresql://localhost:5432/postgres?user=postgres&password=postgres"
+        "JDBC_DATABASE_URL" to "jdbc:postgresql://localhost:5432/postgres?user=postgres&password=postgres",
+        "INSTANCE_CTL_QUEUE" to "instance_ctl_test",
+        "INSTANCE_ACK_QUEUE_DEVICE_STATE" to "instance_ack_device_state_test",
+        "INSTANCE_ACK_QUEUE_DEVICE_DELETE" to "instance_ack_device_delete_test"
     )
 }

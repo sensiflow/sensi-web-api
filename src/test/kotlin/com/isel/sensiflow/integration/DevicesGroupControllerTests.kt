@@ -12,8 +12,9 @@ import com.isel.sensiflow.services.dto.input.DeviceInputDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupCreateDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupInputDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupUpdateDTO
-import com.isel.sensiflow.services.dto.output.DeviceGroupOutputDTO
-import com.isel.sensiflow.services.dto.output.DeviceOutputDTO
+import com.isel.sensiflow.services.dto.output.AddDevicesToGroupOutputDTO
+import com.isel.sensiflow.services.dto.output.DeviceGroupOutputExpandedDTO
+import com.isel.sensiflow.services.dto.output.DeviceGroupSimpleOutputDTO
 import com.isel.sensiflow.services.dto.output.PageDTO
 import jakarta.servlet.http.Cookie
 import org.junit.jupiter.api.Test
@@ -78,7 +79,7 @@ class DevicesGroupControllerTests {
             }
         )
 
-        mockMvc.request<Unit, DeviceGroupOutputDTO>(
+        mockMvc.request<Unit, DeviceGroupSimpleOutputDTO>(
             method = HTTPMethod.GET,
             uri = "/groups/$id",
             authorization = cookie,
@@ -91,7 +92,7 @@ class DevicesGroupControllerTests {
         )
     }
 
-    @Test // TODO Fix this test, the response is NO CONTENT when it should be BAD REQUEST.
+    @Test
     fun `update a group with an invalid body returns Bad Request`() {
         val cookie = ensureCookieNotNull(cookie = getCookie(role = Role.MODERATOR))
         val createResponse = createTestGroup(cookie)
@@ -150,7 +151,7 @@ class DevicesGroupControllerTests {
         val createResponse = createTestGroup(cookie)
         val id = createResponse?.id ?: fail("Failed to create test group")
 
-        mockMvc.request<IDOutput, Unit>(
+        mockMvc.request<Unit, Unit>(
             method = HTTPMethod.DELETE,
             uri = "/groups/$id",
             authorization = cookie,
@@ -178,7 +179,7 @@ class DevicesGroupControllerTests {
         val createResponse = createTestGroup(moderatorCookie)
         val id = createResponse?.id ?: fail("Failed to create test group")
 
-        mockMvc.request<IDOutput, ProblemDetail>(
+        mockMvc.request<Unit, ProblemDetail>(
             method = HTTPMethod.DELETE,
             uri = "/groups/$id",
             authorization = userCookie,
@@ -192,160 +193,13 @@ class DevicesGroupControllerTests {
     @Test
     fun `delete a group that does not exist returns Not Found`() {
         val cookie = ensureCookieNotNull(cookie = getCookie(role = ADMIN))
-        mockMvc.request<IDOutput, ProblemDetail>(
+        mockMvc.request<Unit, ProblemDetail>(
             method = HTTPMethod.DELETE,
             uri = "/groups/-1",
             authorization = cookie,
             mapper = mapper,
             assertions = {
                 andExpect(status().isNotFound)
-            }
-        )
-    }
-
-    @Test
-    fun `edit and get the group's devices successfully`() {
-        val cookie = ensureCookieNotNull(cookie = getCookie(role = Role.MODERATOR))
-        val createResponse = createTestGroup(cookie)
-        val id = createResponse?.id ?: fail("Failed to create test group")
-
-        val responseDevice1 = createDevice(
-            cookie,
-            DeviceInputDTO(
-                name = "Test",
-                description = "Test",
-                streamURL = VALID_STREAM_URL
-            )
-        )
-
-        val responseDevice2 = createDevice(
-            cookie,
-            DeviceInputDTO(
-                name = "Test2",
-                description = "Test2",
-                streamURL = VALID_STREAM_URL + "b"
-            )
-        )
-
-        val id1 = responseDevice1?.id ?: fail("Failed to create test device")
-        val id2 = responseDevice2?.id ?: fail("Failed to create test device")
-
-        mockMvc.request<DevicesGroupInputDTO, Unit>(
-            method = HTTPMethod.PUT,
-            uri = "/groups/$id/devices",
-            body = DevicesGroupInputDTO(listOf(id1, id2)),
-            authorization = cookie,
-            mapper = mapper,
-            assertions = {
-                andExpect(status().isNoContent)
-            }
-        )
-
-        mockMvc.request<Unit, PageDTO<DeviceOutputDTO>>(
-            method = HTTPMethod.GET,
-            uri = "/groups/$id/devices?page=0&size=10",
-            authorization = cookie,
-            mapper = mapper,
-            assertions = {
-                andExpect(status().isOk)
-                    .andExpect(jsonPath("$.items").isArray)
-                    .andExpect(jsonPath("$.items[0].id").value(id1))
-                    .andExpect(jsonPath("$.items[1].id").value(id2))
-            }
-        )
-    }
-
-    @Test
-    fun `Editing the devices of a group with insufficient permissions returns Forbidden`() {
-        val userCookie = ensureCookieNotNull(cookie = getCookie(role = USER))
-        val moderatorCookie = ensureCookieNotNull(cookie = getCookie(role = Role.MODERATOR))
-        val createResponse = createTestGroup(moderatorCookie)
-        val id = createResponse?.id ?: fail("Failed to create test group")
-
-        val responseDevice1 = createDevice(
-            moderatorCookie,
-            DeviceInputDTO(
-                name = "Test",
-                description = "Test",
-                streamURL = VALID_STREAM_URL
-            )
-        )
-
-        val responseDevice2 = createDevice(
-            moderatorCookie,
-            DeviceInputDTO(
-                name = "Test2",
-                description = "Test2",
-                streamURL = VALID_STREAM_URL + "b"
-            )
-        )
-
-        val id1 = responseDevice1?.id ?: fail("Failed to create test device")
-        val id2 = responseDevice2?.id ?: fail("Failed to create test device")
-
-        mockMvc.request<DevicesGroupInputDTO, ProblemDetail>(
-            method = HTTPMethod.PUT,
-            uri = "/groups/$id/devices",
-            body = DevicesGroupInputDTO(listOf(id1, id2)),
-            authorization = userCookie,
-            mapper = mapper,
-            assertions = {
-                andExpect(status().isForbidden)
-            }
-        )
-    }
-
-    @Test
-    fun `edit the devices of a group that does not exist returns Not Found`() {
-        val cookie = ensureCookieNotNull(cookie = getCookie(role = Role.MODERATOR))
-
-        val responseDevice1 = createDevice(
-            cookie,
-            DeviceInputDTO(
-                name = "Test",
-                description = "Test",
-                streamURL = VALID_STREAM_URL
-            )
-        )
-
-        val responseDevice2 = createDevice(
-            cookie,
-            DeviceInputDTO(
-                name = "Test2",
-                description = "Test2",
-                streamURL = VALID_STREAM_URL + "b"
-            )
-        )
-
-        val id1 = responseDevice1?.id ?: fail("Failed to create test device")
-        val id2 = responseDevice2?.id ?: fail("Failed to create test device")
-
-        mockMvc.request<DevicesGroupInputDTO, ProblemDetail>(
-            method = HTTPMethod.PUT,
-            uri = "/groups/-1/devices",
-            body = DevicesGroupInputDTO(listOf(id1, id2)),
-            authorization = cookie,
-            mapper = mapper,
-            assertions = {
-                andExpect(status().isNotFound)
-            }
-        )
-    }
-
-    @Test
-    fun `edit the devices of a group with an invalid body returns Bad Request`() {
-        val cookie = ensureCookieNotNull(cookie = getCookie(role = Role.MODERATOR))
-        val createResponse = createTestGroup(cookie)
-        val id = createResponse?.id ?: fail("Failed to create test group")
-
-        mockMvc.request<RandomInput, ProblemDetail>(
-            method = HTTPMethod.PUT,
-            uri = "/groups/$id/devices",
-            body = RandomInput("Test"),
-            authorization = cookie,
-            mapper = mapper,
-            assertions = {
-                andExpect(status().isBadRequest)
             }
         )
     }
@@ -367,7 +221,7 @@ class DevicesGroupControllerTests {
             }
         )
 
-        mockMvc.request<Unit, DeviceGroupOutputDTO>(
+        mockMvc.request<Unit, DeviceGroupSimpleOutputDTO>(
             method = HTTPMethod.GET,
             uri = "/groups/$id",
             mapper = mapper,
@@ -397,7 +251,7 @@ class DevicesGroupControllerTests {
             }
         )
 
-        mockMvc.request<Unit, DeviceGroupOutputDTO>(
+        mockMvc.request<Unit, DeviceGroupSimpleOutputDTO>(
             method = HTTPMethod.GET,
             uri = "/groups/$id",
             authorization = cookie,
@@ -480,7 +334,7 @@ class DevicesGroupControllerTests {
 
         val id = responseGroup?.id ?: fail("Failed to create test device")
 
-        mockMvc.request<Unit, DeviceGroupOutputDTO>(
+        mockMvc.request<Unit, DeviceGroupSimpleOutputDTO>(
             method = HTTPMethod.GET,
             uri = "/groups/$id",
             authorization = cookie,
@@ -591,7 +445,7 @@ class DevicesGroupControllerTests {
         )
     }
 
-    fun `get a group successfully`() {
+    fun `get a simple group successfully`() {
         val cookie = ensureCookieNotNull(cookie = getCookie(role = USER))
 
         val id = mockMvc.request<DevicesGroupCreateDTO, IDOutput>(
@@ -609,7 +463,7 @@ class DevicesGroupControllerTests {
             }
         )?.id ?: fail("Failed to create test group")
 
-        mockMvc.request<Unit, DeviceGroupOutputDTO>(
+        mockMvc.request<Unit, DeviceGroupSimpleOutputDTO>(
             method = HTTPMethod.GET,
             uri = "/groups/$id",
             authorization = cookie,
@@ -619,6 +473,360 @@ class DevicesGroupControllerTests {
                     .andExpect(jsonPath("$.id").value(id))
                     .andExpect(jsonPath("$.name").value("Test"))
                     .andExpect(jsonPath("$.description").value("Test"))
+            }
+        )
+    }
+
+    @Test
+    fun `get an expanded group successfully`() {
+        val cookie = ensureCookieNotNull(cookie = getCookie(role = ADMIN))
+
+        val device1 = DeviceInputDTO(
+            name = "Test1",
+            description = "Test1",
+            streamURL = VALID_STREAM_URL
+        )
+
+        val device2 = DeviceInputDTO(
+            name = "Test2",
+            description = "Test2",
+            streamURL = VALID_STREAM_URL
+        )
+
+        val device1ID = createDevice(cookie, device1)?.id ?: fail("Failed to create test device")
+        val device2ID = createDevice(cookie, device2)?.id ?: fail("Failed to create test device")
+
+        val groupID = createTestGroup(cookie)?.id ?: fail("Failed to create test group")
+
+        mockMvc.request<DevicesGroupInputDTO, AddDevicesToGroupOutputDTO>(
+            method = HTTPMethod.POST,
+            uri = "/groups/$groupID/devices",
+            body = DevicesGroupInputDTO(
+                deviceIDs = listOf(device1ID, device2ID)
+            ),
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isCreated)
+            }
+        )
+
+        mockMvc.request<Unit, DeviceGroupOutputExpandedDTO>(
+            method = HTTPMethod.GET,
+            uri = "/groups/$groupID?expanded=true",
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isOk)
+                    .andExpect(jsonPath("$.devices").exists())
+                    .andExpect(jsonPath("$.devices.items").exists())
+            }
+        )
+    }
+
+    @Test
+    fun `get all groups successfully`() {
+        val cookie = ensureCookieNotNull(cookie = getCookie(role = ADMIN))
+
+        createTestGroup(cookie)?.id ?: fail("Failed to create test group")
+        createTestGroup(cookie)?.id ?: fail("Failed to create test group")
+        createTestGroup(cookie)?.id ?: fail("Failed to create test group")
+
+        mockMvc.request<Unit, PageDTO<DeviceGroupSimpleOutputDTO>>(
+            method = HTTPMethod.GET,
+            uri = "/groups",
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isOk)
+                    .andExpect(jsonPath("$.items").exists())
+            }
+        )
+    }
+
+    @Test
+    fun `get all groups expanded successfully`() {
+        val cookie = ensureCookieNotNull(cookie = getCookie(role = ADMIN))
+
+        val device1 = DeviceInputDTO(
+            name = "Test1",
+            description = "Test1",
+            streamURL = VALID_STREAM_URL
+        )
+
+        val device2 = DeviceInputDTO(
+            name = "Test2",
+            description = "Test2",
+            streamURL = VALID_STREAM_URL
+        )
+
+        val device1ID = createDevice(cookie, device1)?.id ?: fail("Failed to create test device")
+        val device2ID = createDevice(cookie, device2)?.id ?: fail("Failed to create test device")
+
+        val groupID1 = createTestGroup(cookie)?.id ?: fail("Failed to create test group")
+        val groupID2 = createTestGroup(cookie)?.id ?: fail("Failed to create test group")
+        val groupID3 = createTestGroup(cookie)?.id ?: fail("Failed to create test group")
+
+        mockMvc.request<DevicesGroupInputDTO, AddDevicesToGroupOutputDTO>(
+            method = HTTPMethod.POST,
+            uri = "/groups/$groupID1/devices",
+            body = DevicesGroupInputDTO(
+                deviceIDs = listOf(device1ID, device2ID)
+            ),
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isCreated)
+            }
+        )
+
+        mockMvc.request<DevicesGroupInputDTO, AddDevicesToGroupOutputDTO>(
+            method = HTTPMethod.POST,
+            uri = "/groups/$groupID2/devices",
+            body = DevicesGroupInputDTO(
+                deviceIDs = listOf(device1ID, device2ID)
+            ),
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isCreated)
+            }
+        )
+
+        mockMvc.request<DevicesGroupInputDTO, AddDevicesToGroupOutputDTO>(
+            method = HTTPMethod.POST,
+            uri = "/groups/$groupID3/devices",
+            body = DevicesGroupInputDTO(
+                deviceIDs = listOf(device1ID, device2ID)
+            ),
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isCreated)
+            }
+        )
+
+        mockMvc.request<Unit, PageDTO<DeviceGroupOutputExpandedDTO>>(
+            method = HTTPMethod.GET,
+            uri = "/groups?expanded=true",
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isOk)
+                    .andExpect(jsonPath("$.items").exists())
+                    .andExpect(jsonPath("$.items[0].id").value(groupID1))
+                    .andExpect(jsonPath("$.items[1].id").value(groupID2))
+                    .andExpect(jsonPath("$.items[2].id").value(groupID3))
+                    .andExpect(jsonPath("$.items[0].devices").exists())
+                    .andExpect(jsonPath("$.items[0].devices.items").exists())
+                    .andExpect(jsonPath("$.items[1].devices").exists())
+                    .andExpect(jsonPath("$.items[1].devices.items").exists())
+                    .andExpect(jsonPath("$.items[2].devices").exists())
+                    .andExpect(jsonPath("$.items[2].devices.items").exists())
+            }
+        )
+    }
+
+    @Test
+    fun `add and delete devices from a group successfully`() {
+        val cookie = ensureCookieNotNull(cookie = getCookie(role = ADMIN))
+
+        val device1 = DeviceInputDTO(
+            name = "Test1",
+            description = "Test1",
+            streamURL = VALID_STREAM_URL
+        )
+
+        val device2 = DeviceInputDTO(
+            name = "Test2",
+            description = "Test2",
+            streamURL = VALID_STREAM_URL
+        )
+
+        val device1ID = createDevice(cookie, device1)?.id ?: fail("Failed to create test device")
+        val device2ID = createDevice(cookie, device2)?.id ?: fail("Failed to create test device")
+
+        val groupID = createTestGroup(cookie)?.id ?: fail("Failed to create test group")
+
+        mockMvc.request<DevicesGroupInputDTO, AddDevicesToGroupOutputDTO>(
+            method = HTTPMethod.POST,
+            uri = "/groups/$groupID/devices",
+            body = DevicesGroupInputDTO(
+                deviceIDs = listOf(device1ID, device2ID)
+            ),
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isCreated)
+            }
+        )
+
+        mockMvc.request<Unit, PageDTO<DeviceGroupOutputExpandedDTO>>(
+            method = HTTPMethod.GET,
+            uri = "/groups?expanded=true",
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isOk)
+                    .andExpect(jsonPath("$.items").exists())
+                    .andExpect(jsonPath("$.items[0].id").value(groupID))
+                    .andExpect(jsonPath("$.items[0].devices").exists())
+                    .andExpect(jsonPath("$.items[0].devices.items").exists())
+                    .andExpect(jsonPath("$.items[0].devices.items[0].id").exists())
+                    .andExpect(jsonPath("$.items[0].devices.items[1].id").exists())
+            }
+        )
+
+        mockMvc.request<Unit, Unit>(
+            method = HTTPMethod.DELETE,
+            uri = "/groups/$groupID/devices?deviceIDs=$device1ID",
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isNoContent)
+            }
+        )
+
+        mockMvc.request<Unit, PageDTO<DeviceGroupOutputExpandedDTO>>(
+            method = HTTPMethod.GET,
+            uri = "/groups?expanded=true",
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isOk)
+                    .andExpect(jsonPath("$.items").exists())
+                    .andExpect(jsonPath("$.items[0].id").value(groupID))
+                    .andExpect(jsonPath("$.items[0].devices").exists())
+                    .andExpect(jsonPath("$.items[0].devices.items").exists())
+                    .andExpect(jsonPath("$.items[0].devices.items[0].id").exists())
+                    .andExpect(jsonPath("$.items[0].devices.items[1].id").doesNotExist())
+            }
+        )
+    }
+
+    @Test
+    fun `add a device to a group that does not exist`() {
+        val cookie = ensureCookieNotNull(cookie = getCookie(role = ADMIN))
+
+        val device1 = DeviceInputDTO(
+            name = "Test1",
+            description = "Test1",
+            streamURL = VALID_STREAM_URL
+        )
+
+        val device1ID = createDevice(cookie, device1)?.id ?: fail("Failed to create test device")
+
+        mockMvc.request<DevicesGroupInputDTO, ProblemDetail>(
+            method = HTTPMethod.POST,
+            uri = "/groups/-1/devices",
+            body = DevicesGroupInputDTO(
+                deviceIDs = listOf(device1ID)
+            ),
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isNotFound)
+            }
+        )
+    }
+
+    @Test
+    fun `add a device that does not exist to a group`() {
+        val cookie = ensureCookieNotNull(cookie = getCookie(role = ADMIN))
+
+        val groupID = createTestGroup(cookie)?.id ?: fail("Failed to create test group")
+
+        mockMvc.request<DevicesGroupInputDTO, ProblemDetail>(
+            method = HTTPMethod.POST,
+            uri = "/groups/$groupID/devices",
+            body = DevicesGroupInputDTO(
+                deviceIDs = listOf(-1)
+            ),
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isNotFound)
+            }
+        )
+    }
+
+    @Test
+    fun `add a device that already was added to a group`() {
+        val cookie = ensureCookieNotNull(cookie = getCookie(role = ADMIN))
+
+        val device1 = DeviceInputDTO(
+            name = "Test1",
+            description = "Test1",
+            streamURL = VALID_STREAM_URL
+        )
+
+        val device1ID = createDevice(cookie, device1)?.id ?: fail("Failed to create test device")
+
+        val groupID = createTestGroup(cookie)?.id ?: fail("Failed to create test group")
+
+        mockMvc.request<DevicesGroupInputDTO, AddDevicesToGroupOutputDTO>(
+            method = HTTPMethod.POST,
+            uri = "/groups/$groupID/devices",
+            body = DevicesGroupInputDTO(
+                deviceIDs = listOf(device1ID)
+            ),
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isCreated)
+            }
+        )
+
+        mockMvc.request<DevicesGroupInputDTO, ProblemDetail>(
+            method = HTTPMethod.POST,
+            uri = "/groups/$groupID/devices",
+            body = DevicesGroupInputDTO(
+                deviceIDs = listOf(device1ID)
+            ),
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isBadRequest)
+            }
+        )
+    }
+
+    @Test
+    fun `delete a device from a group that does not exist`() {
+        val cookie = ensureCookieNotNull(cookie = getCookie(role = ADMIN))
+
+        val device1 = DeviceInputDTO(
+            name = "Test1",
+            description = "Test1",
+            streamURL = VALID_STREAM_URL
+        )
+
+        val device1ID = createDevice(cookie, device1)?.id ?: fail("Failed to create test device")
+
+        mockMvc.request<Unit, ProblemDetail>(
+            method = HTTPMethod.DELETE,
+            uri = "/groups/-1/devices?deviceIDs=$device1ID",
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isNotFound)
+            }
+        )
+    }
+
+    @Test
+    fun `delete a device that does not exist from a group`() {
+        val cookie = ensureCookieNotNull(cookie = getCookie(role = ADMIN))
+
+        val groupID = createTestGroup(cookie)?.id ?: fail("Failed to create test group")
+
+        mockMvc.request<Unit, ProblemDetail>(
+            method = HTTPMethod.DELETE,
+            uri = "/groups/$groupID/devices?deviceIDs=-1",
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isNotFound)
             }
         )
     }
@@ -651,7 +859,7 @@ class DevicesGroupControllerTests {
         )
     }
 
-    private fun getCookie(role: Role = Role.USER, emailCounter: Int = counter++): Cookie? {
+    private fun getCookie(role: Role = USER, emailCounter: Int = counter++): Cookie? {
         val inputLogin = createTestUser(userService, role, emailCounter)
         val loginJson = mapper.writeValueAsString(inputLogin)
 

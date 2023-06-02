@@ -30,7 +30,7 @@ data class DeviceSimpleOutputDTO(
     override val streamURL: String,
     override val processingState: DeviceProcessingStateOutput,
     val userID: UserID,
-    // TODO: Add DeviceGroupId
+    val deviceGroupsID: List<Int>
 ) : DeviceOutputDTO
 
 /**
@@ -48,7 +48,7 @@ data class DeviceExpandedOutputDTO(
     override val streamURL: String,
     override val processingState: DeviceProcessingStateOutput,
     val user: UserOutput,
-    // TODO e: val deviceGroup: DeviceGroupOutputDTO Adiciona aqui o teu,
+    val deviceGroups: List<DeviceGroupOutputDTO>
 ) : DeviceOutputDTO
 
 /**
@@ -66,7 +66,9 @@ fun Device.toDeviceOutputDTO(expanded: Boolean): DeviceOutputDTO {
             streamURL = this.streamURL,
             processingState = processingStateOutput,
             user = this.user.toDTO().toOutput(),
-            // TODO : deviceGroup = this.deviceGroup.toDTO(expanded = false)
+            deviceGroups = this.deviceGroups
+                .map { it.toDeviceGroupOutputDTO(expanded = false) }
+
         )
     } else {
         DeviceSimpleOutputDTO(
@@ -76,7 +78,7 @@ fun Device.toDeviceOutputDTO(expanded: Boolean): DeviceOutputDTO {
             streamURL = this.streamURL,
             processingState = processingStateOutput,
             userID = this.user.id,
-            // TODO : deviceGroupId = this.deviceGroup.id,
+            deviceGroupsID = this.deviceGroups.map { it.id }
         )
     }
 }

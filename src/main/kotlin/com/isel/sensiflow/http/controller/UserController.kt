@@ -1,10 +1,10 @@
 package com.isel.sensiflow.http.controller
 
-import com.isel.sensiflow.Constants
 import com.isel.sensiflow.Constants.User.AUTH_COOKIE_NAME
 import com.isel.sensiflow.http.controller.RequestPaths.Users
 import com.isel.sensiflow.http.entities.input.UserLoginInput
 import com.isel.sensiflow.http.entities.input.UserRegisterInput
+import com.isel.sensiflow.http.entities.input.UserUpdateInput
 import com.isel.sensiflow.http.entities.output.IDOutput
 import com.isel.sensiflow.http.entities.output.UserOutput
 import com.isel.sensiflow.http.entities.output.toIDOutput
@@ -42,22 +42,26 @@ class UserController(private val userService: UserService) {
     fun createUser(
         @RequestBody @Valid userInput: UserRegisterInput,
         response: HttpServletResponse
-    ): IDOutput {
-        val authInfo = userService.createUser(userInput)
-
-        val authCookie = createAuthCookie(authInfo.token, Constants.User.SESSION_EXPIRATION_TIME)
-
-        response.addCookie(authCookie)
-
-        return authInfo.userID.toIDOutput()
-    }
+    ): IDOutput =
+        userService.createUser(userInput).toIDOutput()
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping(Users.GET_USER)
     fun getUser(
-        @PathVariable userID: UserID
+        @PathVariable id: UserID
     ): UserOutput =
-        userService.getUser(userID).toOutput()
+        userService.getUser(id).toOutput()
+
+    @Authentication(authorization = USER)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PutMapping(Users.GET_USER)
+    fun updateUser(
+        @PathVariable id: UserID,
+        userID: UserID,
+        @RequestBody @Valid userInput: UserUpdateInput,
+    ) {
+        userService.updateUser(id, userID, userInput)
+    }
 
     @ResponseStatus(HttpStatus.OK)
     @PostMapping(Users.LOGIN)
@@ -92,10 +96,10 @@ class UserController(private val userService: UserService) {
     @Authentication(authorization = ADMIN)
     @PutMapping(Users.ROLE)
     fun updateRole(
-        @PathVariable userID: UserID,
+        @PathVariable id: UserID,
         @RequestBody @Valid inputDTO: UserRoleInput,
     ): ResponseEntity<Unit> {
-        userService.updateRole(userID, inputDTO)
+        userService.updateRole(id, inputDTO)
 
         return ResponseEntity
             .noContent()

@@ -1,12 +1,14 @@
 package com.isel.sensiflow.http.controller
 
-import com.isel.sensiflow.Constants
+
 import com.isel.sensiflow.http.entities.output.IDOutput
 import com.isel.sensiflow.http.entities.output.toIDOutput
 import com.isel.sensiflow.http.pipeline.authentication.Authentication
-import com.isel.sensiflow.services.Role
 import com.isel.sensiflow.services.DeviceService
 import com.isel.sensiflow.services.ID
+import com.isel.sensiflow.services.Role.ADMIN
+import com.isel.sensiflow.services.Role.MODERATOR
+import com.isel.sensiflow.services.Role.USER
 import com.isel.sensiflow.services.UserID
 import com.isel.sensiflow.services.dto.PageableDTO
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
@@ -44,11 +46,10 @@ class DeviceController(
         @RequestParam pageSize: Int?,
         @RequestParam expanded: Boolean = false
     ): PageDTO<DeviceOutputDTO> {
-        logger.warn("GetDevices Not Cached")
         return deviceService.getAllDevices(PageableDTO(page, pageSize), expanded = expanded)
     }
 
-    @Authentication(authorization = Role.MODERATOR)
+    @Authentication(authorization = MODERATOR)
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun createDevice(
@@ -62,7 +63,7 @@ class DeviceController(
         return deviceID.toIDOutput()
     }
 
-    @Authentication(authorization = Role.USER)
+    @Authentication(authorization = USER)
     @GetMapping(RequestPaths.Device.DEVICE_ID)
     fun getDevice(
         @PathVariable id: Int,
@@ -71,7 +72,7 @@ class DeviceController(
         return deviceService.getDeviceById(id, expanded)
     }
 
-    @Authentication(authorization = Role.MODERATOR)
+    @Authentication(authorization = MODERATOR)
     @PutMapping(RequestPaths.Device.DEVICE_ID)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun updateDevice(
@@ -81,14 +82,16 @@ class DeviceController(
         deviceService.updateDevice(id, deviceInputDTO)
     }
 
-    @Authentication(authorization = Role.ADMIN)
-    @DeleteMapping(RequestPaths.Device.DEVICE_ID)
+    @Authentication(authorization = ADMIN)
+    @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun deleteDevice(@PathVariable id: Int) {
-        deviceService.deleteDevice(id)
+    fun deleteDevices(
+        @RequestParam deviceIDs: List<ID>
+    ) {
+        deviceService.deleteDevices(deviceIDs)
     }
 
-    @Authentication(authorization = Role.MODERATOR)
+    @Authentication(authorization = MODERATOR)
     @PutMapping(RequestPaths.Device.PROCESSING_STATE)
     @ResponseStatus(HttpStatus.ACCEPTED)
     fun updateProcessingState(
@@ -100,11 +103,11 @@ class DeviceController(
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping(RequestPaths.Device.DEVICE_STATS)
-    @Authentication(authorization = Role.USER)
+    @Authentication(authorization = USER)
     fun getDeviceStats(
         @PathVariable id: Int,
-        @RequestParam page: Int,
-        @RequestParam size: Int,
+        @RequestParam page: Int? = null,
+        @RequestParam size: Int? = null
     ): PageDTO<MetricOutputDTO> {
         return deviceService
             .getDeviceStats(PageableDTO(page, size), id)
@@ -114,7 +117,7 @@ class DeviceController(
         RequestPaths.Device.DEVICE_ID + RequestPaths.SSE.SSE_DEVICE_STATE,
         produces = [MediaType.TEXT_EVENT_STREAM_VALUE]
     )
-    @Authentication(Role.USER)
+    @Authentication(USER)
     fun subscribeToChangeOfDeviceState(@PathVariable("id") id: ID): SseEmitter {
         return launchServerSentEvent { sseEmitter ->
             deviceService.getDeviceStateFlow(id)
@@ -140,7 +143,7 @@ class DeviceController(
         RequestPaths.Device.PEOPLE_COUNT_STREAM,
         produces = [MediaType.TEXT_EVENT_STREAM_VALUE]
     )
-    @Authentication(authorization = Role.USER)
+    @Authentication(authorization = USER)
     fun getPeopleCountEvent(@PathVariable id: Int): SseEmitter {
 
         return launchServerSentEvent { sseEmitter ->

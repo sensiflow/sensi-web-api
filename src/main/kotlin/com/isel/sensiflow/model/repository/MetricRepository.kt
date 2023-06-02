@@ -15,6 +15,7 @@ interface MetricRepository : JpaRepository<Metric, MetricID> {
     fun findAllByDeviceId(deviceID: Int, pageable: Pageable): Page<Metric>
 
     fun deleteAllByDevice(device: Device)
+    fun deleteAllByDeviceIn(devices: List<Device>)
 
     @Query(
         "SELECT m FROM Metric m " +
