@@ -82,10 +82,12 @@ class DeviceController(
     }
 
     @Authentication(authorization = ADMIN)
-    @DeleteMapping(RequestPaths.Device.DEVICE_ID)
+    @DeleteMapping()
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun deleteDevice(@PathVariable id: Int) {
-        deviceService.deleteDevice(id)
+    fun deleteDevices(
+        @RequestParam deviceIDs: List<ID>
+    ) {
+        deviceService.deleteDevices(deviceIDs)
     }
 
     @Authentication(authorization = MODERATOR)

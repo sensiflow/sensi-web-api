@@ -12,6 +12,7 @@ import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.model.repository.MetricRepository
 import com.isel.sensiflow.model.repository.ProcessedStreamRepository
 import com.isel.sensiflow.model.repository.UserRepository
+import com.isel.sensiflow.model.repository.requireFindAllById
 import com.isel.sensiflow.services.dto.PageableDTO
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
 import com.isel.sensiflow.services.dto.input.DeviceUpdateDTO
@@ -126,33 +127,34 @@ class DeviceService(
     }
 
     /**
-     * Deletes a device.
-     * @param deviceID The id of the device.
-     * @throws DeviceNotFoundException If the device does not exist.
+     * Deletes devices.
+     * @param deviceIDs The ids of the devices.
+     * @throws DeviceNotFoundException If one of the devices does not exist.
      */
     @Transactional(isolation = Isolation.REPEATABLE_READ)
-    fun deleteDevice(deviceID: Int) {
-        val device = deviceRepository.findById(deviceID)
-            .orElseThrow { DeviceNotFoundException(deviceID) }
+    fun deleteDevices(deviceIDs: List<Int>) {
+        val devicesToDelete = deviceRepository.requireFindAllById(deviceIDs)
 
-        device.deviceGroups.forEach { deviceGroup ->
-            deviceGroup.devices.remove(device)
-            deviceGroupRepository.save(deviceGroup)
+        processedStreamRepository.deleteAllByDeviceIn(devicesToDelete)
+        metricRepository.deleteAllByDeviceIn(devicesToDelete)
+        deviceRepository.flagForDeletion(devicesToDelete)
+
+        val deviceGroups = devicesToDelete.flatMap { it.deviceGroups }
+
+        deviceGroups.forEach { group ->
+            group.devices.removeAll(devicesToDelete.toSet())
         }
+        deviceGroupRepository.saveAll(deviceGroups)
 
-        processedStreamRepository.deleteAllByDevice(device)
+        devicesToDelete.forEach { device ->
+            val queueMessage = InstanceMessage(
+                action = Action.REMOVE,
+                device_id = device.id,
+                device_stream_url = null
+            )
 
-        metricRepository.deleteAllByDevice(device)
-
-        val queueMessage = InstanceMessage(
-            action = Action.REMOVE,
-            device_id = deviceID,
-            device_stream_url = null
-        )
-
-        deviceRepository.flagForDeletion(deviceID)
-
-        instanceControllerMessageSender.sendMessage(queueMessage)
+            instanceControllerMessageSender.sendMessage(queueMessage)
+        }
     }
 
     /**
