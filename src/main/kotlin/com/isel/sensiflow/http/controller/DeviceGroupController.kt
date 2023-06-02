@@ -3,11 +3,9 @@ package com.isel.sensiflow.http.controller
 import com.isel.sensiflow.http.entities.output.IDOutput
 import com.isel.sensiflow.http.entities.output.toIDOutput
 import com.isel.sensiflow.http.pipeline.authentication.Authentication
+import com.isel.sensiflow.services.Role.*
 import com.isel.sensiflow.services.DeviceGroupService
 import com.isel.sensiflow.services.ID
-import com.isel.sensiflow.services.Role.ADMIN
-import com.isel.sensiflow.services.Role.MODERATOR
-import com.isel.sensiflow.services.Role.USER
 import com.isel.sensiflow.services.dto.PageableDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupCreateDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupInputDTO
@@ -81,7 +79,7 @@ class DeviceGroupController(val deviceGroupService: DeviceGroupService) {
 
     @Authentication(authorization = MODERATOR)
     @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping()
+    @PostMapping
     fun createDevicesGroup(
         @RequestBody @Valid inputDTO: DevicesGroupCreateDTO,
         @RequestParam devices: List<ID>? = null

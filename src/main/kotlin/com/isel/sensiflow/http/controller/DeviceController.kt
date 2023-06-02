@@ -1,13 +1,12 @@
 package com.isel.sensiflow.http.controller
 
+import com.isel.sensiflow.Constants
 import com.isel.sensiflow.http.entities.output.IDOutput
 import com.isel.sensiflow.http.entities.output.toIDOutput
 import com.isel.sensiflow.http.pipeline.authentication.Authentication
+import com.isel.sensiflow.services.Role
 import com.isel.sensiflow.services.DeviceService
 import com.isel.sensiflow.services.ID
-import com.isel.sensiflow.services.Role.ADMIN
-import com.isel.sensiflow.services.Role.MODERATOR
-import com.isel.sensiflow.services.Role.USER
 import com.isel.sensiflow.services.UserID
 import com.isel.sensiflow.services.dto.PageableDTO
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
@@ -45,10 +44,11 @@ class DeviceController(
         @RequestParam pageSize: Int?,
         @RequestParam expanded: Boolean = false
     ): PageDTO<DeviceOutputDTO> {
+        logger.warn("GetDevices Not Cached")
         return deviceService.getAllDevices(PageableDTO(page, pageSize), expanded = expanded)
     }
 
-    @Authentication(authorization = MODERATOR)
+    @Authentication(authorization = Role.MODERATOR)
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun createDevice(
@@ -62,7 +62,7 @@ class DeviceController(
         return deviceID.toIDOutput()
     }
 
-    @Authentication(authorization = USER)
+    @Authentication(authorization = Role.USER)
     @GetMapping(RequestPaths.Device.DEVICE_ID)
     fun getDevice(
         @PathVariable id: Int,
@@ -71,7 +71,7 @@ class DeviceController(
         return deviceService.getDeviceById(id, expanded)
     }
 
-    @Authentication(authorization = MODERATOR)
+    @Authentication(authorization = Role.MODERATOR)
     @PutMapping(RequestPaths.Device.DEVICE_ID)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun updateDevice(
@@ -81,14 +81,14 @@ class DeviceController(
         deviceService.updateDevice(id, deviceInputDTO)
     }
 
-    @Authentication(authorization = ADMIN)
+    @Authentication(authorization = Role.ADMIN)
     @DeleteMapping(RequestPaths.Device.DEVICE_ID)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun deleteDevice(@PathVariable id: Int) {
         deviceService.deleteDevice(id)
     }
 
-    @Authentication(authorization = MODERATOR)
+    @Authentication(authorization = Role.MODERATOR)
     @PutMapping(RequestPaths.Device.PROCESSING_STATE)
     @ResponseStatus(HttpStatus.ACCEPTED)
     fun updateProcessingState(
@@ -100,7 +100,7 @@ class DeviceController(
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping(RequestPaths.Device.DEVICE_STATS)
-    @Authentication(authorization = USER)
+    @Authentication(authorization = Role.USER)
     fun getDeviceStats(
         @PathVariable id: Int,
         @RequestParam page: Int,
@@ -114,7 +114,7 @@ class DeviceController(
         RequestPaths.Device.DEVICE_ID + RequestPaths.SSE.SSE_DEVICE_STATE,
         produces = [MediaType.TEXT_EVENT_STREAM_VALUE]
     )
-    @Authentication(USER)
+    @Authentication(Role.USER)
     fun subscribeToChangeOfDeviceState(@PathVariable("id") id: ID): SseEmitter {
         return launchServerSentEvent { sseEmitter ->
             deviceService.getDeviceStateFlow(id)
@@ -132,6 +132,31 @@ class DeviceController(
                     sseEmitter.send(
                         event
                     )
+                }
+        }
+    }
+
+    @GetMapping(
+        RequestPaths.Device.PEOPLE_COUNT_STREAM,
+        produces = [MediaType.TEXT_EVENT_STREAM_VALUE]
+    )
+    @Authentication(authorization = Role.USER)
+    fun getPeopleCountEvent(@PathVariable id: Int): SseEmitter {
+
+        return launchServerSentEvent { sseEmitter ->
+            deviceService.getPeopleCountFlow(id)
+                .onCompletion { cause ->
+                    if (cause != null)
+                        sseEmitter.completeWithError(cause)
+                    else
+                        sseEmitter.complete()
+                }.collect { peopleCount ->
+
+                    val eventBuilder = SseEmitter.event()
+                        .name("people-count")
+                        .data(peopleCount)
+
+                    sseEmitter.send(eventBuilder)
                 }
         }
     }

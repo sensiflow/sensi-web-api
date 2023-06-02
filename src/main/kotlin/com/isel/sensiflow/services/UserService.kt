@@ -40,9 +40,7 @@ class UserService(
     fun createUser(userInput: UserRegisterInput, role: Role = Role.USER): AuthInformationDTO {
         emailRepository
             .findByEmail(userInput.email)
-            .ifPresent {
-                throw EmailAlreadyExistsException(userInput.email)
-            }
+            .ifPresent { throw EmailAlreadyExistsException(userInput.email) }
 
         val salt = generateSalt()
         val hashedPassword = hashPassword(userInput.password, salt)
@@ -137,10 +135,7 @@ class UserService(
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     fun authenticateUser(userInput: UserLoginInput): AuthInformationDTO {
         val email = emailRepository.findByEmail(userInput.email)
-            .ifNotPresent {
-                throw EmailNotFoundException(userInput.email)
-            }
-        requireNotNull(email)
+            .orElseThrow { EmailNotFoundException(userInput.email) }
 
         val user = email.user
 

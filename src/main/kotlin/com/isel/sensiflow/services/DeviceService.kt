@@ -33,10 +33,8 @@ import kotlinx.coroutines.flow.flowOn
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
-import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.annotation.Isolation
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.transaction.support.TransactionTemplate
 
 @Service
 class DeviceService(
@@ -99,7 +97,7 @@ class DeviceService(
     }
 
     /**
-     * Updates a device.
+     * Updates the device metadata.
      *
      * All provided fields are overwritten, except if in the input the field is null.
      *
@@ -128,7 +126,12 @@ class DeviceService(
     }
 
     /**
-     * Deletes a device.
+     * Starts the delete device mechanism.
+     * This method will flag the device for deletion and send a message to the instance controllerQueue.
+     *
+     * The deletion is only completed when the message sent is acknowledged by the instance controller
+     * through the invocation of the [DeviceService.completeDeviceDeletion] method.
+     *
      * @param deviceID The id of the device.
      * @throws DeviceNotFoundException If the device does not exist.
      */
@@ -143,8 +146,6 @@ class DeviceService(
         }
 
         processedStreamRepository.deleteAllByDevice(device)
-
-        metricRepository.deleteAllByDevice(device)
 
         val queueMessage = InstanceMessage(
             action = Action.REMOVE,
@@ -206,7 +207,7 @@ class DeviceService(
     /**
      * Forces an update on the processing state of a device.
      * @param deviceID The id of the device.
-     * @param newProcessingState The new state of the device.
+     * @param newProcessingState The new state of the device (null if no update).
      */
     fun completeUpdateState(deviceID: Int, newProcessingState: DeviceProcessingState?) {
         val storedDevice = deviceRepository.findById(deviceID)
@@ -239,6 +240,8 @@ class DeviceService(
         if (!storedDevice.scheduledForDeletion)
             throw ServiceInternalException("The device is not scheduled for deletion.")
 
+        metricRepository.deleteAllByDevice(storedDevice)
+
         deviceRepository.delete(storedDevice)
     }
 
@@ -263,7 +266,11 @@ class DeviceService(
     }
 
     /**
-     * TODO: Comment
+     * Gets the people count of a device.
+     *
+     * This method will continuously retrieve
+     * the latest people count of a device until the device is no longer active.
+     *
      */
     fun getPeopleCountFlow(deviceID: ID): Flow<Int> {
         return flow<Int> {
@@ -285,12 +292,15 @@ class DeviceService(
 
     /**
      * Gets the processing state of a device.
+     *
+     * This method will continuously retrieve the latest processing
+     * state of a device until the device is no longer pending an update.
      */
-    fun getDeviceStateFlow(Id: ID): Flow<DeviceProcessingStateOutput> =
+    fun getDeviceStateFlow(id: ID): Flow<DeviceProcessingStateOutput> =
         flow {
             while (true) {
-                val device = deviceRepository.findById(Id)
-                    .orElseThrow { DeviceNotFoundException(Id) }
+                val device = deviceRepository.findById(id)
+                    .orElseThrow { DeviceNotFoundException(id) }
 
                 if (!device.pendingUpdate) {
                     emit(device.processingState.toDeviceProcessingStateOutput())
