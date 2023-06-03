@@ -52,33 +52,3 @@ fun generateSalt(): String {
  */
 fun Long.toTimeStamp() =
     Timestamp(this)
-
-/**
- * Executes the given function if the receiver is not null.
- */
-fun <T : Any?> T.ifPresent(function: () -> Nothing): T {
-    if (this != null) function()
-    return this
-}
-
-/**
- * Executes the given function if the receiver is null.
- */
-fun <T : Any?> T.ifNotPresent(function: () -> Nothing): T {
-    if (this == null) function()
-    return this
-}
-
-/**
- * Converts the given [Instant] into a [Long] representing milliseconds.
- */
-fun Instant.toMillis(): Long {
-    return this.toEpochMilli()
-}
-
-/**
- * Verifies whether the given [String] is blank or not.
- */
-fun String.check(): String? {
-    return this.ifBlank { null }
-}

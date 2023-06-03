@@ -18,7 +18,12 @@ class DbInit(
      */
     @PostConstruct
     private fun init() {
-        if (emailRepository.findByEmail("admin@gmail.com") != null) return
+        val exists = emailRepository
+            .findByEmail("admin@gmail.com")
+            .isPresent
+
+        if (exists) return
+
         userService.createUser(
             UserRegisterInput(
                 email = "admin@gmail.com",

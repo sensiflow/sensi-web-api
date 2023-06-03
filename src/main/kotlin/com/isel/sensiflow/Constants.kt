@@ -80,7 +80,7 @@ object Constants {
     object Problem {
 
         object URI {
-            private const val BASE_URI = "https://sensiflow.github.io/main/api/errors/general/"
+            private const val BASE_URI = "https://docs.sensiflow.org/api/errors/general/"
 
             const val DEVICE_NOT_FOUND = "$BASE_URI#device-not-found"
             const val USER_NOT_FOUND = "$BASE_URI#user-not-found"

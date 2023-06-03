@@ -36,7 +36,6 @@ class MessageReceiver(
             deviceService.completeUpdateState(instanceResponseMessage.device_id, newState)
         } catch (e: ServiceException) {
             logger.warn("Error while processing message from ack_device_state_queue: ${e.message}")
-            channel.basicAck(message.messageProperties.deliveryTag, false)
         }
     }
 
@@ -44,12 +43,17 @@ class MessageReceiver(
      * Listener that receives messages from the queue and acts accordingly.
      */
     @RabbitListener(queues = ["\${rabbit.mq.ack_device_delete_queue}"])
-    fun receiveMessageFromAckDeviceDeleteQueue(message: Message) {
-        val deleteDeviceResponseMessage = mapper.readValue(String(message.body), DeleteDeviceMessage::class.java)
-        logger.info("Received message from ack_device_delete_queue: $deleteDeviceResponseMessage")
+    fun receiveMessageFromAckDeviceDeleteQueue(message: Message, channel: Channel) {
+        try{
+            val deleteDeviceResponseMessage = mapper.readValue(String(message.body), DeviceStateResponseMessage::class.java)
+            logger.info("Received message from ack_device_delete_queue: $deleteDeviceResponseMessage")
 
-        deviceService.completeDeviceDeletion(
-            deviceID = deleteDeviceResponseMessage.device_id
-        )
+            deviceService.completeDeviceDeletion(
+                deviceID = deleteDeviceResponseMessage.device_id
+            )
+        }catch (e: ServiceException){
+            logger.warn("Error while processing message from ack_device_delete_queue: ${e.message}")
+        }
+
     }
 }
