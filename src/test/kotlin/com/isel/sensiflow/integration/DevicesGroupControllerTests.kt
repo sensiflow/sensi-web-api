@@ -3,6 +3,7 @@ package com.isel.sensiflow.integration
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.isel.sensiflow.Constants
 import com.isel.sensiflow.Constants.User.AUTH_COOKIE_NAME
+import com.isel.sensiflow.http.controller.RequestPaths
 import com.isel.sensiflow.http.entities.output.IDOutput
 import com.isel.sensiflow.services.Role
 import com.isel.sensiflow.services.Role.ADMIN
@@ -57,7 +58,7 @@ class DevicesGroupControllerTests {
 
         val createResponse = mockMvc.request<DevicesGroupCreateDTO, IDOutput>(
             method = HTTPMethod.POST,
-            uri = "/groups",
+            uri = RequestPaths.Root.ROOT + "/groups",
             body = DevicesGroupCreateDTO("Test", "Test"),
             authorization = cookie,
             mapper = mapper,
@@ -70,7 +71,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<DevicesGroupUpdateDTO, Unit>(
             method = HTTPMethod.PUT,
-            uri = "/groups/$id",
+            uri = RequestPaths.Root.ROOT + "/groups/$id",
             body = DevicesGroupUpdateDTO("Test2", "Test2"),
             authorization = cookie,
             mapper = mapper,
@@ -81,7 +82,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<Unit, DeviceGroupSimpleOutputDTO>(
             method = HTTPMethod.GET,
-            uri = "/groups/$id",
+            uri = RequestPaths.Root.ROOT + "/groups/$id",
             authorization = cookie,
             mapper = mapper,
             assertions = {
@@ -100,7 +101,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<RandomInput, ProblemDetail>(
             method = HTTPMethod.PUT,
-            uri = "/groups/$id",
+            uri = RequestPaths.Root.ROOT + "/groups/$id",
             body = RandomInput("BadRequest"),
             authorization = cookie,
             mapper = mapper,
@@ -119,7 +120,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<DevicesGroupUpdateDTO, ProblemDetail>(
             method = HTTPMethod.PUT,
-            uri = "/groups/$id",
+            uri = RequestPaths.Root.ROOT + "/groups/$id",
             body = DevicesGroupUpdateDTO("Test2", "Test2"),
             authorization = userCookie,
             mapper = mapper,
@@ -135,7 +136,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<DevicesGroupUpdateDTO, ProblemDetail>(
             method = HTTPMethod.PUT,
-            uri = "/groups/-1",
+            uri = RequestPaths.Root.ROOT + "/groups/-1",
             body = DevicesGroupUpdateDTO("Test2", "Test2"),
             authorization = cookie,
             mapper = mapper,
@@ -153,7 +154,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<Unit, Unit>(
             method = HTTPMethod.DELETE,
-            uri = "/groups/$id",
+            uri = RequestPaths.Root.ROOT + "/groups/$id",
             authorization = cookie,
             mapper = mapper,
             assertions = {
@@ -163,7 +164,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<Unit, ProblemDetail>(
             method = HTTPMethod.GET,
-            uri = "/groups/$id",
+            uri = RequestPaths.Root.ROOT + "/groups/$id",
             authorization = cookie,
             mapper = mapper,
             assertions = {
@@ -181,7 +182,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<Unit, ProblemDetail>(
             method = HTTPMethod.DELETE,
-            uri = "/groups/$id",
+            uri = RequestPaths.Root.ROOT + "/groups/$id",
             authorization = userCookie,
             mapper = mapper,
             assertions = {
@@ -195,7 +196,7 @@ class DevicesGroupControllerTests {
         val cookie = ensureCookieNotNull(cookie = getCookie(role = ADMIN))
         mockMvc.request<Unit, ProblemDetail>(
             method = HTTPMethod.DELETE,
-            uri = "/groups/-1",
+            uri = RequestPaths.Root.ROOT + "/groups/-1",
             authorization = cookie,
             mapper = mapper,
             assertions = {
@@ -212,7 +213,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<DevicesGroupUpdateDTO, Unit>(
             method = HTTPMethod.PUT,
-            uri = "/groups/$id",
+            uri = RequestPaths.Root.ROOT + "/groups/$id",
             body = DevicesGroupUpdateDTO(description = "Test2"),
             authorization = cookie,
             mapper = mapper,
@@ -223,7 +224,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<Unit, DeviceGroupSimpleOutputDTO>(
             method = HTTPMethod.GET,
-            uri = "/groups/$id",
+            uri = RequestPaths.Root.ROOT + "/groups/$id",
             mapper = mapper,
             authorization = cookie,
             assertions = {
@@ -242,7 +243,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<DevicesGroupUpdateDTO, Unit>(
             method = HTTPMethod.PUT,
-            uri = "/groups/$id",
+            uri = RequestPaths.Root.ROOT + "/groups/$id",
             body = DevicesGroupUpdateDTO(name = "changed", description = ""),
             authorization = cookie,
             mapper = mapper,
@@ -253,7 +254,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<Unit, DeviceGroupSimpleOutputDTO>(
             method = HTTPMethod.GET,
-            uri = "/groups/$id",
+            uri = RequestPaths.Root.ROOT + "/groups/$id",
             authorization = cookie,
             mapper = mapper,
             assertions = {
@@ -270,7 +271,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<DevicesGroupCreateDTO, ProblemDetail>(
             method = HTTPMethod.POST,
-            uri = "/groups?devices=4,200",
+            uri = RequestPaths.Root.ROOT + "/groups?devices=4,200",
             body = DevicesGroupCreateDTO("Test", "Test"),
             authorization = cookie,
             mapper = mapper,
@@ -290,7 +291,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<Unit, ProblemDetail>(
             method = HTTPMethod.GET,
-            uri = "/groups/-1/devices?page=0&size=10",
+            uri = RequestPaths.Root.ROOT + "/groups/-1/devices?page=0&size=10",
             authorization = cookie,
             mapper = mapper,
             assertions = {
@@ -305,7 +306,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<DevicesGroupCreateDTO, IDOutput>(
             method = HTTPMethod.POST,
-            uri = "/groups",
+            uri = RequestPaths.Root.ROOT + "/groups",
             body = DevicesGroupCreateDTO("Test", "Test"),
             authorization = cookie,
             mapper = mapper,
@@ -322,7 +323,7 @@ class DevicesGroupControllerTests {
 
         val responseGroup = mockMvc.request<DevicesGroupCreateDTO, IDOutput>(
             method = HTTPMethod.POST,
-            uri = "/groups",
+            uri = RequestPaths.Root.ROOT + "/groups",
             body = DevicesGroupCreateDTO("Test", null),
             authorization = cookie,
             mapper = mapper,
@@ -336,7 +337,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<Unit, DeviceGroupSimpleOutputDTO>(
             method = HTTPMethod.GET,
-            uri = "/groups/$id",
+            uri = RequestPaths.Root.ROOT + "/groups/$id",
             authorization = cookie,
             mapper = mapper,
             assertions = {
@@ -356,7 +357,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<BadInput, ProblemDetail>(
             method = HTTPMethod.POST,
-            uri = "/groups",
+            uri = RequestPaths.Root.ROOT + "/groups",
             body = input,
             authorization = cookie,
             mapper = mapper,
@@ -374,7 +375,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<DevicesGroupCreateDTO, ProblemDetail>(
             method = HTTPMethod.POST,
-            uri = "/groups?devices=4,200",
+            uri = RequestPaths.Root.ROOT + "/groups?devices=4,200",
             body = DevicesGroupCreateDTO("Test", "Test"),
             authorization = cookie,
             mapper = mapper,
@@ -412,7 +413,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<DevicesGroupCreateDTO, IDOutput>(
             method = HTTPMethod.POST,
-            uri = "/groups?devices=${id1?.id},${id2?.id}",
+            uri = RequestPaths.Root.ROOT + "/groups?devices=${id1?.id},${id2?.id}",
             body = DevicesGroupCreateDTO(
                 name = "Test",
                 description = "Test"
@@ -432,7 +433,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<Unit, ProblemDetail>(
             method = HTTPMethod.GET,
-            uri = "/groups/-1",
+            uri = RequestPaths.Root.ROOT + "/groups/-1",
             authorization = cookie,
             mapper = mapper,
             assertions = {
@@ -450,7 +451,7 @@ class DevicesGroupControllerTests {
 
         val id = mockMvc.request<DevicesGroupCreateDTO, IDOutput>(
             method = HTTPMethod.POST,
-            uri = "/groups",
+            uri = RequestPaths.Root.ROOT + "/groups",
             body = DevicesGroupCreateDTO(
                 name = "Test",
                 description = "Test"
@@ -465,7 +466,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<Unit, DeviceGroupSimpleOutputDTO>(
             method = HTTPMethod.GET,
-            uri = "/groups/$id",
+            uri = RequestPaths.Root.ROOT + "/groups/$id",
             authorization = cookie,
             mapper = mapper,
             assertions = {
@@ -500,7 +501,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<DevicesGroupInputDTO, AddDevicesToGroupOutputDTO>(
             method = HTTPMethod.POST,
-            uri = "/groups/$groupID/devices",
+            uri = RequestPaths.Root.ROOT + "/groups/$groupID/devices",
             body = DevicesGroupInputDTO(
                 deviceIDs = listOf(device1ID, device2ID)
             ),
@@ -513,7 +514,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<Unit, DeviceGroupOutputExpandedDTO>(
             method = HTTPMethod.GET,
-            uri = "/groups/$groupID?expanded=true",
+            uri = RequestPaths.Root.ROOT + "/groups/$groupID?expanded=true",
             authorization = cookie,
             mapper = mapper,
             assertions = {
@@ -534,7 +535,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<Unit, PageDTO<DeviceGroupSimpleOutputDTO>>(
             method = HTTPMethod.GET,
-            uri = "/groups",
+            uri = RequestPaths.Root.ROOT + "/groups",
             authorization = cookie,
             mapper = mapper,
             assertions = {
@@ -569,7 +570,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<DevicesGroupInputDTO, AddDevicesToGroupOutputDTO>(
             method = HTTPMethod.POST,
-            uri = "/groups/$groupID1/devices",
+            uri = RequestPaths.Root.ROOT + "/groups/$groupID1/devices",
             body = DevicesGroupInputDTO(
                 deviceIDs = listOf(device1ID, device2ID)
             ),
@@ -582,7 +583,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<DevicesGroupInputDTO, AddDevicesToGroupOutputDTO>(
             method = HTTPMethod.POST,
-            uri = "/groups/$groupID2/devices",
+            uri = RequestPaths.Root.ROOT + "/groups/$groupID2/devices",
             body = DevicesGroupInputDTO(
                 deviceIDs = listOf(device1ID, device2ID)
             ),
@@ -595,7 +596,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<DevicesGroupInputDTO, AddDevicesToGroupOutputDTO>(
             method = HTTPMethod.POST,
-            uri = "/groups/$groupID3/devices",
+            uri = RequestPaths.Root.ROOT + "/groups/$groupID3/devices",
             body = DevicesGroupInputDTO(
                 deviceIDs = listOf(device1ID, device2ID)
             ),
@@ -608,7 +609,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<Unit, PageDTO<DeviceGroupOutputExpandedDTO>>(
             method = HTTPMethod.GET,
-            uri = "/groups?expanded=true",
+            uri = RequestPaths.Root.ROOT + "/groups?expanded=true",
             authorization = cookie,
             mapper = mapper,
             assertions = {
@@ -650,7 +651,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<DevicesGroupInputDTO, AddDevicesToGroupOutputDTO>(
             method = HTTPMethod.POST,
-            uri = "/groups/$groupID/devices",
+            uri = RequestPaths.Root.ROOT + "/groups/$groupID/devices",
             body = DevicesGroupInputDTO(
                 deviceIDs = listOf(device1ID, device2ID)
             ),
@@ -663,7 +664,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<Unit, PageDTO<DeviceGroupOutputExpandedDTO>>(
             method = HTTPMethod.GET,
-            uri = "/groups?expanded=true",
+            uri = RequestPaths.Root.ROOT + "/groups?expanded=true",
             authorization = cookie,
             mapper = mapper,
             assertions = {
@@ -679,7 +680,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<Unit, Unit>(
             method = HTTPMethod.DELETE,
-            uri = "/groups/$groupID/devices?deviceIDs=$device1ID",
+            uri = RequestPaths.Root.ROOT + "/groups/$groupID/devices?deviceIDs=$device1ID",
             authorization = cookie,
             mapper = mapper,
             assertions = {
@@ -689,7 +690,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<Unit, PageDTO<DeviceGroupOutputExpandedDTO>>(
             method = HTTPMethod.GET,
-            uri = "/groups?expanded=true",
+            uri = RequestPaths.Root.ROOT + "/groups?expanded=true",
             authorization = cookie,
             mapper = mapper,
             assertions = {
@@ -718,7 +719,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<DevicesGroupInputDTO, ProblemDetail>(
             method = HTTPMethod.POST,
-            uri = "/groups/-1/devices",
+            uri = RequestPaths.Root.ROOT + "/groups/-1/devices",
             body = DevicesGroupInputDTO(
                 deviceIDs = listOf(device1ID)
             ),
@@ -738,7 +739,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<DevicesGroupInputDTO, ProblemDetail>(
             method = HTTPMethod.POST,
-            uri = "/groups/$groupID/devices",
+            uri = RequestPaths.Root.ROOT + "/groups/$groupID/devices",
             body = DevicesGroupInputDTO(
                 deviceIDs = listOf(-1)
             ),
@@ -766,7 +767,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<DevicesGroupInputDTO, AddDevicesToGroupOutputDTO>(
             method = HTTPMethod.POST,
-            uri = "/groups/$groupID/devices",
+            uri = RequestPaths.Root.ROOT + "/groups/$groupID/devices",
             body = DevicesGroupInputDTO(
                 deviceIDs = listOf(device1ID)
             ),
@@ -779,7 +780,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<DevicesGroupInputDTO, ProblemDetail>(
             method = HTTPMethod.POST,
-            uri = "/groups/$groupID/devices",
+            uri = RequestPaths.Root.ROOT + "/groups/$groupID/devices",
             body = DevicesGroupInputDTO(
                 deviceIDs = listOf(device1ID)
             ),
@@ -805,7 +806,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<Unit, ProblemDetail>(
             method = HTTPMethod.DELETE,
-            uri = "/groups/-1/devices?deviceIDs=$device1ID",
+            uri = RequestPaths.Root.ROOT + "/groups/-1/devices?deviceIDs=$device1ID",
             authorization = cookie,
             mapper = mapper,
             assertions = {
@@ -822,7 +823,7 @@ class DevicesGroupControllerTests {
 
         mockMvc.request<Unit, ProblemDetail>(
             method = HTTPMethod.DELETE,
-            uri = "/groups/$groupID/devices?deviceIDs=-1",
+            uri = RequestPaths.Root.ROOT + "/groups/$groupID/devices?deviceIDs=-1",
             authorization = cookie,
             mapper = mapper,
             assertions = {
@@ -834,7 +835,7 @@ class DevicesGroupControllerTests {
     private fun createDevice(cookie: Cookie, input: DeviceInputDTO): IDOutput? {
         return mockMvc.request<DeviceInputDTO, IDOutput>(
             method = HTTPMethod.POST,
-            uri = "/devices",
+            uri = RequestPaths.Root.ROOT + "/devices",
             body = input,
             authorization = cookie,
             mapper = mapper,
@@ -848,7 +849,7 @@ class DevicesGroupControllerTests {
     private fun createTestGroup(cookie: Cookie): IDOutput? {
         return mockMvc.request<DevicesGroupCreateDTO, IDOutput>(
             method = HTTPMethod.POST,
-            uri = "/groups",
+            uri = RequestPaths.Root.ROOT + "/groups",
             body = DevicesGroupCreateDTO("Test", "Test"),
             authorization = cookie,
             mapper = mapper,
@@ -864,7 +865,7 @@ class DevicesGroupControllerTests {
         val loginJson = mapper.writeValueAsString(inputLogin)
 
         val loginResult = mockMvc.perform(
-            post("/users/login")
+            post(RequestPaths.Root.ROOT + "/users/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(loginJson)
         ).andExpect(status().isOk)

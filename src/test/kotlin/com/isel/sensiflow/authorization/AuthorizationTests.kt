@@ -2,6 +2,7 @@ package com.isel.sensiflow.authorization
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.isel.sensiflow.Constants
+import com.isel.sensiflow.http.controller.RequestPaths
 import com.isel.sensiflow.http.entities.output.IDOutput
 import com.isel.sensiflow.integration.HTTPMethod
 import com.isel.sensiflow.integration.createTestUser
@@ -86,7 +87,7 @@ class AuthorizationTests {
         roles.forEach { role ->
             val cookie = ensureCookieNotNull(cookie = getCookie(role))
             mockMvc.perform(
-                MockMvcRequestBuilders.get("/devices")
+                MockMvcRequestBuilders.get(RequestPaths.Root.ROOT + "/devices")
                     .cookie(cookie)
             ).andExpect(MockMvcResultMatchers.status().isOk)
         }
@@ -95,7 +96,7 @@ class AuthorizationTests {
     fun createDevice(cookie: Cookie, input: DeviceInputDTO): IDOutput {
         val inputJson = mapper.writeValueAsString(input)
         val result = mockMvc.perform(
-            MockMvcRequestBuilders.post("/devices")
+            MockMvcRequestBuilders.post(RequestPaths.Root.ROOT + "/devices")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(inputJson)
                 .cookie(cookie)
@@ -108,7 +109,7 @@ class AuthorizationTests {
     fun deleteDevice(cookie: Cookie, id: ID) {
         mockMvc.request<DeviceInputDTO, ProblemDetail>(
             method = HTTPMethod.DELETE,
-            uri = "/devices?deviceIDs=$id",
+            uri = RequestPaths.Root.ROOT + "/devices?deviceIDs=$id",
             authorization = cookie,
             mapper = mapper,
             assertions = {
@@ -122,7 +123,7 @@ class AuthorizationTests {
         val loginJson = mapper.writeValueAsString(inputLogin)
 
         val loginResult = mockMvc.perform(
-            MockMvcRequestBuilders.post("/users/login")
+            MockMvcRequestBuilders.post(RequestPaths.Root.ROOT + "/users/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(loginJson)
         ).andExpect(MockMvcResultMatchers.status().isOk)
