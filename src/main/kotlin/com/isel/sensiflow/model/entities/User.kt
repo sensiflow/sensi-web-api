@@ -41,8 +41,8 @@ class User(
     @OneToOne(mappedBy = "user", cascade = [jakarta.persistence.CascadeType.REMOVE], orphanRemoval = true)
     lateinit var email: Email
 
-    @OneToMany(mappedBy = "user", cascade = [jakarta.persistence.CascadeType.REMOVE], orphanRemoval = true )
-    val sessionTokens: MutableSet<SessionToken> = mutableSetOf() //TODO: pensar na tabela dos tokens se é necessario
+    @OneToMany(mappedBy = "user", cascade = [jakarta.persistence.CascadeType.REMOVE], orphanRemoval = true)
+    val sessionTokens: MutableSet<SessionToken> = mutableSetOf() // TODO: pensar na tabela dos tokens se é necessario
 
     fun isEmailInitialized() = this::email.isInitialized
 }
@@ -62,7 +62,7 @@ fun User.addEmail(email: Email): User {
  */
 fun User.toDTO(): UserDTO {
     if (!isEmailInitialized())
-        throw IllegalStateException("User email not initialized")//TODO: no get de todos os users isto ta a dar erro n sei pq
+        throw IllegalStateException("User email not initialized") // TODO: no get de todos os users isto ta a dar erro n sei pq
 
     return UserDTO(
         id = this.id,

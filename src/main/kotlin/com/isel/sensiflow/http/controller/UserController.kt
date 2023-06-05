@@ -26,7 +26,6 @@ import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -100,8 +99,8 @@ class UserController(private val userService: UserService) {
 
         response.addCookie(authCookie)
 
-        return AuthOutput(authInfo.userID,authInfo.timeUntilExpire)
-    }//TODO: change documentation
+        return AuthOutput(authInfo.userID, authInfo.timeUntilExpire)
+    } // TODO: change documentation
 
     @Authentication(authorization = USER)
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -130,5 +129,4 @@ class UserController(private val userService: UserService) {
             .noContent()
             .build()
     }
-
 }

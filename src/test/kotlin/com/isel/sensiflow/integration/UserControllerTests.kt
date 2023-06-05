@@ -418,7 +418,7 @@ class UserControllerTests {
     }
 
     @Test
-    fun `delete a user sucessfully`(){
+    fun `delete a user sucessfully`() {
         val cookie = ensureCookieNotNull(cookie = getCookie())
 
         val body = UserRegisterInput(email = "test@email.com", firstName = "Test", lastName = "Test", password = "Password1_.")
@@ -448,7 +448,7 @@ class UserControllerTests {
     }
 
     @Test
-    fun `try to delete a user with non existent id`(){
+    fun `try to delete a user with non existent id`() {
         val cookie = ensureCookieNotNull(cookie = getCookie())
         mockMvc.request<UserLoginInput, ProblemDetail>(
             method = HTTPMethod.DELETE,
@@ -464,9 +464,8 @@ class UserControllerTests {
     }
 
     @Test
-    fun `try to delete the own user`(){
+    fun `try to delete the own user`() {
         val testUserInfo = createAdminTestUser()
-
 
         mockMvc.request<UserLoginInput, ProblemDetail>(
             method = HTTPMethod.DELETE,
@@ -590,7 +589,6 @@ class UserControllerTests {
             }
         )
     }
-
 
     private fun createAdminTestUser(): TestUserInfo {
         val loginInput = createTestUser(userService, role = ADMIN, counter++)

@@ -6,7 +6,6 @@ import com.isel.sensiflow.Constants.Security.SALT_LENGTH
 import java.security.MessageDigest
 import java.security.SecureRandom
 import java.sql.Timestamp
-import java.time.Instant
 import java.util.UUID
 
 private val digest = MessageDigest.getInstance(DIGEST_ALGORITHM)
