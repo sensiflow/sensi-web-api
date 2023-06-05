@@ -1,6 +1,5 @@
 package com.isel.sensiflow.http.controller
 
-
 import com.isel.sensiflow.http.entities.output.IDOutput
 import com.isel.sensiflow.http.entities.output.toIDOutput
 import com.isel.sensiflow.http.pipeline.authentication.Authentication

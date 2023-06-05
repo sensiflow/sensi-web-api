@@ -1,7 +1,6 @@
 package com.isel.sensiflow.amqp.instanceController
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.isel.sensiflow.amqp.DeleteDeviceMessage
 import com.isel.sensiflow.amqp.DeviceStateResponseMessage
 import com.isel.sensiflow.services.DeviceService
 import com.isel.sensiflow.services.ServiceException
@@ -38,22 +37,21 @@ class MessageReceiver(
             logger.warn("Error while processing message from ack_device_state_queue: ${e.message}")
         }
     }
-//TODO: change to just 1 queue
+// TODO: change to just 1 queue
     /**
      * Listener that receives messages from the queue and acts accordingly.
      */
     @RabbitListener(queues = ["\${rabbit.mq.ack_device_delete_queue}"])
     fun receiveMessageFromAckDeviceDeleteQueue(message: Message, channel: Channel) {
-        try{
+        try {
             val deleteDeviceResponseMessage = mapper.readValue(String(message.body), DeviceStateResponseMessage::class.java)
             logger.info("Received message from ack_device_delete_queue: $deleteDeviceResponseMessage")
 
             deviceService.completeDeviceDeletion(
                 deviceID = deleteDeviceResponseMessage.device_id
             )
-        }catch (e: ServiceException){
+        } catch (e: ServiceException) {
             logger.warn("Error while processing message from ack_device_delete_queue: ${e.message}")
         }
-
     }
 }

@@ -111,7 +111,6 @@ class UserService(
             .toPageDTO()
     }
 
-
     /**
      * Invalidates a session token, removing it from the database
      */
@@ -216,19 +215,19 @@ class UserService(
         invokerUserID: UserID,
         userInput: UserUpdateInput
     ) {
-//TODO: documentaçao deste endpoint e do mudar a role, e dizer q um mod pode mudar coisas do user , mas nao d o admin
-        val updaterUser =  userRepository.findById(invokerUserID)
+// TODO: documentaçao deste endpoint e do mudar a role, e dizer q um mod pode mudar coisas do user , mas nao d o admin
+        val updaterUser = userRepository.findById(invokerUserID)
             .orElseThrow { UserNotFoundException(invokerUserID) }
 
         val user = userRepository.findById(userID)
             .orElseThrow { UserNotFoundException(userID) }
 
-        //TODO: test this
-        if (invokerUserID != userID && !updaterUser.role.toRole().isHigherThan(user.role.toRole()) && updaterUser.role.toRole() != Role.ADMIN ){
+        // TODO: test this
+        if (invokerUserID != userID && !updaterUser.role.toRole().isHigherThan(user.role.toRole()) && updaterUser.role.toRole() != Role.ADMIN) {
             throw ActionForbiddenException("You don't have permission to update this user")
         }
 
-        if (userInput.fieldsAreEmpty() || user.isTheSameAS(userInput) ) {
+        if (userInput.fieldsAreEmpty() || user.isTheSameAS(userInput)) {
             return
         }
 
@@ -251,7 +250,7 @@ class UserService(
      */
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     fun deleteUser(id: UserID, updatedUserID: UserID) {
-        if(id == updatedUserID){
+        if (id == updatedUserID) {
             throw ActionForbiddenException("You can't delete yourself")
         }
         val user = userRepository.findById(id)

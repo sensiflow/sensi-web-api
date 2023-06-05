@@ -11,7 +11,6 @@ import com.isel.sensiflow.model.repository.DeviceGroupRepository
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.model.repository.MetricRepository
 import com.isel.sensiflow.model.repository.ProcessedStreamRepository
-import com.isel.sensiflow.model.repository.UserRepository
 import com.isel.sensiflow.model.repository.requireFindAllById
 import com.isel.sensiflow.services.dto.PageableDTO
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
@@ -118,7 +117,7 @@ class DeviceService(
         )
 
         deviceRepository.save(updatedDevice)
-    }//TODO: message to queue that url was updated if it changed
+    } // TODO: message to queue that url was updated if it changed
 
     /**
      * Deletes devices.

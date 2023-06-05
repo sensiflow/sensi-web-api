@@ -19,4 +19,4 @@ class Email(
     @JoinColumn(name = "userid", nullable = false)
     val user: User
 )
-//TODO: remove
+// TODO: remove

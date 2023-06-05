@@ -51,7 +51,7 @@ enum class SameSite(val value: String) {
 }
 
 fun Cookie.sameSite(sameSite: SameSite): Cookie {
-    this.setAttribute( "SameSite", sameSite.value)
+    this.setAttribute("SameSite", sameSite.value)
     return this
 }
 

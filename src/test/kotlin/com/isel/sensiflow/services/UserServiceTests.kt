@@ -100,7 +100,7 @@ class UserServiceTests {
     @Test
     fun `register user successfully`() {
 
-        `when`(emailRepository.findByEmail(fakeUserEmail.email)).thenReturn(null)
+        `when`(emailRepository.findByEmail(fakeUserEmail.email)).thenReturn(Optional.empty())
 
         `when`(userRoleRepository.findByRole(Role.USER.name)).thenReturn(Optional.of(userRole))
         `when`(emailRepository.save(ArgumentMatchers.any(Email::class.java))).thenReturn(fakeUserEmail)
@@ -117,7 +117,7 @@ class UserServiceTests {
 
     @Test
     fun `trying to register a user with an existing email`() {
-        `when`(emailRepository.findByEmail(fakeUserEmail.email)).thenReturn(fakeUserEmail)
+        `when`(emailRepository.findByEmail(fakeUserEmail.email)).thenReturn(Optional.of(fakeUserEmail))
         assertThrows<EmailAlreadyExistsException> {
             userService.createUser(fakeUserInput)
         }
@@ -144,7 +144,7 @@ class UserServiceTests {
 
     @Test
     fun `login a user successfully`() {
-        `when`(emailRepository.findByEmail(fakeUserEmail.email)).thenReturn(fakeUserEmail)
+        `when`(emailRepository.findByEmail(fakeUserEmail.email)).thenReturn(Optional.of(fakeUserEmail))
         `when`(tokenRepository.save(ArgumentMatchers.any(SessionToken::class.java))).thenReturn(fakeToken)
 
         val result = userService.authenticateUser(userLoginInput)
@@ -155,7 +155,7 @@ class UserServiceTests {
 
     @Test
     fun `login a user that already had a sessionToken`() {
-        `when`(emailRepository.findByEmail(fakeUserEmail.email)).thenReturn(fakeUserEmail)
+        `when`(emailRepository.findByEmail(fakeUserEmail.email)).thenReturn(Optional.of(fakeUserEmail))
         `when`(tokenRepository.findByUser(fakeUser)).thenReturn(fakeToken)
         `when`(tokenRepository.save(ArgumentMatchers.any(SessionToken::class.java))).thenReturn(fakeToken)
 
@@ -171,7 +171,7 @@ class UserServiceTests {
 
     @Test
     fun `login a user with a wrong password`() {
-        `when`(emailRepository.findByEmail(fakeUserEmail.email)).thenReturn(fakeUserEmail)
+        `when`(emailRepository.findByEmail(fakeUserEmail.email)).thenReturn(Optional.of(fakeUserEmail))
         assertThrows<InvalidCredentialsException> {
             userService.authenticateUser(userLoginInput.copy(password = "wrongPassword"))
         }
@@ -185,7 +185,7 @@ class UserServiceTests {
             expiration = (timeNow - SESSION_EXPIRATION_TIME).toTimeStamp()
         )
 
-        `when`(emailRepository.findByEmail(fakeUserEmail.email)).thenReturn(fakeUserEmail)
+        `when`(emailRepository.findByEmail(fakeUserEmail.email)).thenReturn(Optional.of(fakeUserEmail))
         `when`(tokenRepository.findByUser(fakeUser)).thenReturn(fakeExpiredToken)
         `when`(tokenRepository.save(ArgumentMatchers.any(SessionToken::class.java))).thenReturn(fakeToken)
 
@@ -200,7 +200,7 @@ class UserServiceTests {
 
     @Test
     fun `try to login a user with an invalid email`() {
-        `when`(emailRepository.findByEmail(fakeUserEmail.email)).thenReturn(null)
+        `when`(emailRepository.findByEmail(fakeUserEmail.email)).thenReturn(Optional.empty())
         assertThrows<EmailNotFoundException> {
             userService.authenticateUser(userLoginInput)
         }
@@ -277,14 +277,14 @@ class UserServiceTests {
     }
 
     @Test
-    fun `delete a user sucessfully`(){
+    fun `delete a user sucessfully`() {
         `when`(userRepository.findById(fakeUser.id)).thenReturn(Optional.of(fakeUser))
         userService.deleteUser(fakeUser.id, 999999)
         verify(userRepository, times(1)).delete(fakeUser)
     }
 
     @Test
-    fun `try to delete a user that does not exist`(){
+    fun `try to delete a user that does not exist`() {
         `when`(userRepository.findById(fakeUser.id)).thenReturn(Optional.empty())
         assertThrows<UserNotFoundException> {
             userService.deleteUser(fakeUser.id, 999999)
@@ -292,11 +292,10 @@ class UserServiceTests {
     }
 
     @Test
-    fun `try to delete the own user`(){
+    fun `try to delete the own user`() {
         `when`(userRepository.findById(fakeUser.id)).thenReturn(Optional.of(fakeUser))
         assertThrows<ActionForbiddenException> {
             userService.deleteUser(fakeUser.id, fakeUser.id)
         }
     }
-
 }
