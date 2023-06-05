@@ -2,7 +2,7 @@ package com.isel.sensiflow.http.entities.input
 
 import com.isel.sensiflow.Constants
 import com.isel.sensiflow.http.entities.validation.NotBlankNullable
-import com.isel.sensiflow.model.dao.User
+import com.isel.sensiflow.model.entities.User
 import com.isel.sensiflow.services.hashPassword
 import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size

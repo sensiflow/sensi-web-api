@@ -1,7 +1,7 @@
 package com.isel.sensiflow.model.repository
 
-import com.isel.sensiflow.model.dao.Device
-import com.isel.sensiflow.model.dao.DeviceGroup
+import com.isel.sensiflow.model.entities.Device
+import com.isel.sensiflow.model.entities.DeviceGroup
 import com.isel.sensiflow.services.ID
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable

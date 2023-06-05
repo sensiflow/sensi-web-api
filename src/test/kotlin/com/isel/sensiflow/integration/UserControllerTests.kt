@@ -6,6 +6,7 @@ import com.isel.sensiflow.Constants.Problem.URI.URI_VALIDATION_ERROR
 import com.isel.sensiflow.http.entities.input.UserLoginInput
 import com.isel.sensiflow.http.entities.input.UserRegisterInput
 import com.isel.sensiflow.http.entities.input.UserUpdateInput
+import com.isel.sensiflow.http.entities.output.AuthOutput
 import com.isel.sensiflow.http.entities.output.IDOutput
 import com.isel.sensiflow.http.entities.output.UserOutput
 import com.isel.sensiflow.integration.HTTPMethod.GET
@@ -266,7 +267,7 @@ class UserControllerTests {
             password = "Password1_."
         )
 
-        mockMvc.request<UserLoginInput, IDOutput>(
+        mockMvc.request<UserLoginInput, AuthOutput>(
             method = POST,
             uri = "/users/login",
             body = userLogin,
@@ -285,7 +286,7 @@ class UserControllerTests {
         val cookie = ensureCookieNotNull(cookie = getCookie())
 
         val body = UserRegisterInput(email = "test@email.com", firstName = "Test", lastName = "Test", password = "Password1_.")
-        mockMvc.request<UserRegisterInput, IDOutput>(
+        mockMvc.request<UserRegisterInput, AuthOutput>(
             method = POST,
             uri = "/users",
             body = body,
@@ -417,6 +418,70 @@ class UserControllerTests {
     }
 
     @Test
+    fun `delete a user sucessfully`(){
+        val cookie = ensureCookieNotNull(cookie = getCookie())
+
+        val body = UserRegisterInput(email = "test@email.com", firstName = "Test", lastName = "Test", password = "Password1_.")
+
+        val userCreationResponse = mockMvc.request<UserRegisterInput, IDOutput>(
+            method = POST,
+            uri = "/users",
+            body = body,
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isCreated)
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.id").isNotEmpty)
+            }
+        )
+
+        mockMvc.request<UserLoginInput, IDOutput>(
+            method = HTTPMethod.DELETE,
+            uri = "/users/${userCreationResponse?.id}",
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isNoContent)
+            }
+        )
+    }
+
+    @Test
+    fun `try to delete a user with non existent id`(){
+        val cookie = ensureCookieNotNull(cookie = getCookie())
+        mockMvc.request<UserLoginInput, ProblemDetail>(
+            method = HTTPMethod.DELETE,
+            uri = "/users/1000",
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isNotFound)
+                    .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                    .andExpect(jsonPath("$.type").value(Constants.Problem.URI.USER_NOT_FOUND))
+            }
+        )
+    }
+
+    @Test
+    fun `try to delete the own user`(){
+        val testUserInfo = createAdminTestUser()
+
+
+        mockMvc.request<UserLoginInput, ProblemDetail>(
+            method = HTTPMethod.DELETE,
+            uri = "/users/${testUserInfo.id}",
+            authorization = testUserInfo.cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isForbidden)
+                    .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                    .andExpect(jsonPath("$.type").value(Constants.Problem.URI.FORBIDDEN))
+            }
+        )
+    }
+
+    @Test
     fun `logout successfully`() {
         val cookie = ensureCookieNotNull(cookie = getCookie())
 
@@ -497,7 +562,7 @@ class UserControllerTests {
         )
 
         // Can log in with the new password
-        mockMvc.request<UserLoginInput, IDOutput>(
+        mockMvc.request<UserLoginInput, AuthOutput>(
             method = POST,
             uri = "/users/login",
             authorization = cookie,
@@ -507,6 +572,7 @@ class UserControllerTests {
                 andExpect(status().isOk)
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.id").value(id))
+                    .andExpect(jsonPath("$.expiresIn").isNotEmpty)
             }
         )
 
@@ -525,53 +591,6 @@ class UserControllerTests {
         )
     }
 
-    @Test
-    fun `try to update a different user `() {
-        val (id1, cookie1, loginInput1) = createAdminTestUser()
-        val (id2, cookie2, loginInput2) = createAdminTestUser()
-
-        val updateBody = UserUpdateInput(
-            firstName = "Test1",
-            lastName = "Test1",
-            password = "Password1_.2"
-        )
-
-        mockMvc.request<UserUpdateInput, ProblemDetail>(
-            method = HTTPMethod.PUT,
-            uri = "/users/$id1",
-            body = updateBody,
-            authorization = cookie2,
-            mapper = mapper,
-            assertions = {
-                andExpect(status().isForbidden)
-            }
-        )
-
-        // Can log in with the new password
-        mockMvc.request<UserLoginInput, ProblemDetail>(
-            method = POST,
-            uri = "/users/login",
-            body = UserLoginInput(email = loginInput1.email, password = updateBody.password!!),
-            mapper = mapper,
-            assertions = {
-                andExpect(status().isUnauthorized)
-            }
-        )
-
-        mockMvc.request<NoBody, UserOutput>(
-            method = GET,
-            uri = "/users/$id1",
-            authorization = cookie2,
-            mapper = mapper,
-            assertions = {
-                andExpect(status().isOk)
-                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(jsonPath("$.firstName").value("Test"))
-                    .andExpect(jsonPath("$.lastName").value("Test"))
-                    .andExpect(jsonPath("$.role").value("ADMIN"))
-            }
-        )
-    }
 
     private fun createAdminTestUser(): TestUserInfo {
         val loginInput = createTestUser(userService, role = ADMIN, counter++)
@@ -588,7 +607,7 @@ class UserControllerTests {
                 .andReturn()
                 .response
                 .contentAsString,
-            IDOutput::class.java
+            AuthOutput::class.java
         ).id
 
         val cookie = loginResult

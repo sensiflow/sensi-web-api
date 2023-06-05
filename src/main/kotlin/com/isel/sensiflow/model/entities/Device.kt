@@ -1,17 +1,14 @@
-package com.isel.sensiflow.model.dao
+package com.isel.sensiflow.model.entities
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLEnumType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
-import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
-import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToMany
-import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
@@ -40,10 +37,6 @@ class Device(
 
     @Column(name = "pending_update", nullable = false)
     val pendingUpdate: Boolean = false,
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "userid")
-    val user: User
 ) {
 
     @OneToOne(mappedBy = "device")

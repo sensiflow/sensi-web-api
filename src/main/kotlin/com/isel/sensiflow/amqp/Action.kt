@@ -1,6 +1,6 @@
 package com.isel.sensiflow.amqp
 
-import com.isel.sensiflow.model.dao.DeviceProcessingState
+import com.isel.sensiflow.model.entities.DeviceProcessingState
 
 /**
  * Represents a possible action to be performed on a device.

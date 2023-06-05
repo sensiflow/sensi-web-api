@@ -1,11 +1,7 @@
 package com.isel.sensiflow.services.dto.output
 
-import com.isel.sensiflow.http.entities.output.UserOutput
-import com.isel.sensiflow.model.dao.Device
-import com.isel.sensiflow.model.dao.toDTO
+import com.isel.sensiflow.model.entities.Device
 import com.isel.sensiflow.services.ID
-import com.isel.sensiflow.services.UserID
-import com.isel.sensiflow.services.dto.toOutput
 
 interface DeviceOutputDTO {
     val id: ID
@@ -29,7 +25,6 @@ data class DeviceSimpleOutputDTO(
     override val description: String?,
     override val streamURL: String,
     override val processingState: DeviceProcessingStateOutput,
-    val userID: UserID,
     val deviceGroupsID: List<Int>
 ) : DeviceOutputDTO
 
@@ -47,7 +42,6 @@ data class DeviceExpandedOutputDTO(
     override val description: String?,
     override val streamURL: String,
     override val processingState: DeviceProcessingStateOutput,
-    val user: UserOutput,
     val deviceGroups: List<DeviceGroupOutputDTO>
 ) : DeviceOutputDTO
 
@@ -65,7 +59,6 @@ fun Device.toDeviceOutputDTO(expanded: Boolean): DeviceOutputDTO {
             description = this.description,
             streamURL = this.streamURL,
             processingState = processingStateOutput,
-            user = this.user.toDTO().toOutput(),
             deviceGroups = this.deviceGroups
                 .map { it.toDeviceGroupOutputDTO(expanded = false) }
 
@@ -77,7 +70,6 @@ fun Device.toDeviceOutputDTO(expanded: Boolean): DeviceOutputDTO {
             description = this.description,
             streamURL = this.streamURL,
             processingState = processingStateOutput,
-            userID = this.user.id,
             deviceGroupsID = this.deviceGroups.map { it.id }
         )
     }

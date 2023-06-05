@@ -21,7 +21,7 @@ class ProcessedStreamService(
      * @throws ProcessedStreamNotFoundException If the processed stream doesn't exist
      * @return The processed stream of the device
      */
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Transactional(isolation = Isolation.READ_COMMITTED, readOnly = true)
     fun getProcessedStreamOfDeviceWith(deviceId: Int, expanded: Boolean): ProcessedStreamOutputDTO {
         deviceRepository.findById(deviceId)
             .orElseThrow { DeviceNotFoundException(deviceId) }

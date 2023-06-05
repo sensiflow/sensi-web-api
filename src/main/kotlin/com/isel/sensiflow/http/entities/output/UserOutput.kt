@@ -1,6 +1,6 @@
 package com.isel.sensiflow.http.entities.output
 
-import com.isel.sensiflow.model.dao.User
+import com.isel.sensiflow.model.entities.User
 import com.isel.sensiflow.services.UserID
 
 /**

@@ -37,14 +37,14 @@ class MessageReceiver(
         } catch (e: ServiceException) {
             logger.warn("Error while processing message from ack_device_state_queue: ${e.message}")
             channel.basicAck(message.messageProperties.deliveryTag, false)
-        }
+        }//TODO: dead letter, for when db is down , add
     }
-
+//TODO: change to just 1 queue
     /**
      * Listener that receives messages from the queue and acts accordingly.
      */
     @RabbitListener(queues = ["\${rabbit.mq.ack_device_delete_queue}"])
-    fun receiveMessageFromAckDeviceDeleteQueue(message: Message) {
+    fun receiveMessageFromAckDeviceDeleteQueue(message: Message) {//TODO: ver situaçao de erro
         val deleteDeviceResponseMessage = mapper.readValue(String(message.body), DeleteDeviceMessage::class.java)
         logger.info("Received message from ack_device_delete_queue: $deleteDeviceResponseMessage")
 

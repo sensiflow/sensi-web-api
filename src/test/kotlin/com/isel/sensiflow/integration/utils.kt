@@ -3,7 +3,7 @@ package com.isel.sensiflow.integration
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.isel.sensiflow.http.entities.input.UserLoginInput
 import com.isel.sensiflow.http.entities.input.UserRegisterInput
-import com.isel.sensiflow.model.dao.Device
+import com.isel.sensiflow.model.entities.Device
 import com.isel.sensiflow.services.Role
 import com.isel.sensiflow.services.UserService
 import com.isel.sensiflow.services.dto.output.PageDTO

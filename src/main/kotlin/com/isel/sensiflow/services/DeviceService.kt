@@ -5,8 +5,8 @@ import com.isel.sensiflow.amqp.Action
 import com.isel.sensiflow.amqp.InstanceMessage
 import com.isel.sensiflow.amqp.action
 import com.isel.sensiflow.amqp.instanceController.MessageSender
-import com.isel.sensiflow.model.dao.Device
-import com.isel.sensiflow.model.dao.DeviceProcessingState
+import com.isel.sensiflow.model.entities.Device
+import com.isel.sensiflow.model.entities.DeviceProcessingState
 import com.isel.sensiflow.model.repository.DeviceGroupRepository
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.model.repository.MetricRepository
@@ -39,7 +39,6 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class DeviceService(
     private val deviceRepository: DeviceRepository,
-    private val userRepository: UserRepository,
     private val metricRepository: MetricRepository,
     private val processedStreamRepository: ProcessedStreamRepository,
     private val instanceControllerMessageSender: MessageSender,
@@ -54,13 +53,10 @@ class DeviceService(
      */
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     fun createDevice(deviceInput: DeviceInputDTO, userID: Int): DeviceOutputDTO {
-        val user = userRepository.findById(userID)
-            .orElseThrow { UserNotFoundException(userID) }
         val newDevice = Device(
             name = deviceInput.name,
             streamURL = deviceInput.streamURL,
-            description = deviceInput.description ?: "",
-            user = user
+            description = deviceInput.description ?: ""
         )
 
         return deviceRepository
@@ -107,7 +103,6 @@ class DeviceService(
      */
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     fun updateDevice(deviceID: Int, deviceUpdateInput: DeviceUpdateDTO) {
-
         val storedDevice = deviceRepository.findById(deviceID)
             .orElseThrow { DeviceNotFoundException(deviceID) }
 
@@ -118,12 +113,11 @@ class DeviceService(
             id = storedDevice.id,
             name = deviceUpdateInput.name ?: storedDevice.name,
             streamURL = deviceUpdateInput.streamURL ?: storedDevice.streamURL,
-            description = deviceUpdateInput.description ?: storedDevice.description,
-            user = storedDevice.user
+            description = deviceUpdateInput.description ?: storedDevice.description
         )
 
         deviceRepository.save(updatedDevice)
-    }
+    }//TODO: message to queue that url was updated if it changed
 
     /**
      * Deletes a device.
@@ -185,7 +179,6 @@ class DeviceService(
             name = storedDevice.name,
             streamURL = storedDevice.streamURL,
             description = storedDevice.description,
-            user = storedDevice.user,
             processingState = storedDevice.processingState,
             pendingUpdate = true
         )
@@ -218,7 +211,6 @@ class DeviceService(
             name = storedDevice.name,
             streamURL = storedDevice.streamURL,
             description = storedDevice.description,
-            user = storedDevice.user,
             processingState = newProcessingState ?: storedDevice.processingState,
             pendingUpdate = false
         )

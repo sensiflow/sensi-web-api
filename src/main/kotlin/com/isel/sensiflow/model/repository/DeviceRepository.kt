@@ -1,6 +1,6 @@
 package com.isel.sensiflow.model.repository
 
-import com.isel.sensiflow.model.dao.Device
+import com.isel.sensiflow.model.entities.Device
 import com.isel.sensiflow.services.DeviceNotFoundException
 import com.isel.sensiflow.services.ID
 import org.springframework.data.jpa.repository.JpaRepository
@@ -24,6 +24,10 @@ interface DeviceRepository : JpaRepository<Device, Int> {
     @Modifying
     @Query("UPDATE Device d SET d.scheduledForDeletion = true WHERE d.id = :deviceID")
     fun flagForDeletion(deviceID: ID)
+
+    @Modifying
+    @Query("UPDATE Device d SET d.scheduledForDeletion = true WHERE d IN :device")
+    fun flagForDeletion(device: List<Device>)
 }
 
 /**

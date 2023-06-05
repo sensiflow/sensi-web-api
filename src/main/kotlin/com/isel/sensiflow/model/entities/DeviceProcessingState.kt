@@ -1,4 +1,4 @@
-package com.isel.sensiflow.model.dao
+package com.isel.sensiflow.model.entities
 
 enum class DeviceProcessingState {
     ACTIVE,

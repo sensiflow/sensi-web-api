@@ -1,4 +1,4 @@
-package com.isel.sensiflow.model.dao
+package com.isel.sensiflow.model.entities
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -19,3 +19,4 @@ class Email(
     @JoinColumn(name = "userid", nullable = false)
     val user: User
 )
+//TODO: remove

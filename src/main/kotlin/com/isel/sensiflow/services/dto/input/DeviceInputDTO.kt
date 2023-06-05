@@ -1,7 +1,7 @@
 package com.isel.sensiflow.services.dto.input
 
 import com.isel.sensiflow.Constants
-import com.isel.sensiflow.model.dao.Device
+import com.isel.sensiflow.model.entities.Device
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Pattern

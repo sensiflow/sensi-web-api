@@ -60,7 +60,7 @@ val ServiceException.errorURI: URI
         is ProcessedStreamNotFoundException -> URI.create(Constants.Problem.URI.PROCESSED_STREAM_NOT_FOUND)
         is DeviceNotFoundException -> URI.create(Constants.Problem.URI.DEVICE_NOT_FOUND)
         is InvalidCredentialsException -> URI.create(Constants.Problem.URI.INVALID_CREDENTIALS)
-        is ActionForbiddenException -> URI.create(Constants.Problem.URI.UNAUTHORIZED)
+        is ActionForbiddenException -> URI.create(Constants.Problem.URI.FORBIDDEN)
         is UnauthenticatedException -> URI.create(Constants.Problem.URI.UNAUTHENTICATED)
         is InvalidProcessingStateException -> URI.create(Constants.Problem.URI.INVALID_PROCESSING_STATE)
         is InvalidTokenException -> URI.create(Constants.Problem.URI.INVALID_TOKEN)

@@ -88,7 +88,7 @@ object Constants {
             const val PROCESSED_STREAM_NOT_FOUND = "$BASE_URI#processed-stream-not-found"
             const val DEVICE_GROUP_NOT_FOUND = "$BASE_URI#device-group-not-found"
             const val EMAIL_NOT_FOUND = "$BASE_URI#email-not-found"
-            const val UNAUTHORIZED = "$BASE_URI#unauthorized"
+            const val FORBIDDEN = "$BASE_URI#forbidden"
             const val UNAUTHENTICATED = "$BASE_URI#unauthenticated"
             const val INVALID_CREDENTIALS = "$BASE_URI#invalid-credentials"
             const val INVALID_PROCESSING_STATE = "$BASE_URI#invalid-processing-state"

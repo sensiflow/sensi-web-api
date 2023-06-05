@@ -1,4 +1,4 @@
-package com.isel.sensiflow.model.dao
+package com.isel.sensiflow.model.entities
 
 import com.isel.sensiflow.services.Role
 import jakarta.persistence.Column

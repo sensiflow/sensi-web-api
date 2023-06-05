@@ -2,7 +2,7 @@ package com.isel.sensiflow.services
 
 import com.isel.sensiflow.Constants.Pagination.DEFAULT_PAGE
 import com.isel.sensiflow.Constants.Pagination.DEFAULT_PAGE_SIZE
-import com.isel.sensiflow.model.dao.DeviceGroup
+import com.isel.sensiflow.model.entities.DeviceGroup
 import com.isel.sensiflow.model.repository.DeviceGroupRepository
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.model.repository.requireFindAllById
@@ -115,7 +115,7 @@ class DeviceGroupService(
      * @throws DeviceGroupNotFoundException If the group does not exist
      * @throws DeviceNotFoundException If a device in the list does not exist
      */
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Transactional(isolation = Isolation.READ_COMMITTED, readOnly = true)
     fun getDevicesFromGroup(groupID: ID, pageableDTO: PageableDTO, expanded: Boolean): PageDTO<DeviceOutputDTO> {
         val pageable: Pageable = PageRequest.of(pageableDTO.page, pageableDTO.size)
 
@@ -134,7 +134,7 @@ class DeviceGroupService(
      * @return The device group as [DeviceGroupSimpleOutputDTO]
      * @throws DeviceGroupNotFoundException If the group does not exist
      */
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Transactional(isolation = Isolation.READ_COMMITTED, readOnly = true)
     fun getGroup(groupID: ID, expanded: Boolean): DeviceGroupOutputDTO {
         return deviceGroupRepository
             .findById(groupID)
@@ -154,7 +154,7 @@ class DeviceGroupService(
      * @param expanded If the groups should be expanded or not (include the list of devices)
      * @return The list of device groups as [PageDTO] of [DeviceGroupOutputDTO]
      */
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Transactional(isolation = Isolation.READ_COMMITTED, readOnly = true)
     fun getGroups(pageableDTO: PageableDTO, expanded: Boolean): PageDTO<DeviceGroupOutputDTO> {
         val pageable: Pageable = PageRequest.of(pageableDTO.page, pageableDTO.size)
 

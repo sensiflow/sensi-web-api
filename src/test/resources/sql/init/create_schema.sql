@@ -42,10 +42,8 @@ create table if not exists Device(
                                      streamURL varchar(200) not null, --The max length of a RTSP URL is 200 bytes
                                      description varchar(255),
                                      processingState varchar(15) not null default 'INACTIVE',
-                                     userID int,
                                      pending_update boolean NOT null default false,
-                                     scheduled_for_deletion boolean NOT null default false,
-                                     foreign key (userID) references "user"(id)
+                                     scheduled_for_deletion boolean NOT null default false
 );
 
 create table if not exists DeviceGroupLink(

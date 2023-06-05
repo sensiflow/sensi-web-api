@@ -4,10 +4,10 @@ import com.isel.sensiflow.Constants.User.SESSION_EXPIRATION_TIME
 import com.isel.sensiflow.http.entities.input.UserLoginInput
 import com.isel.sensiflow.http.entities.input.UserRegisterInput
 import com.isel.sensiflow.http.entities.input.UserUpdateInput
-import com.isel.sensiflow.model.dao.Email
-import com.isel.sensiflow.model.dao.SessionToken
-import com.isel.sensiflow.model.dao.User
-import com.isel.sensiflow.model.dao.Userrole
+import com.isel.sensiflow.model.entities.Email
+import com.isel.sensiflow.model.entities.SessionToken
+import com.isel.sensiflow.model.entities.User
+import com.isel.sensiflow.model.entities.Userrole
 import com.isel.sensiflow.model.repository.EmailRepository
 import com.isel.sensiflow.model.repository.SessionTokenRepository
 import com.isel.sensiflow.model.repository.UserRepository
@@ -275,4 +275,28 @@ class UserServiceTests {
 
         verify(userRepository, times(0)).save(ArgumentMatchers.any(User::class.java))
     }
+
+    @Test
+    fun `delete a user sucessfully`(){
+        `when`(userRepository.findById(fakeUser.id)).thenReturn(Optional.of(fakeUser))
+        userService.deleteUser(fakeUser.id, 999999)
+        verify(userRepository, times(1)).delete(fakeUser)
+    }
+
+    @Test
+    fun `try to delete a user that does not exist`(){
+        `when`(userRepository.findById(fakeUser.id)).thenReturn(Optional.empty())
+        assertThrows<UserNotFoundException> {
+            userService.deleteUser(fakeUser.id, 999999)
+        }
+    }
+
+    @Test
+    fun `try to delete the own user`(){
+        `when`(userRepository.findById(fakeUser.id)).thenReturn(Optional.of(fakeUser))
+        assertThrows<ActionForbiddenException> {
+            userService.deleteUser(fakeUser.id, fakeUser.id)
+        }
+    }
+
 }

@@ -17,7 +17,7 @@ class DbInit(
      * Creates a new admin user in the database if it doesn't exist yet
      */
     @PostConstruct
-    private fun init() {
+    private fun init() {//TODO: find if any use has admin role
         if (emailRepository.findByEmail("admin@gmail.com") != null) return
         userService.createUser(
             UserRegisterInput(

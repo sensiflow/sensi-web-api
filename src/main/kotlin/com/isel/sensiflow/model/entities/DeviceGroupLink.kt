@@ -1,4 +1,4 @@
-package com.isel.sensiflow.model.dao
+package com.isel.sensiflow.model.entities
 
 import jakarta.persistence.EmbeddedId
 import jakarta.persistence.Entity

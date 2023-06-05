@@ -7,13 +7,13 @@ import com.isel.sensiflow.http.entities.input.UserUpdateInput
 import com.isel.sensiflow.http.entities.input.fieldsAreEmpty
 import com.isel.sensiflow.http.entities.input.isTheSameAS
 import com.isel.sensiflow.http.entities.output.UserOutput
-import com.isel.sensiflow.model.dao.Email
-import com.isel.sensiflow.model.dao.SessionToken
-import com.isel.sensiflow.model.dao.User
-import com.isel.sensiflow.model.dao.addEmail
-import com.isel.sensiflow.model.dao.hasExpired
-import com.isel.sensiflow.model.dao.toDTO
-import com.isel.sensiflow.model.dao.toRole
+import com.isel.sensiflow.model.entities.Email
+import com.isel.sensiflow.model.entities.SessionToken
+import com.isel.sensiflow.model.entities.User
+import com.isel.sensiflow.model.entities.addEmail
+import com.isel.sensiflow.model.entities.hasExpired
+import com.isel.sensiflow.model.entities.toDTO
+import com.isel.sensiflow.model.entities.toRole
 import com.isel.sensiflow.model.repository.EmailRepository
 import com.isel.sensiflow.model.repository.SessionTokenRepository
 import com.isel.sensiflow.model.repository.UserRepository
@@ -32,7 +32,6 @@ import org.springframework.transaction.annotation.Isolation
 import org.springframework.transaction.annotation.Transactional
 
 @Service
-@Transactional(noRollbackFor = [InvalidTokenException::class])
 class UserService(
     private val userRepository: UserRepository,
     private val sessionTokenRepository: SessionTokenRepository,
@@ -89,7 +88,7 @@ class UserService(
      * @param userID the user's id to be searched
      * @throws UserNotFoundException if the [User] is not found
      */
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Transactional(isolation = Isolation.READ_COMMITTED, readOnly = true)
     fun getUser(userID: UserID): UserDTO {
         val user = userRepository
             .findById(userID)
@@ -132,7 +131,7 @@ class UserService(
      * @param token the session token to be validated
      * @throws InvalidTokenException if the token is invalid or has expired
      */
-    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    @Transactional(isolation = Isolation.REPEATABLE_READ, noRollbackFor = [InvalidTokenException::class])
     fun validateSessionToken(token: String): UserID {
         val sessionToken = sessionTokenRepository
             .findByToken(token) ?: throw InvalidTokenException("Invalid token")
@@ -250,5 +249,19 @@ class UserService(
         ).addEmail(user.email)
 
         userRepository.save(updatedUser)
+    }
+
+    /**
+     * Deletes a user from the database
+     */
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    fun deleteUser(id: UserID, updatedUserID: UserID) {
+        if(id == updatedUserID){
+            throw ActionForbiddenException("You can't delete yourself")
+        }
+        val user = userRepository.findById(id)
+            .orElseThrow { UserNotFoundException(id) }
+
+        userRepository.delete(user)
     }
 }

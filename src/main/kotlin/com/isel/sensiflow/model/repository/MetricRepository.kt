@@ -1,8 +1,8 @@
 package com.isel.sensiflow.model.repository
 
-import com.isel.sensiflow.model.dao.Device
-import com.isel.sensiflow.model.dao.Metric
-import com.isel.sensiflow.model.dao.MetricID
+import com.isel.sensiflow.model.entities.Device
+import com.isel.sensiflow.model.entities.Metric
+import com.isel.sensiflow.model.entities.MetricID
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository

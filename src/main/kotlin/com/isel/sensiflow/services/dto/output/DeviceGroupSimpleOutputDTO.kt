@@ -1,6 +1,6 @@
 package com.isel.sensiflow.services.dto.output
 
-import com.isel.sensiflow.model.dao.DeviceGroup
+import com.isel.sensiflow.model.entities.DeviceGroup
 import com.isel.sensiflow.services.ID
 import com.isel.sensiflow.services.dto.PageableDTO
 

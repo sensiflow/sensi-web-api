@@ -1,7 +1,7 @@
 package com.isel.sensiflow.services
 
 import com.isel.sensiflow.Constants
-import com.isel.sensiflow.model.dao.DeviceProcessingState
+import com.isel.sensiflow.model.entities.DeviceProcessingState
 
 /**
  * Base class for all service exceptions.

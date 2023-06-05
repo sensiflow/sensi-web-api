@@ -3,8 +3,8 @@ package com.isel.sensiflow.integration
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.isel.sensiflow.Constants
 import com.isel.sensiflow.http.entities.output.IDOutput
-import com.isel.sensiflow.model.dao.Metric
-import com.isel.sensiflow.model.dao.MetricID
+import com.isel.sensiflow.model.entities.Metric
+import com.isel.sensiflow.model.entities.MetricID
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.model.repository.MetricRepository
 import com.isel.sensiflow.services.Role
@@ -586,7 +586,6 @@ class DeviceControllerTests {
                     .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("Test Device"))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.description").value("Test Description"))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.streamURL").value(VALID_STREAM_URL))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.userID").isNumber)
             }
         )
 
@@ -616,7 +615,6 @@ class DeviceControllerTests {
                     .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("Test Device Updated"))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.description").value("Test Description Updated"))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.streamURL").value(VALID_STREAM_URL + "b"))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.userID").isNumber)
             }
         )
 

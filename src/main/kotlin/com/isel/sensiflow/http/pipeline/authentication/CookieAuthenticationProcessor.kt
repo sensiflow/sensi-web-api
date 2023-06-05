@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component
  * Represents the processor for the Authorization Cookie used in the authentication process
  */
 @Component
-class CookieAuthorizationProcessor(
+class CookieAuthenticationProcessor(
     val userServices: UserService
 ) {
     fun process(cookies: Array<Cookie>?): UserID {

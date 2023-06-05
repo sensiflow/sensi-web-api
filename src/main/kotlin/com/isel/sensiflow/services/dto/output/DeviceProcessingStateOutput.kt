@@ -1,6 +1,6 @@
 package com.isel.sensiflow.services.dto.output
 
-import com.isel.sensiflow.model.dao.DeviceProcessingState
+import com.isel.sensiflow.model.entities.DeviceProcessingState
 
 enum class DeviceProcessingStateOutput {
     PENDING,

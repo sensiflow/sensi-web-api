@@ -1,7 +1,7 @@
-import com.isel.sensiflow.model.dao.Device
-import com.isel.sensiflow.model.dao.ProcessedStream
-import com.isel.sensiflow.model.dao.User
-import com.isel.sensiflow.model.dao.Userrole
+import com.isel.sensiflow.model.entities.Device
+import com.isel.sensiflow.model.entities.ProcessedStream
+import com.isel.sensiflow.model.entities.User
+import com.isel.sensiflow.model.entities.Userrole
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.model.repository.ProcessedStreamRepository
 import com.isel.sensiflow.services.DeviceNotFoundException
@@ -62,16 +62,14 @@ class ProcessedStreamTests {
         id = 1,
         name = "Device 1",
         streamURL = "https://example.com/device1/stream",
-        description = "Device 1 description",
-        user = fakeUser
+        description = "Device 1 description"
     )
 
     private val fakeDevice2 = Device(
         id = 2,
         name = "Device 2",
         streamURL = "https://example.com/device2/stream",
-        description = "Device 2 description",
-        user = fakeUser
+        description = "Device 2 description"
     )
 
     private val fakeProcessedStream = ProcessedStream(
@@ -111,7 +109,6 @@ class ProcessedStreamTests {
                 name = fakeDevice.name,
                 streamURL = fakeDevice.streamURL,
                 description = fakeDevice.description,
-                userID = fakeDevice.user.id,
                 processingState = fakeDevice.processingState.toDeviceProcessingStateOutput(),
                 deviceGroupsID = emptyList()
             )

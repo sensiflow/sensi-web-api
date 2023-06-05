@@ -1,6 +1,6 @@
 package com.isel.sensiflow.services.dto.output
 
-import com.isel.sensiflow.model.dao.Metric
+import com.isel.sensiflow.model.entities.Metric
 import com.isel.sensiflow.services.ID
 import java.sql.Timestamp
 

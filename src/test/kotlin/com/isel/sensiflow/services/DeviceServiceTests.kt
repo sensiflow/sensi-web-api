@@ -1,15 +1,14 @@
 package com.isel.sensiflow.services
 
 import com.isel.sensiflow.amqp.instanceController.MessageSender
-import com.isel.sensiflow.model.dao.Device
-import com.isel.sensiflow.model.dao.DeviceGroup
-import com.isel.sensiflow.model.dao.DeviceProcessingState
-import com.isel.sensiflow.model.dao.Email
-import com.isel.sensiflow.model.dao.Metric
-import com.isel.sensiflow.model.dao.MetricID
-import com.isel.sensiflow.model.dao.User
-import com.isel.sensiflow.model.dao.Userrole
-import com.isel.sensiflow.model.dao.addEmail
+import com.isel.sensiflow.model.entities.Device
+import com.isel.sensiflow.model.entities.DeviceGroup
+import com.isel.sensiflow.model.entities.DeviceProcessingState
+import com.isel.sensiflow.model.entities.Email
+import com.isel.sensiflow.model.entities.Metric
+import com.isel.sensiflow.model.entities.MetricID
+import com.isel.sensiflow.model.entities.User
+import com.isel.sensiflow.model.entities.Userrole
 import com.isel.sensiflow.model.repository.DeviceGroupRepository
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.model.repository.MetricRepository
@@ -76,7 +75,6 @@ class DeviceServiceTests {
 
     @BeforeEach
     fun initMocks() {
-        fakeUser.devices.add(fakeDevice)
         fakeUser.email = fakeUserEmail
 
         MockitoAnnotations.openMocks(this)
@@ -104,8 +102,7 @@ class DeviceServiceTests {
         id = 1,
         name = "Device 1",
         streamURL = "rtsp://example.com/device1/stream/buckbuckbunny",
-        description = "Device 1 description",
-        user = fakeUser
+        description = "Device 1 description"
     )
 
     private val fakeDeviceInput = DeviceInputDTO(
@@ -125,29 +122,13 @@ class DeviceServiceTests {
     fun `creating a device with an existing user`() {
         val userId = 1
 
-        `when`(userRepository.findById(userId)).thenReturn(Optional.of(fakeUser))
         `when`(deviceRepository.save(any(Device::class.java))).thenReturn(fakeDevice)
 
         val createdDevice = deviceService.createDevice(fakeDeviceInput, userId)
 
         assertEquals(fakeDevice.toDeviceOutputDTO(expanded = false), createdDevice)
 
-        verify(userRepository, times(1)).findById(userId)
         verify(deviceRepository, times(1)).save(any(Device::class.java))
-    }
-
-    @Test
-    fun `creating a device for a user that does not exist throws UserNotFoundException`() {
-        val userId = 1
-
-        `when`(userRepository.findById(userId)).thenReturn(Optional.empty())
-
-        assertThrows<UserNotFoundException> {
-            deviceService.createDevice(fakeDeviceInput, userId)
-        }
-
-        verify(userRepository, times(1)).findById(userId)
-        verify(deviceRepository, times(0)).save(any(Device::class.java))
     }
 
     @Test
@@ -158,18 +139,15 @@ class DeviceServiceTests {
             id = fakeDevice.id,
             name = fakeDevice.name,
             streamURL = fakeDevice.streamURL,
-            description = "",
-            user = fakeUser
+            description = ""
         )
 
-        `when`(userRepository.findById(userId)).thenReturn(Optional.of(fakeUser))
         `when`(deviceRepository.save(any(Device::class.java))).thenReturn(device)
 
         val createdDevice = deviceService.createDevice(deviceInputNoDescription, userId)
 
         assertEquals(device.toDeviceOutputDTO(expanded = false), createdDevice)
 
-        verify(userRepository, times(1)).findById(userId)
         verify(deviceRepository, times(1)).save(any(Device::class.java))
     }
 
@@ -185,7 +163,6 @@ class DeviceServiceTests {
             name = fakeDevice.name,
             streamURL = fakeDevice.streamURL,
             description = fakeDevice.description,
-            userID = fakeDevice.user.id,
             processingState = DeviceProcessingStateOutput.INACTIVE,
             deviceGroupsID = emptyList()
         )
@@ -201,34 +178,13 @@ class DeviceServiceTests {
                 id = 1,
                 name = "Device 1",
                 streamURL = "https://example.com/device1/stream",
-                description = "Device 1 description",
-                user = User(
-                    id = 1,
-                    firstName = "John",
-                    lastName = "Doe",
-                    role = ADMINRole,
-                    passwordHash = "hash",
-                    passwordSalt = "salt"
-                ).addEmail(fakeUserEmail)
+                description = "Device 1 description"
             ),
             Device(
                 id = 2,
                 name = "Device 2",
                 streamURL = "https://example.com/device2/stream",
                 description = "Device 2 description",
-                user = User(
-                    id = 2,
-                    firstName = "Jane",
-                    lastName = "Doe",
-                    role = ADMINRole,
-                    passwordHash = "hash",
-                    passwordSalt = "salt"
-                ).addEmail(
-                    Email(
-                        user = fakeUser,
-                        email = "janeDoe@email.com"
-                    )
-                )
             )
         )
         val page = PageImpl(devices, PageRequest.of(pageableDTO.page, pageableDTO.size), devices.size.toLong())
@@ -257,8 +213,7 @@ class DeviceServiceTests {
             id = 1,
             name = "Updated Test Device",
             description = "This is an updated test device.",
-            streamURL = "rtsp://example.com/device1/stream",
-            user = fakeDevice.user
+            streamURL = "rtsp://example.com/device1/stream"
         )
         val deviceDto = DeviceUpdateDTO(
             name = updatedDevice.name,
@@ -377,7 +332,6 @@ class DeviceServiceTests {
             streamURL = fakeDevice.streamURL,
             description = fakeDevice.description,
             processingState = from,
-            user = fakeDevice.user
         )
 
         `when`(deviceRepository.findById(existingDevice.id)).thenReturn(Optional.of(existingDevice))
@@ -535,7 +489,6 @@ class DeviceServiceTests {
             description = fakeDevice.description,
             processingState = DeviceProcessingState.INACTIVE,
             pendingUpdate = true,
-            user = fakeDevice.user
         )
         `when`(deviceRepository.findById(deviceID)).thenReturn(Optional.of(device))
 

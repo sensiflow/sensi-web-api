@@ -1,4 +1,4 @@
-package com.isel.sensiflow.model.dao
+package com.isel.sensiflow.model.entities
 
 import com.isel.sensiflow.services.dto.UserDTO
 import jakarta.persistence.Column
@@ -37,8 +37,6 @@ class User(
     @Column(name = "password_salt", nullable = false, length = 32)
     val passwordSalt: String,
 ) {
-    @OneToMany(mappedBy = "user")
-    val devices: MutableSet<Device> = mutableSetOf()
 
     @OneToOne(mappedBy = "user", cascade = [jakarta.persistence.CascadeType.REMOVE], orphanRemoval = true)
     lateinit var email: Email
@@ -64,7 +62,7 @@ fun User.addEmail(email: Email): User {
  */
 fun User.toDTO(): UserDTO {
     if (!isEmailInitialized())
-        throw IllegalStateException("User email not initialized")
+        throw IllegalStateException("User email not initialized")//TODO: no get de todos os users isto ta a dar erro n sei pq
 
     return UserDTO(
         id = this.id,

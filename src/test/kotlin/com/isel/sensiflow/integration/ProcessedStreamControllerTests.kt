@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.isel.sensiflow.Constants
 import com.isel.sensiflow.http.entities.output.IDOutput
-import com.isel.sensiflow.model.dao.ProcessedStream
+import com.isel.sensiflow.model.entities.ProcessedStream
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.model.repository.ProcessedStreamRepository
 import com.isel.sensiflow.services.Role

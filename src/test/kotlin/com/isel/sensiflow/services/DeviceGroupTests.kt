@@ -1,10 +1,10 @@
 package com.isel.sensiflow.services
 
 import com.isel.sensiflow.Constants
-import com.isel.sensiflow.model.dao.Device
-import com.isel.sensiflow.model.dao.DeviceGroup
-import com.isel.sensiflow.model.dao.User
-import com.isel.sensiflow.model.dao.Userrole
+import com.isel.sensiflow.model.entities.Device
+import com.isel.sensiflow.model.entities.DeviceGroup
+import com.isel.sensiflow.model.entities.User
+import com.isel.sensiflow.model.entities.Userrole
 import com.isel.sensiflow.model.repository.DeviceGroupRepository
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.services.dto.PageableDTO
@@ -73,16 +73,14 @@ class DeviceGroupTests {
         id = 1,
         name = "Device 1",
         streamURL = "https://example.com/device1/stream",
-        description = "Device 1 description",
-        user = fakeUserOwner
+        description = "Device 1 description"
     )
 
     private val fakeDevice2 = Device(
         id = 1,
         name = "Device 2",
         streamURL = "https://example.com/device2/stream",
-        description = "Device 2 description",
-        user = fakeUserOwner
+        description = "Device 2 description"
     )
 
     @Test

@@ -1,6 +1,6 @@
 package com.isel.sensiflow.services.dto.output
 
-import com.isel.sensiflow.model.dao.ProcessedStream
+import com.isel.sensiflow.model.entities.ProcessedStream
 import com.isel.sensiflow.services.ID
 
 interface ProcessedStreamOutputDTO {
