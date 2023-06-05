@@ -8,22 +8,22 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.MapsId
 import jakarta.persistence.Table
-import java.time.Instant
+import java.sql.Timestamp
 
 @Entity
 @Table(name = "metric")
-class Metric {
+class Metric(
     @EmbeddedId
-    var id: MetricId? = null
-
-    @MapsId("deviceid")
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "deviceid", nullable = false)
-    var deviceid: Device? = null
+    val id: MetricID,
 
     @Column(name = "end_time", nullable = false)
-    var endTime: Instant? = null
+    val endTime: Timestamp,
 
     @Column(name = "peoplecount", nullable = false)
-    var peoplecount: Int? = null
-}
+    val peopleCount: Int,
+
+    @MapsId("deviceID")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "deviceID", nullable = false)
+    val device: Device
+)

@@ -1,0 +1,189 @@
+{
+    "queues": [
+        {
+            "name": "instance_ctl_test",
+            "vhost": "/",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {
+                "x-queue-type": "classic"
+            }
+        },
+        {
+          "name": "instance_ctl",
+          "vhost": "/",
+          "durable": true,
+          "auto_delete": false,
+          "arguments": {
+            "x-queue-type": "classic"
+          }
+        },
+        {
+          "name": "instance_ack_device_state_test",
+          "vhost": "/",
+          "durable": true,
+          "auto_delete": false,
+          "arguments": {
+              "x-queue-type": "classic"
+          }
+        },
+        {
+          "name": "instance_ack_device_state",
+          "vhost": "/",
+          "durable": true,
+          "auto_delete": false,
+          "arguments": {
+            "x-queue-type": "classic"
+          }
+        },
+        {
+          "name": "instance_ack_device_delete_test",
+          "vhost": "/",
+          "durable": true,
+          "auto_delete": false,
+          "arguments": {
+            "x-queue-type": "classic"
+          }
+        },
+        {
+          "name": "instance_ack_device_delete",
+          "vhost": "/",
+          "durable": true,
+          "auto_delete": false,
+          "arguments": {
+            "x-queue-type": "classic"
+          }
+        }
+    ],
+    "exchanges": [
+        {
+            "name": "instance_ctl_test_exchange",
+            "vhost": "/",
+            "type": "direct",
+            "durable": true,
+            "auto_delete": false,
+            "internal": false,
+            "arguments": {}
+        },
+        {
+          "name": "instance_ctl_exchange",
+          "vhost": "/",
+          "type": "direct",
+          "durable": true,
+          "auto_delete": false,
+          "internal": false,
+          "arguments": {}
+        },
+        {
+          "name": "instance_ack_device_state_test_exchange",
+          "vhost": "/",
+          "type": "direct",
+          "durable": true,
+          "auto_delete": false,
+          "internal": false,
+          "arguments": {}
+        },
+        {
+          "name": "instance_ack_device_state_exchange",
+          "vhost": "/",
+          "type": "direct",
+          "durable": true,
+          "auto_delete": false,
+          "internal": false,
+          "arguments": {}
+        },
+        {
+          "name": "instance_ack_device_delete_test_exchange",
+          "vhost": "/",
+          "type": "direct",
+          "durable": true,
+          "auto_delete": false,
+          "internal": false,
+          "arguments": {}
+        },
+        {
+          "name": "instance_ack_device_delete_exchange",
+          "vhost": "/",
+          "type": "direct",
+          "durable": true,
+          "auto_delete": false,
+          "internal": false,
+          "arguments": {}
+        }
+    ],
+    "bindings": [
+        {
+            "source": "instance_ctl_test_exchange",
+            "vhost": "/",
+            "destination": "instance_ctl_test",
+            "destination_type": "queue",
+            "routing_key": "instance_ctl_test",
+            "arguments": {}
+        },
+        {
+          "source": "instance_ctl_exchange",
+          "vhost": "/",
+          "destination": "instance_ctl",
+          "destination_type": "queue",
+          "routing_key": "instance_ctl",
+          "arguments": {}
+        },
+        {
+          "source": "instance_ack_device_state_test_exchange",
+          "vhost": "/",
+          "destination": "instance_ack_device_state_test",
+          "destination_type": "queue",
+          "routing_key": "instance_ack_device_state_test",
+          "arguments": {}
+        },
+        {
+          "source": "instance_ack_device_state_exchange",
+          "vhost": "/",
+          "destination": "instance_ack_device_state",
+          "destination_type": "queue",
+          "routing_key": "instance_ack_device_state",
+          "arguments": {}
+        },
+        {
+          "source": "instance_ack_device_delete_test_exchange",
+          "vhost": "/",
+          "destination": "instance_ack_device_delete_test",
+          "destination_type": "queue",
+          "routing_key": "instance_ack_device_delete_test",
+          "arguments": {}
+        },
+        {
+          "source": "instance_ack_device_delete_exchange",
+          "vhost": "/",
+          "destination": "instance_ack_device_delete",
+          "destination_type": "queue",
+          "routing_key": "instance_ack_device_delete",
+          "arguments": {}
+        }
+      ],
+      "users": [
+        {
+          "name": "guest",
+          "password_hash": "BMfxN8drrYcIqXZMr+pWTpDT0nMcOagMduLX0bjr4jwud/pN",
+          "hashing_algorithm": "rabbit_password_hashing_sha256",
+          "tags": [
+            "administrator"
+          ],
+          "limits": {}
+        }
+      ],
+      "vhosts": [
+        {
+          "name": "/"
+        }
+      ],
+      "permissions": [
+        {
+          "user": "guest",
+          "vhost": "/",
+          "configure": ".*",
+          "write": ".*",
+          "read": ".*"
+        }
+      ]
+}

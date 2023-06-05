@@ -11,16 +11,16 @@ import jakarta.persistence.Table
 
 @Entity
 @Table(name = "processedstream")
-class ProcessedStream {
+class ProcessedStream(
     @Id
     @Column(name = "deviceid", nullable = false)
-    var id: Int? = null
+    val id: Int = -1,
+
+    @Column(name = "processedstreamurl", nullable = false, length = 200)
+    val processedStreamURL: String,
 
     @MapsId
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @OneToOne(fetch = FetchType.LAZY, optional = false, cascade = [jakarta.persistence.CascadeType.ALL])
     @JoinColumn(name = "deviceid", nullable = false)
-    var device: Device? = null
-
-    @Column(name = "streamurl", nullable = false, length = 200)
-    var streamurl: String? = null
-}
+    val device: Device
+)

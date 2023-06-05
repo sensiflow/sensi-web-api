@@ -5,17 +5,18 @@ import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
-import jakarta.persistence.ManyToOne
+import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 
 @Entity
 @Table(name = "email")
-class Email {
+class Email(
     @Id
     @Column(name = "email", nullable = false, length = 100)
-    var id: String? = null
+    val email: String,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "userid")
-    var userid: User? = null
-}
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "userid", nullable = false)
+    val user: User
+)
+// TODO: remove

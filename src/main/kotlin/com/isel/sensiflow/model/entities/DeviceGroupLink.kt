@@ -10,17 +10,17 @@ import jakarta.persistence.Table
 
 @Entity
 @Table(name = "devicegrouplink")
-class DeviceGroupLink {
+class DeviceGroupLink(
     @EmbeddedId
-    var id: DeviceGroupLinkId? = null
+    val id: DeviceGroupLinkID,
 
-    @MapsId("deviceid")
+    @MapsId("deviceID")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "deviceid", nullable = false)
-    var deviceid: Device? = null
+    @JoinColumn(name = "deviceID", nullable = false)
+    val deviceID: Device,
 
-    @MapsId("groupid")
+    @MapsId("groupID")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "groupid", nullable = false)
-    var groupid: DeviceGroup? = null
-}
+    @JoinColumn(name = "groupID", nullable = false)
+    val groupID: DeviceGroup
+)
