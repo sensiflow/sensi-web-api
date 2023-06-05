@@ -8,6 +8,7 @@ object RequestPaths {
         const val PROCESSING_STATE = "$DEVICE_ID/processing-state"
         const val DEVICE_STATS = "$DEVICE_ID/stats"
         const val DEVICE_PROCESSED_STREAM = "$DEVICE_ID/processed-stream"
+        const val PEOPLE_COUNT_STREAM = "$DEVICE_ID/server-events/people-count"
     }
 
     object DeviceGroups {

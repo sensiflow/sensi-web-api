@@ -1,5 +1,6 @@
 package com.isel.sensiflow.http.controller
 
+
 import com.isel.sensiflow.http.entities.output.IDOutput
 import com.isel.sensiflow.http.entities.output.toIDOutput
 import com.isel.sensiflow.http.pipeline.authentication.Authentication
@@ -82,10 +83,12 @@ class DeviceController(
     }
 
     @Authentication(authorization = ADMIN)
-    @DeleteMapping(RequestPaths.Device.DEVICE_ID)
+    @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun deleteDevice(@PathVariable id: Int) {
-        deviceService.deleteDevice(id)
+    fun deleteDevices(
+        @RequestParam deviceIDs: List<ID>
+    ) {
+        deviceService.deleteDevices(deviceIDs)
     }
 
     @Authentication(authorization = MODERATOR)
@@ -132,6 +135,31 @@ class DeviceController(
                     sseEmitter.send(
                         event
                     )
+                }
+        }
+    }
+
+    @GetMapping(
+        RequestPaths.Device.PEOPLE_COUNT_STREAM,
+        produces = [MediaType.TEXT_EVENT_STREAM_VALUE]
+    )
+    @Authentication(authorization = USER)
+    fun getPeopleCountEvent(@PathVariable id: Int): SseEmitter {
+
+        return launchServerSentEvent { sseEmitter ->
+            deviceService.getPeopleCountFlow(id)
+                .onCompletion { cause ->
+                    if (cause != null)
+                        sseEmitter.completeWithError(cause)
+                    else
+                        sseEmitter.complete()
+                }.collect { peopleCount ->
+
+                    val eventBuilder = SseEmitter.event()
+                        .name("people-count")
+                        .data(peopleCount)
+
+                    sseEmitter.send(eventBuilder)
                 }
         }
     }

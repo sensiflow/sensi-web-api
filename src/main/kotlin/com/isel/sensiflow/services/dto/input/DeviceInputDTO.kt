@@ -14,7 +14,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException
  * @param description The device description
  * @param streamURL The device stream url
  *
- * @throws MethodArgumentNotValidException if the input constraints are not met
  */
 data class DeviceInputDTO(
     @field:NotBlank(message = Constants.Error.DEVICE_NAME_EMPTY)

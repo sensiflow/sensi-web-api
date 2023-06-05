@@ -108,7 +108,7 @@ class AuthorizationTests {
     fun deleteDevice(cookie: Cookie, id: ID) {
         mockMvc.request<DeviceInputDTO, ProblemDetail>(
             method = HTTPMethod.DELETE,
-            uri = "/devices/$id",
+            uri = "/devices?deviceIDs=$id",
             authorization = cookie,
             mapper = mapper,
             assertions = {

@@ -41,6 +41,7 @@ class ErrorHandler : ResponseEntityExceptionHandler() {
             detail = ex.message
             instance = URI(request.requestURI)
         }
+        ex.printStackTrace()
         return problemDetail
     }
 

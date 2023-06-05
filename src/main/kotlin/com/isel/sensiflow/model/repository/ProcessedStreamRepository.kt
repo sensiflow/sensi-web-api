@@ -9,4 +9,5 @@ import org.springframework.stereotype.Repository
 interface ProcessedStreamRepository : JpaRepository<ProcessedStream, Int> {
 
     fun deleteAllByDevice(device: Device)
+    fun deleteAllByDeviceIn(devices: List<Device>)
 }

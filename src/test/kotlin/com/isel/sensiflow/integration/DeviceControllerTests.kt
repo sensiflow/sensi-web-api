@@ -343,7 +343,7 @@ class DeviceControllerTests {
 
         mockMvc.request<NoBody, NoBody>(
             method = HTTPMethod.DELETE,
-            uri = "/devices/${createdDeviceId?.id}",
+            uri = "/devices?deviceIDs=${createdDeviceId?.id}",
             authorization = ADMINCookie,
             mapper = mapper,
             assertions = {
@@ -354,6 +354,113 @@ class DeviceControllerTests {
         mockMvc.request<NoBody, ProblemDetail>(
             method = HTTPMethod.GET,
             uri = "/devices/${createdDeviceId?.id}",
+            authorization = ADMINCookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isNotFound)
+                    .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(Constants.Problem.Title.NOT_FOUND))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(404))
+            }
+        )
+    }
+
+    @Test
+    fun `delete multiple devices`() {
+        val ADMINCookie = ensureCookieNotNull(getCookie(role = Role.ADMIN))
+        val createdDeviceId = createDevice(
+            input = DeviceInputDTO(
+                name = "Test Device",
+                description = "Test Description",
+                streamURL = VALID_STREAM_URL
+            )
+        )
+
+        val createdDeviceId2 = createDevice(
+            input = DeviceInputDTO(
+                name = "Test Device 1",
+                description = "Test Description 1",
+                streamURL = VALID_STREAM_URL
+            )
+        )
+
+        val createdDeviceId3 = createDevice(
+            input = DeviceInputDTO(
+                name = "Test Device 2",
+                description = "Test Description 2",
+                streamURL = VALID_STREAM_URL
+            )
+        )
+
+        mockMvc.request<NoBody, DeviceSimpleOutputDTO>(
+            method = HTTPMethod.GET,
+            uri = "/devices/${createdDeviceId?.id}",
+            authorization = ADMINCookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isOk)
+            }
+        )
+
+        mockMvc.request<NoBody, DeviceSimpleOutputDTO>(
+            method = HTTPMethod.GET,
+            uri = "/devices/${createdDeviceId2?.id}",
+            authorization = ADMINCookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isOk)
+            }
+        )
+
+        mockMvc.request<NoBody, DeviceSimpleOutputDTO>(
+            method = HTTPMethod.GET,
+            uri = "/devices/${createdDeviceId3?.id}",
+            authorization = ADMINCookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isOk)
+            }
+        )
+
+        mockMvc.request<NoBody, NoBody>(
+            method = HTTPMethod.DELETE,
+            uri = "/devices?deviceIDs=${createdDeviceId?.id}, ${createdDeviceId2?.id}, ${createdDeviceId3?.id}",
+            authorization = ADMINCookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isNoContent)
+            }
+        )
+
+        mockMvc.request<NoBody, ProblemDetail>(
+            method = HTTPMethod.GET,
+            uri = "/devices/${createdDeviceId?.id}",
+            authorization = ADMINCookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isNotFound)
+                    .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(Constants.Problem.Title.NOT_FOUND))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(404))
+            }
+        )
+
+        mockMvc.request<NoBody, ProblemDetail>(
+            method = HTTPMethod.GET,
+            uri = "/devices/${createdDeviceId2?.id}",
+            authorization = ADMINCookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isNotFound)
+                    .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(Constants.Problem.Title.NOT_FOUND))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(404))
+            }
+        )
+
+        mockMvc.request<NoBody, ProblemDetail>(
+            method = HTTPMethod.GET,
+            uri = "/devices/${createdDeviceId3?.id}",
             authorization = ADMINCookie,
             mapper = mapper,
             assertions = {
@@ -620,7 +727,7 @@ class DeviceControllerTests {
 
         mockMvc.request<NoBody, NoBody>(
             method = HTTPMethod.DELETE,
-            uri = "/devices/${createdDeviceId?.id}",
+            uri = "/devices?deviceIDs=${createdDeviceId?.id}",
             authorization = ADMINCookie,
             mapper = mapper,
             assertions = {
@@ -630,7 +737,7 @@ class DeviceControllerTests {
 
         mockMvc.request<NoBody, ProblemDetail>(
             method = HTTPMethod.DELETE,
-            uri = "/devices/${createdDeviceId?.id}",
+            uri = "/devices?deviceIDs=${createdDeviceId?.id}",
             authorization = ADMINCookie,
             mapper = mapper,
             assertions = {
@@ -676,7 +783,7 @@ class DeviceControllerTests {
 
         mockMvc.request<NoBody, ProblemDetail>(
             method = HTTPMethod.DELETE,
-            uri = "/devices/$id2",
+            uri = "/devices?deviceIDs=$id2",
             authorization = cookie,
             mapper = mapper,
             assertions = {

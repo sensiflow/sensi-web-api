@@ -12,6 +12,7 @@ import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.model.repository.MetricRepository
 import com.isel.sensiflow.model.repository.ProcessedStreamRepository
 import com.isel.sensiflow.model.repository.UserRepository
+import com.isel.sensiflow.model.repository.requireFindAllById
 import com.isel.sensiflow.services.dto.PageableDTO
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
 import com.isel.sensiflow.services.dto.input.DeviceUpdateDTO
@@ -93,7 +94,7 @@ class DeviceService(
     }
 
     /**
-     * Updates a device.
+     * Updates the device metadata.
      *
      * All provided fields are overwritten, except if in the input the field is null.
      *
@@ -120,33 +121,32 @@ class DeviceService(
     }//TODO: message to queue that url was updated if it changed
 
     /**
-     * Deletes a device.
-     * @param deviceID The id of the device.
-     * @throws DeviceNotFoundException If the device does not exist.
+     * Deletes devices.
+     * @param deviceIDs The ids of the devices.
+     * @throws DeviceNotFoundException If one of the devices does not exist.
      */
     @Transactional(isolation = Isolation.REPEATABLE_READ)
-    fun deleteDevice(deviceID: Int) {
-        val device = deviceRepository.findById(deviceID)
-            .orElseThrow { DeviceNotFoundException(deviceID) }
+    fun deleteDevices(deviceIDs: List<Int>) {
+        val devicesToDelete = deviceRepository.requireFindAllById(deviceIDs)
 
-        device.deviceGroups.forEach { deviceGroup ->
-            deviceGroup.devices.remove(device)
-            deviceGroupRepository.save(deviceGroup)
+        processedStreamRepository.deleteAllByDeviceIn(devicesToDelete)
+        metricRepository.deleteAllByDeviceIn(devicesToDelete)
+        deviceRepository.flagForDeletion(devicesToDelete)
+
+        val deviceGroups = devicesToDelete.flatMap { it.deviceGroups }
+
+        deviceGroups.forEach { group ->
+            group.devices.removeAll(devicesToDelete.toSet())
         }
+        deviceGroupRepository.saveAll(deviceGroups)
 
-        processedStreamRepository.deleteAllByDevice(device)
-
-        metricRepository.deleteAllByDevice(device)
-
-        val queueMessage = InstanceMessage(
-            action = Action.REMOVE,
-            device_id = deviceID,
-            device_stream_url = null
-        )
-
-        deviceRepository.flagForDeletion(deviceID)
-
-        instanceControllerMessageSender.sendMessage(queueMessage)
+        devicesToDelete.map { device ->
+            InstanceMessage(
+                action = Action.REMOVE,
+                device_id = device.id,
+                device_stream_url = null
+            )
+        }.forEach { instanceControllerMessageSender.sendMessage(it) }
     }
 
     /**
@@ -197,7 +197,7 @@ class DeviceService(
     /**
      * Forces an update on the processing state of a device.
      * @param deviceID The id of the device.
-     * @param newProcessingState The new state of the device.
+     * @param newProcessingState The new state of the device (null if no update).
      */
     fun completeUpdateState(deviceID: Int, newProcessingState: DeviceProcessingState?) {
         val storedDevice = deviceRepository.findById(deviceID)
@@ -229,6 +229,8 @@ class DeviceService(
         if (!storedDevice.scheduledForDeletion)
             throw ServiceInternalException("The device is not scheduled for deletion.")
 
+        metricRepository.deleteAllByDevice(storedDevice)
+
         deviceRepository.delete(storedDevice)
     }
 
@@ -248,12 +250,16 @@ class DeviceService(
 
         return metricRepository
             .findAllByDeviceId(storedDevice.id, pageable)
-            .map { metric -> println(metric) ; println(metric.toMetricOutputDTO()) ; metric.toMetricOutputDTO() }
+            .map { metric -> metric.toMetricOutputDTO() }
             .toPageDTO()
     }
 
     /**
-     * TODO: Comment
+     * Gets the people count of a device.
+     *
+     * This method will continuously retrieve
+     * the latest people count of a device until the device is no longer active.
+     *
      */
     fun getPeopleCountFlow(deviceID: ID): Flow<Int> {
         return flow<Int> {
@@ -275,12 +281,15 @@ class DeviceService(
 
     /**
      * Gets the processing state of a device.
+     *
+     * This method will continuously retrieve the latest processing
+     * state of a device until the device is no longer pending an update.
      */
-    fun getDeviceStateFlow(Id: ID): Flow<DeviceProcessingStateOutput> =
+    fun getDeviceStateFlow(id: ID): Flow<DeviceProcessingStateOutput> =
         flow {
             while (true) {
-                val device = deviceRepository.findById(Id)
-                    .orElseThrow { DeviceNotFoundException(Id) }
+                val device = deviceRepository.findById(id)
+                    .orElseThrow { DeviceNotFoundException(id) }
 
                 if (!device.pendingUpdate) {
                     emit(device.processingState.toDeviceProcessingStateOutput())

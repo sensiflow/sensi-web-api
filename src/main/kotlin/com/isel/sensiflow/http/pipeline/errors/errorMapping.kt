@@ -29,23 +29,15 @@ import java.net.URI
 val ServiceException.httpCode: HttpStatus
     get() = when (this) {
         is NotFoundException -> HttpStatus.NOT_FOUND
-
         is InvalidCredentialsException -> HttpStatus.UNAUTHORIZED
-
+        is InvalidTokenException -> HttpStatus.UNAUTHORIZED
         is UnauthenticatedException -> HttpStatus.UNAUTHORIZED
-
         is ActionForbiddenException -> HttpStatus.FORBIDDEN
-
         is InvalidProcessingStateException -> HttpStatus.BAD_REQUEST
         is InvalidProcessingStateTransitionException -> HttpStatus.BAD_REQUEST
         is InvalidParameterException -> HttpStatus.BAD_REQUEST
-
         is ResourceConflictException -> HttpStatus.CONFLICT
         is ServiceInternalException -> HttpStatus.INTERNAL_SERVER_ERROR
-
-        else -> {
-            HttpStatus.INTERNAL_SERVER_ERROR
-        }
     }
 
 /**
