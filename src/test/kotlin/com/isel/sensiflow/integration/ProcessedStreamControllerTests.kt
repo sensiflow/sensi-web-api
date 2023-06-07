@@ -3,6 +3,7 @@ package com.isel.sensiflow.integration
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.isel.sensiflow.Constants
+import com.isel.sensiflow.http.controller.RequestPaths
 import com.isel.sensiflow.http.entities.output.IDOutput
 import com.isel.sensiflow.model.entities.ProcessedStream
 import com.isel.sensiflow.model.repository.DeviceRepository
@@ -74,7 +75,7 @@ class ProcessedStreamControllerTests {
 
         mockMvc.request<Unit, ProcessedStreamSimpleOutputDTO>(
             method = HTTPMethod.GET,
-            uri = "/devices/$id/processed-stream?expanded=false",
+            uri = RequestPaths.Root.ROOT + "/devices/$id/processed-stream?expanded=false",
             authorization = cookie,
             mapper = mapper,
             assertions = {
@@ -112,7 +113,7 @@ class ProcessedStreamControllerTests {
 
         mockMvc.request<Unit, ProcessedStreamExpandedOutputDTO>(
             method = HTTPMethod.GET,
-            uri = "/devices/$id/processed-stream?expanded=true",
+            uri = RequestPaths.Root.ROOT + "/devices/$id/processed-stream?expanded=true",
             authorization = cookie,
             mapper = mapper,
             assertions = {
@@ -131,7 +132,7 @@ class ProcessedStreamControllerTests {
 
         mockMvc.request<Unit, ProblemDetail>(
             method = HTTPMethod.GET,
-            uri = "/devices/-1/processed-stream?expanded=false",
+            uri = RequestPaths.Root.ROOT + "/devices/-1/processed-stream?expanded=false",
             authorization = cookie,
             mapper = mapper,
             assertions = {
@@ -143,7 +144,7 @@ class ProcessedStreamControllerTests {
     private fun createDevice(cookie: Cookie, input: DeviceInputDTO): IDOutput? {
         return mockMvc.request<DeviceInputDTO, IDOutput>(
             method = HTTPMethod.POST,
-            uri = "/devices",
+            uri = RequestPaths.Root.ROOT + "/devices",
             body = input,
             authorization = cookie,
             mapper = mapper,
@@ -159,7 +160,7 @@ class ProcessedStreamControllerTests {
         val loginJson = mapper.writeValueAsString(inputLogin)
 
         val loginResult = mockMvc.perform(
-            MockMvcRequestBuilders.post("/users/login")
+            MockMvcRequestBuilders.post(RequestPaths.Root.ROOT + "/users/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(loginJson)
         ).andExpect(MockMvcResultMatchers.status().isOk)
