@@ -144,7 +144,7 @@ class ProcessedStreamControllerTests {
     private fun createDevice(cookie: Cookie, input: DeviceInputDTO): IDOutput? {
         return mockMvc.request<DeviceInputDTO, IDOutput>(
             method = HTTPMethod.POST,
-            uri = RequestPaths.Root.ROOT +  "/devices",
+            uri = RequestPaths.Root.ROOT + "/devices",
             body = input,
             authorization = cookie,
             mapper = mapper,

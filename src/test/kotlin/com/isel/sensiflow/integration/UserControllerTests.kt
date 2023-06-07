@@ -252,7 +252,7 @@ class UserControllerTests {
         val body = UserRegisterInput(email = "test@email.com", firstName = "Test", lastName = "Test", password = "Password1_.")
         val createUserResponse = mockMvc.request<UserRegisterInput, IDOutput>(
             method = POST,
-            uri =RequestPaths.Root.ROOT +  "/users",
+            uri = RequestPaths.Root.ROOT + "/users",
             body = body,
             authorization = cookie,
             mapper = mapper,
@@ -289,7 +289,7 @@ class UserControllerTests {
         val body = UserRegisterInput(email = "test@email.com", firstName = "Test", lastName = "Test", password = "Password1_.")
         mockMvc.request<UserRegisterInput, AuthOutput>(
             method = POST,
-            uri =RequestPaths.Root.ROOT +  "/users",
+            uri = RequestPaths.Root.ROOT + "/users",
             body = body,
             authorization = cookie,
             mapper = mapper,
@@ -408,7 +408,7 @@ class UserControllerTests {
     fun `get a user with invalid id`() {
         mockMvc.request<UserLoginInput, ProblemDetail>(
             method = GET,
-            uri =RequestPaths.Root.ROOT +  "/users/invalidId",
+            uri = RequestPaths.Root.ROOT + "/users/invalidId",
             mapper = mapper,
             assertions = {
                 andExpect(status().isBadRequest)
@@ -439,7 +439,7 @@ class UserControllerTests {
 
         mockMvc.request<UserLoginInput, IDOutput>(
             method = HTTPMethod.DELETE,
-            uri =RequestPaths.Root.ROOT +  "/users/${userCreationResponse?.id}",
+            uri = RequestPaths.Root.ROOT + "/users/${userCreationResponse?.id}",
             authorization = cookie,
             mapper = mapper,
             assertions = {
@@ -488,7 +488,7 @@ class UserControllerTests {
         val body = UserRegisterInput(email = "test@email.com", firstName = "Test", lastName = "Test", password = "Password1_.")
         mockMvc.request<UserRegisterInput, IDOutput>(
             method = POST,
-            uri =RequestPaths.Root.ROOT + "/users",
+            uri = RequestPaths.Root.ROOT + "/users",
             body = body,
             authorization = cookie,
             mapper = mapper,
