@@ -122,7 +122,7 @@ class DeviceControllerTests {
 
         mockMvc.request<Unit, ProblemDetail>(
             method = HTTPMethod.GET,
-            uri =RequestPaths.Root.ROOT +  "/devices/-1/stats?page=0&size=10",
+            uri = RequestPaths.Root.ROOT + "/devices/-1/stats?page=0&size=10",
             authorization = cookie,
             mapper = mapper,
             assertions = {
@@ -294,7 +294,7 @@ class DeviceControllerTests {
         val moderatorCookie = ensureCookieNotNull(getCookie(role = Role.MODERATOR))
         mockMvc.request<DeviceInputDTO, IDOutput>(
             method = HTTPMethod.POST,
-            uri =RequestPaths.Root.ROOT +  "/devices",
+            uri = RequestPaths.Root.ROOT + "/devices",
             body = DeviceInputDTO(
                 name = "New Device",
                 description = "",
@@ -315,7 +315,7 @@ class DeviceControllerTests {
         val moderatorCookie = ensureCookieNotNull(getCookie(role = Role.MODERATOR))
         mockMvc.request<DeviceInputDTO, IDOutput>(
             method = HTTPMethod.POST,
-            uri =RequestPaths.Root.ROOT +  "/devices",
+            uri = RequestPaths.Root.ROOT + "/devices",
             body = DeviceInputDTO(
                 name = "New Device",
                 description = null,
@@ -344,7 +344,7 @@ class DeviceControllerTests {
 
         mockMvc.request<NoBody, NoBody>(
             method = HTTPMethod.DELETE,
-            uri =RequestPaths.Root.ROOT +  "/devices?deviceIDs=${createdDeviceId?.id}",
+            uri = RequestPaths.Root.ROOT + "/devices?deviceIDs=${createdDeviceId?.id}",
             authorization = ADMINCookie,
             mapper = mapper,
             assertions = {
@@ -415,7 +415,7 @@ class DeviceControllerTests {
 
         mockMvc.request<NoBody, DeviceSimpleOutputDTO>(
             method = HTTPMethod.GET,
-            uri =RequestPaths.Root.ROOT +  "/devices/${createdDeviceId3?.id}",
+            uri = RequestPaths.Root.ROOT + "/devices/${createdDeviceId3?.id}",
             authorization = ADMINCookie,
             mapper = mapper,
             assertions = {
@@ -543,7 +543,7 @@ class DeviceControllerTests {
 
         mockMvc.request<DeviceUpdateDTO, ProblemDetail>(
             method = HTTPMethod.PUT,
-            uri =RequestPaths.Root.ROOT +  "/devices/${createdDeviceId?.id}",
+            uri = RequestPaths.Root.ROOT + "/devices/${createdDeviceId?.id}",
             body = DeviceUpdateDTO(
                 name = "New Device",
                 description = "New Description",
