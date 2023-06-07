@@ -10,7 +10,6 @@ import com.isel.sensiflow.model.entities.DeviceProcessingState
 import com.isel.sensiflow.model.repository.DeviceGroupRepository
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.model.repository.MetricRepository
-import com.isel.sensiflow.model.repository.ProcessedStreamRepository
 import com.isel.sensiflow.model.repository.requireFindAllById
 import com.isel.sensiflow.services.dto.PageableDTO
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
@@ -40,7 +39,6 @@ import org.springframework.transaction.annotation.Transactional
 class DeviceService(
     private val deviceRepository: DeviceRepository,
     private val metricRepository: MetricRepository,
-    private val processedStreamRepository: ProcessedStreamRepository,
     private val instanceControllerMessageSender: MessageSender,
     private val deviceGroupRepository: DeviceGroupRepository,
 ) {
@@ -56,7 +54,8 @@ class DeviceService(
         val newDevice = Device(
             name = deviceInput.name,
             streamURL = deviceInput.streamURL,
-            description = deviceInput.description ?: ""
+            description = deviceInput.description ?: "",
+            processedStreamURL = null
         )
 
         return deviceRepository
@@ -113,7 +112,8 @@ class DeviceService(
             id = storedDevice.id,
             name = deviceUpdateInput.name ?: storedDevice.name,
             streamURL = deviceUpdateInput.streamURL ?: storedDevice.streamURL,
-            description = deviceUpdateInput.description ?: storedDevice.description
+            description = deviceUpdateInput.description ?: storedDevice.description,
+            processedStreamURL = storedDevice.processedStreamURL
         )
 
         deviceRepository.save(updatedDevice)
@@ -128,7 +128,6 @@ class DeviceService(
     fun deleteDevices(deviceIDs: List<Int>) {
         val devicesToDelete = deviceRepository.requireFindAllById(deviceIDs)
 
-        processedStreamRepository.deleteAllByDeviceIn(devicesToDelete)
         metricRepository.deleteAllByDeviceIn(devicesToDelete)
         deviceRepository.flagForDeletion(devicesToDelete)
 
@@ -179,7 +178,8 @@ class DeviceService(
             streamURL = storedDevice.streamURL,
             description = storedDevice.description,
             processingState = storedDevice.processingState,
-            pendingUpdate = true
+            pendingUpdate = true,
+            processedStreamURL = storedDevice.processedStreamURL
         )
 
         deviceRepository.save(deviceWithUpdatedState)
@@ -211,7 +211,8 @@ class DeviceService(
             streamURL = storedDevice.streamURL,
             description = storedDevice.description,
             processingState = newProcessingState ?: storedDevice.processingState,
-            pendingUpdate = false
+            pendingUpdate = false,
+            processedStreamURL = storedDevice.processedStreamURL
         )
 
         deviceRepository.save(deviceWithUpdatedState)

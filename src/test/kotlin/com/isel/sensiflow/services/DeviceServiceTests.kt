@@ -4,7 +4,6 @@ import com.isel.sensiflow.amqp.instanceController.MessageSender
 import com.isel.sensiflow.model.entities.Device
 import com.isel.sensiflow.model.entities.DeviceGroup
 import com.isel.sensiflow.model.entities.DeviceProcessingState
-import com.isel.sensiflow.model.entities.Email
 import com.isel.sensiflow.model.entities.Metric
 import com.isel.sensiflow.model.entities.MetricID
 import com.isel.sensiflow.model.entities.User
@@ -12,7 +11,6 @@ import com.isel.sensiflow.model.entities.Userrole
 import com.isel.sensiflow.model.repository.DeviceGroupRepository
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.model.repository.MetricRepository
-import com.isel.sensiflow.model.repository.ProcessedStreamRepository
 import com.isel.sensiflow.model.repository.UserRepository
 import com.isel.sensiflow.services.dto.PageableDTO
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
@@ -70,13 +68,9 @@ class DeviceServiceTests {
     @Mock
     private lateinit var deviceGroupRepository: DeviceGroupRepository
 
-    @Mock
-    private lateinit var processedStreamRepository: ProcessedStreamRepository
 
     @BeforeEach
     fun initMocks() {
-        fakeUser.email = fakeUserEmail
-
         MockitoAnnotations.openMocks(this)
     }
 
@@ -91,18 +85,17 @@ class DeviceServiceTests {
         lastName = "Doe",
         role = ADMINRole,
         passwordHash = "hash",
-        passwordSalt = "salt"
-    )
-    private val fakeUserEmail = Email(
-        user = fakeUser,
+        passwordSalt = "salt",
         email = "johnDoe@email.com"
     )
+
 
     private val fakeDevice = Device(
         id = 1,
         name = "Device 1",
         streamURL = "rtsp://example.com/device1/stream/buckbuckbunny",
-        description = "Device 1 description"
+        description = "Device 1 description",
+        processedStreamURL = null
     )
 
     private val fakeDeviceInput = DeviceInputDTO(
@@ -139,7 +132,8 @@ class DeviceServiceTests {
             id = fakeDevice.id,
             name = fakeDevice.name,
             streamURL = fakeDevice.streamURL,
-            description = ""
+            description = "",
+            processedStreamURL = null
         )
 
         `when`(deviceRepository.save(any(Device::class.java))).thenReturn(device)
@@ -164,7 +158,8 @@ class DeviceServiceTests {
             streamURL = fakeDevice.streamURL,
             description = fakeDevice.description,
             processingState = DeviceProcessingStateOutput.INACTIVE,
-            deviceGroupsID = emptyList()
+            deviceGroupsID = emptyList(),
+            processedStreamURL = null
         )
         assertEquals(expected, retrievedDevice)
         verify(deviceRepository, times(1)).findById(deviceId)
@@ -178,13 +173,15 @@ class DeviceServiceTests {
                 id = 1,
                 name = "Device 1",
                 streamURL = "https://example.com/device1/stream",
-                description = "Device 1 description"
+                description = "Device 1 description",
+                processedStreamURL = null
             ),
             Device(
                 id = 2,
                 name = "Device 2",
                 streamURL = "https://example.com/device2/stream",
                 description = "Device 2 description",
+                processedStreamURL = null
             )
         )
         val page = PageImpl(devices, PageRequest.of(pageableDTO.page, pageableDTO.size), devices.size.toLong())
@@ -213,7 +210,8 @@ class DeviceServiceTests {
             id = 1,
             name = "Updated Test Device",
             description = "This is an updated test device.",
-            streamURL = "rtsp://example.com/device1/stream"
+            streamURL = "rtsp://example.com/device1/stream",
+            processedStreamURL = null
         )
         val deviceDto = DeviceUpdateDTO(
             name = updatedDevice.name,
@@ -315,7 +313,6 @@ class DeviceServiceTests {
 
         verify(deviceRepository, times(1)).flagForDeletion(devicesToDelete)
         verify(deviceGroupRepository, times(1)).saveAll(anyList())
-        verify(processedStreamRepository, times(1)).deleteAllByDeviceIn(devicesToDelete)
         verify(metricRepository, times(1)).deleteAllByDeviceIn(devicesToDelete)
     }
 
@@ -333,6 +330,7 @@ class DeviceServiceTests {
             streamURL = fakeDevice.streamURL,
             description = fakeDevice.description,
             processingState = from,
+            processedStreamURL = null
         )
 
         `when`(deviceRepository.findById(existingDevice.id)).thenReturn(Optional.of(existingDevice))
@@ -490,6 +488,7 @@ class DeviceServiceTests {
             description = fakeDevice.description,
             processingState = DeviceProcessingState.INACTIVE,
             pendingUpdate = true,
+            processedStreamURL = null
         )
         `when`(deviceRepository.findById(deviceID)).thenReturn(Optional.of(device))
 

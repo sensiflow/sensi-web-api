@@ -9,6 +9,7 @@ interface DeviceOutputDTO {
     val description: String?
     val streamURL: String
     val processingState: DeviceProcessingStateOutput
+    val processedStreamURL : String?
 }
 
 /**
@@ -17,7 +18,6 @@ interface DeviceOutputDTO {
  * @param name The device name
  * @param description The device description
  * @param streamURL The device stream url
- * @param userID The device user id
  */
 data class DeviceSimpleOutputDTO(
     override val id: ID,
@@ -25,7 +25,8 @@ data class DeviceSimpleOutputDTO(
     override val description: String?,
     override val streamURL: String,
     override val processingState: DeviceProcessingStateOutput,
-    val deviceGroupsID: List<Int>
+    val deviceGroupsID: List<Int>,
+    override val processedStreamURL: String?
 ) : DeviceOutputDTO
 
 /**
@@ -34,7 +35,6 @@ data class DeviceSimpleOutputDTO(
  * @param name The device name
  * @param description The device description
  * @param streamURL The device stream url
- * @param user The device user
  */
 data class DeviceExpandedOutputDTO(
     override val id: ID,
@@ -42,7 +42,8 @@ data class DeviceExpandedOutputDTO(
     override val description: String?,
     override val streamURL: String,
     override val processingState: DeviceProcessingStateOutput,
-    val deviceGroups: List<DeviceGroupOutputDTO>
+    val deviceGroups: List<DeviceGroupOutputDTO>,
+    override val processedStreamURL: String?
 ) : DeviceOutputDTO
 
 /**
@@ -60,7 +61,8 @@ fun Device.toDeviceOutputDTO(expanded: Boolean): DeviceOutputDTO {
             streamURL = this.streamURL,
             processingState = processingStateOutput,
             deviceGroups = this.deviceGroups
-                .map { it.toDeviceGroupOutputDTO(expanded = false) }
+                .map { it.toDeviceGroupOutputDTO(expanded = false) },
+            processedStreamURL = this.processedStreamURL
 
         )
     } else {
@@ -70,7 +72,8 @@ fun Device.toDeviceOutputDTO(expanded: Boolean): DeviceOutputDTO {
             description = this.description,
             streamURL = this.streamURL,
             processingState = processingStateOutput,
-            deviceGroupsID = this.deviceGroups.map { it.id }
+            deviceGroupsID = this.deviceGroups.map { it.id },
+            processedStreamURL = this.processedStreamURL
         )
     }
 }

@@ -36,37 +36,26 @@ class User(
 
     @Column(name = "password_salt", nullable = false, length = 32)
     val passwordSalt: String,
+
+    @Column(name = "email", nullable = false, length = 100)
+    val email: String,
 ) {
 
-    @OneToOne(mappedBy = "user", cascade = [jakarta.persistence.CascadeType.REMOVE], orphanRemoval = true)
-    lateinit var email: Email
 
     @OneToMany(mappedBy = "user", cascade = [jakarta.persistence.CascadeType.REMOVE], orphanRemoval = true)
-    val sessionTokens: MutableSet<SessionToken> = mutableSetOf() // TODO: pensar na tabela dos tokens se é necessario
+    val sessionTokens: MutableSet<SessionToken> = mutableSetOf()
 
-    fun isEmailInitialized() = this::email.isInitialized
 }
 
-/**
- * Adds an email to a user
- * @param email the email to add
- * @return the user
- */
-fun User.addEmail(email: Email): User {
-    this.email = email
-    return this
-}
 
 /**
  * Converts a [User] to a [UserDTO]
  */
 fun User.toDTO(): UserDTO {
-    if (!isEmailInitialized())
-        throw IllegalStateException("User email not initialized") // TODO: no get de todos os users isto ta a dar erro n sei pq
 
     return UserDTO(
         id = this.id,
-        email = email.email,
+        email = email,
         role = this.role.toRole(),
         firstName = this.firstName,
         lastName = this.lastName,

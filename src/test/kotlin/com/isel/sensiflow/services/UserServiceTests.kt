@@ -4,11 +4,9 @@ import com.isel.sensiflow.Constants.User.SESSION_EXPIRATION_TIME
 import com.isel.sensiflow.http.entities.input.UserLoginInput
 import com.isel.sensiflow.http.entities.input.UserRegisterInput
 import com.isel.sensiflow.http.entities.input.UserUpdateInput
-import com.isel.sensiflow.model.entities.Email
 import com.isel.sensiflow.model.entities.SessionToken
 import com.isel.sensiflow.model.entities.User
 import com.isel.sensiflow.model.entities.Userrole
-import com.isel.sensiflow.model.repository.EmailRepository
 import com.isel.sensiflow.model.repository.SessionTokenRepository
 import com.isel.sensiflow.model.repository.UserRepository
 import com.isel.sensiflow.model.repository.UserRoleRepository
@@ -37,8 +35,6 @@ class UserServiceTests {
     @Mock
     private lateinit var userRepository: UserRepository
 
-    @Mock
-    private lateinit var emailRepository: EmailRepository
 
     @Mock
     private lateinit var tokenRepository: SessionTokenRepository
@@ -48,7 +44,6 @@ class UserServiceTests {
 
     @BeforeEach
     fun initMocks() {
-        fakeUser.email = fakeUserEmail
         fakeUser.sessionTokens.add(fakeToken)
 
         MockitoAnnotations.openMocks(this)
@@ -70,13 +65,11 @@ class UserServiceTests {
         lastName = "Doe",
         role = ADMINRole,
         passwordHash = "cff70d1997acd2093cbfca9b66ace24a70deb47c4b5b4ec9f87b83f881432070a8708f2bcd578dc5466de2e07c88c314f76cab9719294e91bf99fb7f76770b9e",
-        passwordSalt = "[B@55614340"
-    )
-
-    private val fakeUserEmail = Email(
-        user = fakeUser,
+        passwordSalt = "[B@55614340",
         email = "johnDoe@email.com"
     )
+
+
 
     private val timeNow = System.currentTimeMillis()
     private val fakeToken = SessionToken(
@@ -100,10 +93,9 @@ class UserServiceTests {
     @Test
     fun `register user successfully`() {
 
-        `when`(emailRepository.findByEmail(fakeUserEmail.email)).thenReturn(Optional.empty())
+        `when`(userRepository.findByEmail(fakeUser.email)).thenReturn(Optional.empty())
 
         `when`(userRoleRepository.findByRole(Role.USER.name)).thenReturn(Optional.of(userRole))
-        `when`(emailRepository.save(ArgumentMatchers.any(Email::class.java))).thenReturn(fakeUserEmail)
         `when`(userRepository.save(ArgumentMatchers.any(User::class.java))).thenReturn(fakeUser)
         `when`(tokenRepository.save(ArgumentMatchers.any(SessionToken::class.java))).thenReturn(fakeToken)
 
@@ -111,13 +103,12 @@ class UserServiceTests {
 
         assertEquals(fakeUser.id, userID)
 
-        verify(emailRepository, times(1)).findByEmail(fakeUserEmail.email)
-        verify(userRepository, times(2)).save(ArgumentMatchers.any(User::class.java))
+        verify(userRepository, times(1)).save(ArgumentMatchers.any(User::class.java))
     }
 
     @Test
     fun `trying to register a user with an existing email`() {
-        `when`(emailRepository.findByEmail(fakeUserEmail.email)).thenReturn(Optional.of(fakeUserEmail))
+        `when`(userRepository.findByEmail(fakeUser.email)).thenReturn(Optional.of(fakeUser))
         assertThrows<EmailAlreadyExistsException> {
             userService.createUser(fakeUserInput)
         }
@@ -130,7 +121,7 @@ class UserServiceTests {
         val result = userService.getUser(fakeUser.id)
         assertEquals(fakeUser.firstName, result.firstName)
         assertEquals(fakeUser.lastName, result.lastName)
-        assertEquals(fakeUser.email.email, result.email)
+        assertEquals(fakeUser.email, result.email)
         assertTrue(fakeUser.sessionTokens.contains(fakeToken))
     }
 
@@ -144,7 +135,7 @@ class UserServiceTests {
 
     @Test
     fun `login a user successfully`() {
-        `when`(emailRepository.findByEmail(fakeUserEmail.email)).thenReturn(Optional.of(fakeUserEmail))
+        `when`(userRepository.findByEmail(fakeUser.email)).thenReturn(Optional.of(fakeUser))
         `when`(tokenRepository.save(ArgumentMatchers.any(SessionToken::class.java))).thenReturn(fakeToken)
 
         val result = userService.authenticateUser(userLoginInput)
@@ -155,7 +146,7 @@ class UserServiceTests {
 
     @Test
     fun `login a user that already had a sessionToken`() {
-        `when`(emailRepository.findByEmail(fakeUserEmail.email)).thenReturn(Optional.of(fakeUserEmail))
+        `when`(userRepository.findByEmail(fakeUser.email)).thenReturn(Optional.of(fakeUser))
         `when`(tokenRepository.findByUser(fakeUser)).thenReturn(fakeToken)
         `when`(tokenRepository.save(ArgumentMatchers.any(SessionToken::class.java))).thenReturn(fakeToken)
 
@@ -171,7 +162,7 @@ class UserServiceTests {
 
     @Test
     fun `login a user with a wrong password`() {
-        `when`(emailRepository.findByEmail(fakeUserEmail.email)).thenReturn(Optional.of(fakeUserEmail))
+        `when`(userRepository.findByEmail(fakeUser.email)).thenReturn(Optional.of(fakeUser))
         assertThrows<InvalidCredentialsException> {
             userService.authenticateUser(userLoginInput.copy(password = "wrongPassword"))
         }
@@ -185,7 +176,7 @@ class UserServiceTests {
             expiration = (timeNow - SESSION_EXPIRATION_TIME).toTimeStamp()
         )
 
-        `when`(emailRepository.findByEmail(fakeUserEmail.email)).thenReturn(Optional.of(fakeUserEmail))
+        `when`(userRepository.findByEmail(fakeUser.email)).thenReturn(Optional.of(fakeUser))
         `when`(tokenRepository.findByUser(fakeUser)).thenReturn(fakeExpiredToken)
         `when`(tokenRepository.save(ArgumentMatchers.any(SessionToken::class.java))).thenReturn(fakeToken)
 
@@ -200,7 +191,7 @@ class UserServiceTests {
 
     @Test
     fun `try to login a user with an invalid email`() {
-        `when`(emailRepository.findByEmail(fakeUserEmail.email)).thenReturn(Optional.empty())
+        `when`(userRepository.findByEmail(fakeUser.email)).thenReturn(Optional.empty())
         assertThrows<EmailNotFoundException> {
             userService.authenticateUser(userLoginInput)
         }

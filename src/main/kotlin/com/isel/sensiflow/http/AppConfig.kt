@@ -28,7 +28,7 @@ class AppConfig(
     override fun addInterceptors(registry: org.springframework.web.servlet.config.annotation.InterceptorRegistry) {
         registry.addInterceptor(authenticationInterceptor)
     }
-
+//TODO: remover cors since it is no longer necessary
     override fun addCorsMappings(registry: CorsRegistry) {
         registry
             .addMapping("/**")

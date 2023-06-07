@@ -7,14 +7,11 @@ import com.isel.sensiflow.http.entities.input.UserUpdateInput
 import com.isel.sensiflow.http.entities.input.fieldsAreEmpty
 import com.isel.sensiflow.http.entities.input.isTheSameAS
 import com.isel.sensiflow.http.entities.output.UserOutput
-import com.isel.sensiflow.model.entities.Email
 import com.isel.sensiflow.model.entities.SessionToken
 import com.isel.sensiflow.model.entities.User
-import com.isel.sensiflow.model.entities.addEmail
 import com.isel.sensiflow.model.entities.hasExpired
 import com.isel.sensiflow.model.entities.toDTO
 import com.isel.sensiflow.model.entities.toRole
-import com.isel.sensiflow.model.repository.EmailRepository
 import com.isel.sensiflow.model.repository.SessionTokenRepository
 import com.isel.sensiflow.model.repository.UserRepository
 import com.isel.sensiflow.model.repository.UserRoleRepository
@@ -35,7 +32,6 @@ import org.springframework.transaction.annotation.Transactional
 class UserService(
     private val userRepository: UserRepository,
     private val sessionTokenRepository: SessionTokenRepository,
-    private val emailRepository: EmailRepository,
     private val userRoleRepository: UserRoleRepository
 ) {
 
@@ -47,7 +43,7 @@ class UserService(
      */
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     fun createUser(userInput: UserRegisterInput, role: Role = Role.USER): UserID {
-        emailRepository
+        userRepository
             .findByEmail(userInput.email)
             .ifPresent { throw EmailAlreadyExistsException(userInput.email) }
 
@@ -65,18 +61,10 @@ class UserService(
                 lastName = userInput.lastName,
                 role = userRole,
                 passwordHash = hashedPassword,
-                passwordSalt = salt
+                passwordSalt = salt,
+                email = userInput.email
             )
         )
-
-        val email = emailRepository.save(
-            Email(
-                email = userInput.email,
-                user = user
-            )
-        )
-
-        userRepository.save(user.addEmail(email))
 
         return user.id
     }
@@ -151,10 +139,9 @@ class UserService(
      */
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     fun authenticateUser(userInput: UserLoginInput): AuthInformationDTO {
-        val email = emailRepository.findByEmail(userInput.email)
+        val user = userRepository.findByEmail(userInput.email)
             .orElseThrow { EmailNotFoundException(userInput.email) }
 
-        val user = email.user
 
         if (hashPassword(userInput.password, user.passwordSalt) != user.passwordHash) {
             throw InvalidCredentialsException("Invalid password")
@@ -193,7 +180,8 @@ class UserService(
                 lastName = user.lastName,
                 role = user.role,
                 passwordHash = user.passwordHash,
-                passwordSalt = user.passwordSalt
+                passwordSalt = user.passwordSalt,
+                email = user.email
             )
         )
     }
@@ -239,8 +227,9 @@ class UserService(
                 hashPassword(it, user.passwordSalt)
             } ?: user.passwordHash,
             passwordSalt = user.passwordSalt,
-            role = user.role
-        ).addEmail(user.email)
+            role = user.role,
+            email = user.email
+        )
 
         userRepository.save(updatedUser)
     }
