@@ -10,7 +10,6 @@ import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
-import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 
 @Entity
@@ -29,7 +28,7 @@ class User(
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "role", nullable = false)
-    val role: Userrole,
+    val role: UserRole,
 
     @Column(name = "password_hash", nullable = false, length = 200)
     val passwordHash: String,
@@ -41,12 +40,9 @@ class User(
     val email: String,
 ) {
 
-
     @OneToMany(mappedBy = "user", cascade = [jakarta.persistence.CascadeType.REMOVE], orphanRemoval = true)
     val sessionTokens: MutableSet<SessionToken> = mutableSetOf()
-
 }
-
 
 /**
  * Converts a [User] to a [UserDTO]

@@ -6,10 +6,11 @@ import com.isel.sensiflow.http.entities.input.UserRegisterInput
 import com.isel.sensiflow.http.entities.input.UserUpdateInput
 import com.isel.sensiflow.model.entities.SessionToken
 import com.isel.sensiflow.model.entities.User
-import com.isel.sensiflow.model.entities.Userrole
+import com.isel.sensiflow.model.entities.UserRole
 import com.isel.sensiflow.model.repository.SessionTokenRepository
 import com.isel.sensiflow.model.repository.UserRepository
 import com.isel.sensiflow.model.repository.UserRoleRepository
+import com.isel.sensiflow.services.dto.input.UserRoleInput
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -35,7 +36,6 @@ class UserServiceTests {
     @Mock
     private lateinit var userRepository: UserRepository
 
-
     @Mock
     private lateinit var tokenRepository: SessionTokenRepository
 
@@ -49,14 +49,19 @@ class UserServiceTests {
         MockitoAnnotations.openMocks(this)
     }
 
-    private val ADMINRole = Userrole(
+    private val ADMINRole = UserRole(
         id = 1,
         role = Role.ADMIN.name
     )
 
-    private val userRole = Userrole(
+    private val userRole = UserRole(
         id = 2,
         role = Role.USER.name
+    )
+
+    private val MODRole = UserRole(
+        id = 3,
+        role = Role.MODERATOR.name
     )
 
     private val fakeUser = User(
@@ -69,7 +74,15 @@ class UserServiceTests {
         email = "johnDoe@email.com"
     )
 
-
+    private val fakeUser2 = User(
+        id = 2,
+        firstName = "Johnd",
+        lastName = "Doed",
+        role = MODRole,
+        passwordHash = "cff70d1997acd2093cbfca9b66ace24a70deb47c4b5b4ec9f87b83f881432070a8708f2bcd578dc5466de2e07c88c314f76cab9719294e91bf99fb7f76770b9e",
+        passwordSalt = "[B@55614340",
+        email = "johnDoed@email.com"
+    )
 
     private val timeNow = System.currentTimeMillis()
     private val fakeToken = SessionToken(
@@ -287,6 +300,39 @@ class UserServiceTests {
         `when`(userRepository.findById(fakeUser.id)).thenReturn(Optional.of(fakeUser))
         assertThrows<ActionForbiddenException> {
             userService.deleteUser(fakeUser.id, fakeUser.id)
+        }
+    }
+
+    @Test
+    fun `try to update a role with a non existant one`() {
+        `when`(userRepository.findById(fakeUser.id)).thenReturn(Optional.of(fakeUser))
+        assertThrows<RoleNotFoundException> {
+            userService.updateRole(fakeUser.id, UserRoleInput("nonExistantRole"))
+        }
+    }
+
+    @Test
+    fun `update a role sucessfully while admin`() {
+        `when`(userRoleRepository.findByRole("MODERATOR")).thenReturn(Optional.of(MODRole))
+        `when`(userRepository.findById(fakeUser.id)).thenReturn(Optional.of(fakeUser))
+        userService.updateRole(fakeUser.id, UserRoleInput("MODERATOR"))
+        verify(userRepository, times(1)).save(ArgumentMatchers.any(User::class.java))
+    }
+
+    @Test
+    fun `Role wont update if the user has the same role as input`() {
+        `when`(userRoleRepository.findByRole("ADMIN")).thenReturn(Optional.of(ADMINRole))
+        `when`(userRepository.findById(fakeUser.id)).thenReturn(Optional.of(fakeUser))
+        userService.updateRole(fakeUser.id, UserRoleInput("ADMIN"))
+        verify(userRepository, times(0)).save(ArgumentMatchers.any(User::class.java))
+    }
+
+    @Test
+    fun `try to update a role of a non existant user`() {
+        `when`(userRoleRepository.findByRole("ADMIN")).thenReturn(Optional.of(ADMINRole))
+        `when`(userRepository.findById(fakeUser.id)).thenReturn(Optional.empty())
+        assertThrows<UserNotFoundException> {
+            userService.updateRole(fakeUser.id, UserRoleInput("ADMIN"))
         }
     }
 }

@@ -9,7 +9,7 @@ interface DeviceOutputDTO {
     val description: String?
     val streamURL: String
     val processingState: DeviceProcessingStateOutput
-    val processedStreamURL : String?
+    val processedStreamURL: String?
 }
 
 /**
