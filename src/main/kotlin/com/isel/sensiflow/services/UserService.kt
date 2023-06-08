@@ -42,7 +42,7 @@ class UserService(
      * @throws EmailAlreadyExistsException if the email already exists
      */
     @Transactional(isolation = Isolation.REPEATABLE_READ)
-    fun createUser(userInput: UserRegisterInput, role: Role = Role.USER): UserID {//TODO: add role to input
+    fun createUser(userInput: UserRegisterInput, role: Role = Role.USER): UserID { // TODO: add role to input
         userRepository
             .findByEmail(userInput.email)
             .ifPresent { throw EmailAlreadyExistsException(userInput.email) }
@@ -142,7 +142,6 @@ class UserService(
         val user = userRepository.findByEmail(userInput.email)
             .orElseThrow { EmailNotFoundException(userInput.email) }
 
-
         if (hashPassword(userInput.password, user.passwordSalt) != user.passwordHash) {
             throw InvalidCredentialsException("Invalid password")
         }
@@ -175,11 +174,10 @@ class UserService(
                 RoleNotFoundException(input.role)
             }
 
-
         val user = userRepository.findById(userID)
             .orElseThrow { UserNotFoundException(userID) }
 
-        if(user.role == role) {
+        if (user.role == role) {
             return
         }
 

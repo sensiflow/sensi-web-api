@@ -68,7 +68,6 @@ class DeviceServiceTests {
     @Mock
     private lateinit var deviceGroupRepository: DeviceGroupRepository
 
-
     @BeforeEach
     fun initMocks() {
         MockitoAnnotations.openMocks(this)
@@ -88,7 +87,6 @@ class DeviceServiceTests {
         passwordSalt = "salt",
         email = "johnDoe@email.com"
     )
-
 
     private val fakeDevice = Device(
         id = 1,

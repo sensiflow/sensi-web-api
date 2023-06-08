@@ -36,14 +36,11 @@ class UserServiceTests {
     @Mock
     private lateinit var userRepository: UserRepository
 
-
     @Mock
     private lateinit var tokenRepository: SessionTokenRepository
 
     @Mock
     private lateinit var userRoleRepository: UserRoleRepository
-
-
 
     @BeforeEach
     fun initMocks() {
@@ -86,8 +83,6 @@ class UserServiceTests {
         passwordSalt = "[B@55614340",
         email = "johnDoed@email.com"
     )
-
-
 
     private val timeNow = System.currentTimeMillis()
     private val fakeToken = SessionToken(
@@ -309,7 +304,7 @@ class UserServiceTests {
     }
 
     @Test
-    fun `try to update a role with a non existant one`(){
+    fun `try to update a role with a non existant one`() {
         `when`(userRepository.findById(fakeUser.id)).thenReturn(Optional.of(fakeUser))
         assertThrows<RoleNotFoundException> {
             userService.updateRole(fakeUser.id, UserRoleInput("nonExistantRole"))
@@ -317,7 +312,7 @@ class UserServiceTests {
     }
 
     @Test
-    fun `update a role sucessfully while admin`(){
+    fun `update a role sucessfully while admin`() {
         `when`(userRoleRepository.findByRole("MODERATOR")).thenReturn(Optional.of(MODRole))
         `when`(userRepository.findById(fakeUser.id)).thenReturn(Optional.of(fakeUser))
         userService.updateRole(fakeUser.id, UserRoleInput("MODERATOR"))
@@ -325,7 +320,7 @@ class UserServiceTests {
     }
 
     @Test
-    fun  `Role wont update if the user has the same role as input`(){
+    fun `Role wont update if the user has the same role as input`() {
         `when`(userRoleRepository.findByRole("ADMIN")).thenReturn(Optional.of(ADMINRole))
         `when`(userRepository.findById(fakeUser.id)).thenReturn(Optional.of(fakeUser))
         userService.updateRole(fakeUser.id, UserRoleInput("ADMIN"))
@@ -333,13 +328,11 @@ class UserServiceTests {
     }
 
     @Test
-    fun `try to update a role of a non existant user`(){
+    fun `try to update a role of a non existant user`() {
         `when`(userRoleRepository.findByRole("ADMIN")).thenReturn(Optional.of(ADMINRole))
         `when`(userRepository.findById(fakeUser.id)).thenReturn(Optional.empty())
         assertThrows<UserNotFoundException> {
             userService.updateRole(fakeUser.id, UserRoleInput("ADMIN"))
         }
     }
-
-
 }

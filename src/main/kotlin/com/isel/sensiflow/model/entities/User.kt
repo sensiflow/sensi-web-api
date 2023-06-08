@@ -40,12 +40,9 @@ class User(
     val email: String,
 ) {
 
-
     @OneToMany(mappedBy = "user", cascade = [jakarta.persistence.CascadeType.REMOVE], orphanRemoval = true)
     val sessionTokens: MutableSet<SessionToken> = mutableSetOf()
-
 }
-
 
 /**
  * Converts a [User] to a [UserDTO]

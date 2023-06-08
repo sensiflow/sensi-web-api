@@ -31,7 +31,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
-import java.util.*
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @RunWith(org.springframework.test.context.junit4.SpringRunner::class)
@@ -593,7 +592,6 @@ class UserControllerTests {
         )
     }
 
-
     @Test
     fun `try to update a user's role to a non existent role`() {
         val (id, cookie, _) = createAdminTestUser()
@@ -617,7 +615,7 @@ class UserControllerTests {
     }
 
     @Test
-    fun `try to update the role of a non existant user`(){
+    fun `try to update the role of a non existant user`() {
         val (_, cookie, _) = createAdminTestUser()
 
         val updateBody = UserRoleInput(
@@ -639,7 +637,7 @@ class UserControllerTests {
     }
 
     @Test
-    fun `update a role sucessfully`(){
+    fun `update a role sucessfully`() {
         val (id, cookie, _) = createAdminTestUser()
 
         val updateBody = UserRoleInput(
@@ -648,7 +646,7 @@ class UserControllerTests {
 
         mockMvc.request<UserRoleInput, Unit>(
             method = HTTPMethod.PUT,
-            uri = RequestPaths.Root.ROOT + "/users/${id}/role",
+            uri = RequestPaths.Root.ROOT + "/users/$id/role",
             body = updateBody,
             authorization = cookie,
             mapper = mapper,
@@ -659,7 +657,7 @@ class UserControllerTests {
 
         mockMvc.request<Unit, UserOutput>(
             method = GET,
-            uri = RequestPaths.Root.ROOT + "/users/${id}",
+            uri = RequestPaths.Root.ROOT + "/users/$id",
             authorization = cookie,
             mapper = mapper,
             assertions = {
@@ -668,10 +666,7 @@ class UserControllerTests {
                     .andExpect(jsonPath("$.role").value("MODERATOR"))
             }
         )
-
-
     }
-
 
     private fun createAdminTestUser(): TestUserInfo {
         val loginInput = createTestUser(userService, role = ADMIN, counter++)
