@@ -29,6 +29,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -83,13 +84,25 @@ class DeviceService(
      * @return A [PageDTO] of devices.
      */
     @Transactional(isolation = Isolation.READ_COMMITTED, readOnly = true)
-    fun getAllDevices(pageableDTO: PageableDTO, expanded: Boolean): PageDTO<DeviceOutputDTO> {
+    fun getAllDevices(
+        pageableDTO: PageableDTO,
+        expanded: Boolean,
+        search: String? = null
+    ): PageDTO<DeviceOutputDTO> {
         val pageable: Pageable = PageRequest.of(pageableDTO.page, pageableDTO.size)
+
         return deviceRepository
-            .findAll(pageable)
+            .getDevicesBy(search, pageable)
             .map { deviceDao -> deviceDao.toDeviceOutputDTO(expanded = expanded) }
             .toPageDTO()
     }
+
+    private fun DeviceRepository.getDevicesBy(search: String?, pageable: Pageable): Page<Device> =
+        if (search != null) {
+            this.findAll(search, pageable)
+        } else {
+            this.findAll(pageable)
+        }
 
     /**
      * Updates the device metadata.

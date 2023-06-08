@@ -43,9 +43,14 @@ class DeviceController(
     fun getDevices(
         @RequestParam page: Int?,
         @RequestParam pageSize: Int?,
-        @RequestParam expanded: Boolean = false
+        @RequestParam expanded: Boolean = false,
+        @RequestParam search: String? = null,
     ): PageDTO<DeviceOutputDTO> {
-        return deviceService.getAllDevices(PageableDTO(page, pageSize), expanded = expanded)
+        return deviceService.getAllDevices(
+            PageableDTO(page, pageSize),
+            expanded = expanded,
+            search = search
+        )
     }
 
     @Authentication(authorization = MODERATOR)
