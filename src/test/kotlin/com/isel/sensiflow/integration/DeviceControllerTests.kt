@@ -13,6 +13,7 @@ import com.isel.sensiflow.services.UserService
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
 import com.isel.sensiflow.services.dto.input.DeviceUpdateDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupCreateDTO
+import com.isel.sensiflow.services.dto.output.DeviceOutputDTO
 import com.isel.sensiflow.services.dto.output.DeviceSimpleOutputDTO
 import com.isel.sensiflow.services.dto.output.MetricOutputDTO
 import com.isel.sensiflow.services.dto.output.PageDTO
@@ -793,6 +794,248 @@ class DeviceControllerTests {
         )
     }
 
+    @Test
+    fun `Get devices without search`() {
+        val cookie = ensureCookieNotNull(cookie = getCookie(role = Role.ADMIN))
+
+        createDevice(
+            DeviceInputDTO(
+                name = "Indoor Camera",
+                description = "Indoor Description",
+                streamURL = VALID_STREAM_URL
+            )
+        )?.id
+
+        createDevice(
+            DeviceInputDTO(
+                name = "Outdoor Camera",
+                description = "Outdoor Description",
+                streamURL = VALID_STREAM_URL
+            )
+        )?.id
+
+        createDevice(
+            DeviceInputDTO(
+                name = "Security Camera",
+                description = "Security Description",
+                streamURL = VALID_STREAM_URL
+            )
+        )?.id
+
+        mockMvc.request<Unit, PageDTO<DeviceOutputDTO>>(
+            method = HTTPMethod.GET,
+            uri = RequestPaths.Root.ROOT + "/devices",
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.items[0].name").value("Indoor Camera"))
+                    .andExpect(MockMvcResultMatchers.jsonPath(".items[1].name").value("Outdoor Camera"))
+                    .andExpect(MockMvcResultMatchers.jsonPath(".items[2].name").value("Security Camera"))
+            }
+        )
+    }
+
+    @Test
+    fun `Get devices filtered by search`() {
+        val cookie = ensureCookieNotNull(cookie = getCookie(role = Role.ADMIN))
+
+        createDevice(
+            DeviceInputDTO(
+                name = "Indoor Camera",
+                description = "Indoor Description",
+                streamURL = VALID_STREAM_URL
+            )
+        )?.id
+
+        createDevice(
+            DeviceInputDTO(
+                name = "Outdoor Camera",
+                description = "Outdoor Description",
+                streamURL = VALID_STREAM_URL
+            )
+        )?.id
+
+        createDevice(
+            DeviceInputDTO(
+                name = "Security Camera",
+                description = "Security Description",
+                streamURL = VALID_STREAM_URL
+            )
+        )?.id
+
+        mockMvc.request<Unit, PageDTO<DeviceOutputDTO>>(
+            method = HTTPMethod.GET,
+            uri = RequestPaths.Root.ROOT + "/devices?search=Camera",
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.items[0].name").value("Indoor Camera"))
+                    .andExpect(MockMvcResultMatchers.jsonPath(".items[1].name").value("Outdoor Camera"))
+                    .andExpect(MockMvcResultMatchers.jsonPath(".items[2].name").value("Security Camera"))
+                    .andExpect(MockMvcResultMatchers.jsonPath(".items[3]").doesNotExist())
+            }
+        )
+
+        mockMvc.request<Unit, PageDTO<DeviceOutputDTO>>(
+            method = HTTPMethod.GET,
+            uri = RequestPaths.Root.ROOT + "/devices?search=Indoor",
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.items[0].name").value("Indoor Camera"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.items[1]").doesNotExist())
+            }
+        )
+
+        mockMvc.request<Unit, PageDTO<DeviceOutputDTO>>(
+            method = HTTPMethod.GET,
+            uri = RequestPaths.Root.ROOT + "/devices?search=Outdoor",
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.items[0].name").value("Outdoor Camera"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.items[1]").doesNotExist())
+            }
+        )
+    }
+
+    @Test
+    fun `Get devices filtered by half name search`() {
+        val cookie = ensureCookieNotNull(cookie = getCookie(role = Role.ADMIN))
+
+        createDevice(
+            DeviceInputDTO(
+                name = "Indoor Camera",
+                description = "Indoor Description",
+                streamURL = VALID_STREAM_URL
+            )
+        )?.id
+
+        createDevice(
+            DeviceInputDTO(
+                name = "Inner Camera",
+                description = "Outdoor Description",
+                streamURL = VALID_STREAM_URL
+            )
+        )?.id
+
+        mockMvc.request<Unit, PageDTO<DeviceOutputDTO>>(
+            method = HTTPMethod.GET,
+            uri = RequestPaths.Root.ROOT + "/devices?search=In",
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.items[0].name").value("Indoor Camera"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.items[1].name").value("Inner Camera"))
+            }
+        )
+    }
+
+    @Test
+    fun `Get devices filtered by empty search`() {
+        val cookie = ensureCookieNotNull(cookie = getCookie(role = Role.ADMIN))
+
+        createDevice(
+            DeviceInputDTO(
+                name = "Indoor Camera",
+                description = "Indoor Description",
+                streamURL = VALID_STREAM_URL
+            )
+        )?.id
+
+        createDevice(
+            DeviceInputDTO(
+                name = "Inner Camera",
+                description = "Outdoor Description",
+                streamURL = VALID_STREAM_URL
+            )
+        )?.id
+
+        mockMvc.request<Unit, PageDTO<DeviceOutputDTO>>(
+            method = HTTPMethod.GET,
+            uri = RequestPaths.Root.ROOT + "/devices?search=",
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.items[0].name").value("Indoor Camera"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.items[1].name").value("Inner Camera"))
+            }
+        )
+    }
+
+    @Test
+    fun `Get devices filtered by empty search paginated`() {
+        val cookie = ensureCookieNotNull(cookie = getCookie(role = Role.ADMIN))
+
+        createDevice(
+            DeviceInputDTO(
+                name = "Indoor Camera",
+                description = "Indoor Description",
+                streamURL = VALID_STREAM_URL
+            )
+        )?.id
+
+        createDevice(
+            DeviceInputDTO(
+                name = "Inner Camera",
+                description = "Outdoor Description",
+                streamURL = VALID_STREAM_URL
+            )
+        )?.id
+
+        createDevice(
+            DeviceInputDTO(
+                name = "Security Camera",
+                description = "Outdoor Description",
+                streamURL = VALID_STREAM_URL
+            )
+        )?.id
+
+        mockMvc.request<Unit, PageDTO<DeviceOutputDTO>>(
+            method = HTTPMethod.GET,
+            uri = RequestPaths.Root.ROOT + "/devices?search=In&page=0&pageSize=1",
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.totalPages").value(2))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.isLast").value(false))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.items[0].name").value("Indoor Camera"))
+            }
+        )
+
+        mockMvc.request<Unit, PageDTO<DeviceOutputDTO>>(
+            method = HTTPMethod.GET,
+            uri = RequestPaths.Root.ROOT + "/devices?search=In&page=1&pageSize=1",
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.totalPages").value(2))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.isLast").value(true))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.items[0].name").value("Inner Camera"))
+            }
+        )
+
+        val x = mockMvc.request<Unit, PageDTO<DeviceOutputDTO>>(
+            method = HTTPMethod.GET,
+            uri = RequestPaths.Root.ROOT + "/devices?search=In&page=2&pageSize=1",
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.totalPages").value(2))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.isLast").value(true))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.items[0]").doesNotExist())
+            }
+        )
+    }
 
     private fun createDevice(input: DeviceInputDTO): IDOutput? {
         val userRole = Role.MODERATOR

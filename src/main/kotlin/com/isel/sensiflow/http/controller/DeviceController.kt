@@ -123,7 +123,7 @@ class DeviceController(
     )
     @Authentication(USER)
     fun subscribeToChangeOfDeviceState(@PathVariable("id") id: ID): SseEmitter {
-        return  launchServerSentEvent { sseEmitter ->
+        return launchServerSentEvent { sseEmitter ->
             deviceService.getDeviceStateFlow(id)
                 .onCompletion { cause ->
                     if (cause != null) {
