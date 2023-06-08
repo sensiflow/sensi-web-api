@@ -43,9 +43,14 @@ class DeviceController(
     fun getDevices(
         @RequestParam page: Int?,
         @RequestParam pageSize: Int?,
-        @RequestParam expanded: Boolean = false
+        @RequestParam expanded: Boolean = false,
+        @RequestParam search: String? = null,
     ): PageDTO<DeviceOutputDTO> {
-        return deviceService.getAllDevices(PageableDTO(page, pageSize), expanded = expanded)
+        return deviceService.getAllDevices(
+            PageableDTO(page, pageSize),
+            expanded = expanded,
+            search = search
+        )
     }
 
     @Authentication(authorization = MODERATOR)
@@ -118,7 +123,7 @@ class DeviceController(
     )
     @Authentication(USER)
     fun subscribeToChangeOfDeviceState(@PathVariable("id") id: ID): SseEmitter {
-        return launchServerSentEvent { sseEmitter ->
+        return  launchServerSentEvent { sseEmitter ->
             deviceService.getDeviceStateFlow(id)
                 .onCompletion { cause ->
                     if (cause != null) {

@@ -11,6 +11,7 @@ import com.isel.sensiflow.services.UserID
  *
  * This userID will be injected in the controller by the [AuthenticationInterceptor] and [UserIDArgumentResolver].
  *
+ * @param authorization The authorization level required to access the handler.
  */
 @Target(AnnotationTarget.FUNCTION)
 annotation class Authentication(val authorization: Role = Role.USER)

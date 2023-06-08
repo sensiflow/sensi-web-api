@@ -793,6 +793,7 @@ class DeviceControllerTests {
         )
     }
 
+
     private fun createDevice(input: DeviceInputDTO): IDOutput? {
         val userRole = Role.MODERATOR
         val cookie = ensureCookieNotNull(getCookie(role = userRole))
