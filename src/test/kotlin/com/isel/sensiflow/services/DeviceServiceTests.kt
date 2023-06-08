@@ -7,7 +7,7 @@ import com.isel.sensiflow.model.entities.DeviceProcessingState
 import com.isel.sensiflow.model.entities.Metric
 import com.isel.sensiflow.model.entities.MetricID
 import com.isel.sensiflow.model.entities.User
-import com.isel.sensiflow.model.entities.Userrole
+import com.isel.sensiflow.model.entities.UserRole
 import com.isel.sensiflow.model.repository.DeviceGroupRepository
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.model.repository.MetricRepository
@@ -74,7 +74,7 @@ class DeviceServiceTests {
         MockitoAnnotations.openMocks(this)
     }
 
-    private val ADMINRole = Userrole(
+    private val ADMINRole = UserRole(
         id = 1,
         role = Role.ADMIN.name
     )

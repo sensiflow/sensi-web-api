@@ -4,7 +4,7 @@ import com.isel.sensiflow.Constants
 import com.isel.sensiflow.model.entities.Device
 import com.isel.sensiflow.model.entities.DeviceGroup
 import com.isel.sensiflow.model.entities.User
-import com.isel.sensiflow.model.entities.Userrole
+import com.isel.sensiflow.model.entities.UserRole
 import com.isel.sensiflow.model.repository.DeviceGroupRepository
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.services.dto.PageableDTO
@@ -49,7 +49,7 @@ class DeviceGroupTests {
         MockitoAnnotations.openMocks(this)
     }
 
-    private val ADMINRole = Userrole(
+    private val ADMINRole = UserRole(
         id = 1,
         role = Role.ADMIN.name
     )

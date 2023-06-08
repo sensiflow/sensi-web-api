@@ -28,8 +28,8 @@ object Constants {
     }
 
     object Roles {
-        const val ROLE_NAME_MIN_LENGTH = 4
-        const val ROLE_NAME_MAX_LENGTH = 9
+        const val ROLE_NAME_MIN_LENGTH = 3
+        const val ROLE_NAME_MAX_LENGTH = 15
     }
 
     object InputValidation {

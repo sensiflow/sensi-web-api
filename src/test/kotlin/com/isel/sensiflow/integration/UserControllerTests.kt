@@ -15,6 +15,7 @@ import com.isel.sensiflow.integration.HTTPMethod.POST
 import com.isel.sensiflow.services.ID
 import com.isel.sensiflow.services.Role.ADMIN
 import com.isel.sensiflow.services.UserService
+import com.isel.sensiflow.services.dto.input.UserRoleInput
 import jakarta.servlet.http.Cookie
 import org.junit.jupiter.api.Test
 import org.junit.runner.RunWith
@@ -30,6 +31,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
+import java.util.*
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @RunWith(org.springframework.test.context.junit4.SpringRunner::class)
@@ -375,7 +377,7 @@ class UserControllerTests {
             }
         )
 
-        mockMvc.request<UserLoginInput, UserOutput>(
+        mockMvc.request<Unit, UserOutput>(
             method = GET,
             uri = RequestPaths.Root.ROOT + "/users/${userCreationResponse?.id}",
             authorization = cookie,
@@ -392,7 +394,7 @@ class UserControllerTests {
 
     @Test
     fun `get a user with non existent id`() {
-        mockMvc.request<UserLoginInput, ProblemDetail>(
+        mockMvc.request<Unit, ProblemDetail>(
             method = GET,
             uri = RequestPaths.Root.ROOT + "/users/1000",
             mapper = mapper,
@@ -406,7 +408,7 @@ class UserControllerTests {
 
     @Test
     fun `get a user with invalid id`() {
-        mockMvc.request<UserLoginInput, ProblemDetail>(
+        mockMvc.request<Unit, ProblemDetail>(
             method = GET,
             uri = RequestPaths.Root.ROOT + "/users/invalidId",
             mapper = mapper,
@@ -590,6 +592,86 @@ class UserControllerTests {
             }
         )
     }
+
+
+    @Test
+    fun `try to update a user's role to a non existent role`() {
+        val (id, cookie, _) = createAdminTestUser()
+
+        val updateBody = UserRoleInput(
+            "NON_EXISTROLE"
+        )
+
+        mockMvc.request<UserRoleInput, ProblemDetail>(
+            method = HTTPMethod.PUT,
+            uri = RequestPaths.Root.ROOT + "/users/$id/role",
+            body = updateBody,
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isNotFound)
+                    .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                    .andExpect(jsonPath("$.type").value(Constants.Problem.URI.ROLE_NOT_FOUND))
+            }
+        )
+    }
+
+    @Test
+    fun `try to update the role of a non existant user`(){
+        val (_, cookie, _) = createAdminTestUser()
+
+        val updateBody = UserRoleInput(
+            "ADMIN"
+        )
+
+        mockMvc.request<UserRoleInput, ProblemDetail>(
+            method = HTTPMethod.PUT,
+            uri = RequestPaths.Root.ROOT + "/users/765434565/role",
+            body = updateBody,
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isNotFound)
+                    .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                    .andExpect(jsonPath("$.type").value(Constants.Problem.URI.USER_NOT_FOUND))
+            }
+        )
+    }
+
+    @Test
+    fun `update a role sucessfully`(){
+        val (id, cookie, _) = createAdminTestUser()
+
+        val updateBody = UserRoleInput(
+            "MODERATOR"
+        )
+
+        mockMvc.request<UserRoleInput, Unit>(
+            method = HTTPMethod.PUT,
+            uri = RequestPaths.Root.ROOT + "/users/${id}/role",
+            body = updateBody,
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isNoContent)
+            }
+        )
+
+        mockMvc.request<Unit, UserOutput>(
+            method = GET,
+            uri = RequestPaths.Root.ROOT + "/users/${id}",
+            authorization = cookie,
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isOk)
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.role").value("MODERATOR"))
+            }
+        )
+
+
+    }
+
 
     private fun createAdminTestUser(): TestUserInfo {
         val loginInput = createTestUser(userService, role = ADMIN, counter++)
