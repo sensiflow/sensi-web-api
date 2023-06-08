@@ -12,7 +12,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 
 @Component
 class AppConfig(
-    val userIDArgumentResolver: UserIDArgumentResolver,
+    val userIDArgumentResolver:  UserIDArgumentResolver,
     val authenticationInterceptor: AuthenticationInterceptor
 ) : WebMvcConfigurer {
 

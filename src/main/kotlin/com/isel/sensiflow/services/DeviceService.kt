@@ -83,12 +83,16 @@ class DeviceService(
      * @return A [PageDTO] of devices.
      */
     @Transactional(isolation = Isolation.READ_COMMITTED, readOnly = true)
-    fun getAllDevices(pageableDTO: PageableDTO, expanded: Boolean): PageDTO<DeviceOutputDTO> {
+    fun getAllDevices(
+        pageableDTO: PageableDTO,
+        expanded: Boolean,
+        search: String? = null
+    ): PageDTO<DeviceOutputDTO> {
         val pageable: Pageable = PageRequest.of(pageableDTO.page, pageableDTO.size)
         return deviceRepository
-            .findAll(pageable)
+            .findAll(search, pageable)
             .map { deviceDao -> deviceDao.toDeviceOutputDTO(expanded = expanded) }
-            .toPageDTO()
+            .toPageDTO(pageableDTO)
     }
 
     /**
