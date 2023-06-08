@@ -4,7 +4,7 @@ import com.isel.sensiflow.Constants
 import com.isel.sensiflow.model.entities.Device
 import com.isel.sensiflow.model.entities.DeviceGroup
 import com.isel.sensiflow.model.entities.User
-import com.isel.sensiflow.model.entities.Userrole
+import com.isel.sensiflow.model.entities.UserRole
 import com.isel.sensiflow.model.repository.DeviceGroupRepository
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.services.dto.PageableDTO
@@ -49,7 +49,7 @@ class DeviceGroupTests {
         MockitoAnnotations.openMocks(this)
     }
 
-    private val ADMINRole = Userrole(
+    private val ADMINRole = UserRole(
         id = 1,
         role = Role.ADMIN.name
     )
@@ -60,7 +60,8 @@ class DeviceGroupTests {
         lastName = "Doe",
         role = ADMINRole,
         passwordHash = "hash",
-        passwordSalt = "salt"
+        passwordSalt = "salt",
+        email = "test@admin.com"
     )
 
     private val fakeDeviceGroup = DeviceGroup(
@@ -73,14 +74,16 @@ class DeviceGroupTests {
         id = 1,
         name = "Device 1",
         streamURL = "https://example.com/device1/stream",
-        description = "Device 1 description"
+        description = "Device 1 description",
+        processedStreamURL = null
     )
 
     private val fakeDevice2 = Device(
         id = 1,
         name = "Device 2",
         streamURL = "https://example.com/device2/stream",
-        description = "Device 2 description"
+        description = "Device 2 description",
+        processedStreamURL = null
     )
 
     @Test

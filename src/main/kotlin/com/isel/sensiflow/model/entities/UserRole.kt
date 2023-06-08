@@ -12,7 +12,7 @@ import jakarta.validation.constraints.Size
 
 @Entity
 @Table(name = "userrole")
-class Userrole(
+class UserRole(
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,4 +28,4 @@ class Userrole(
     val users: MutableSet<User> = mutableSetOf()
 }
 
-fun Userrole.toRole() = Role.valueOf(this.role)
+fun UserRole.toRole() = Role.valueOf(this.role)

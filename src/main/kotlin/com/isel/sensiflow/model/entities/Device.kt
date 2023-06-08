@@ -10,7 +10,6 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.ManyToMany
 import jakarta.persistence.OneToMany
-import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import org.hibernate.annotations.Type
 
@@ -37,10 +36,10 @@ class Device(
 
     @Column(name = "pending_update", nullable = false)
     val pendingUpdate: Boolean = false,
-) {
 
-    @OneToOne(mappedBy = "device")
-    var processedStream: ProcessedStream? = null
+    @Column(name = "processedstreamurl", nullable = true, length = 200)
+    val processedStreamURL: String?,
+) {
 
     @OneToMany(mappedBy = "device")
     val metrics: MutableSet<Metric> = mutableSetOf()

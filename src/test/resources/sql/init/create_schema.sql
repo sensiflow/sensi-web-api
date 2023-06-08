@@ -14,14 +14,10 @@ create table if not exists "user" (
                                       "role" int not null default 1,
                                       password_hash varchar(200) not null,
                                       password_salt varchar(32) not null,
+                                      email varchar(100) constraint email_invalid check(email ~* '^[A-Z0-9._%-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$') unique,
                                       foreign key ("role") references UserRole(id)
 );
 
-create table if not exists Email(
-                                    userID int not null,
-                                    email varchar(100) constraint email_invalid check(email ~* '^[A-Z0-9._%-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$') primary key,
-                                    foreign key (userID) references "user"(id)
-);
 
 create table if not exists SessionToken(
                                            token varchar(255) primary key,
@@ -43,6 +39,7 @@ create table if not exists Device(
                                      description varchar(255),
                                      processingState varchar(15) not null default 'INACTIVE',
                                      pending_update boolean NOT null default false,
+                                     processedStreamUrl varchar(200),
                                      scheduled_for_deletion boolean NOT null default false
 );
 
@@ -61,12 +58,6 @@ create table if not exists Metric(
                                      peopleCount int not null default 0,
                                      foreign key (deviceID) references Device(id),
                                      primary key (deviceID, start_time)
-);
-
-create table if not exists ProcessedStream(
-                                              deviceID int primary key,
-                                              processedStreamUrl varchar(200) not null,
-                                              foreign key (deviceID) references Device(id)
 );
 
 commit;

@@ -1,7 +1,7 @@
 package com.isel.sensiflow
 
 import com.isel.sensiflow.http.entities.input.UserRegisterInput
-import com.isel.sensiflow.model.repository.EmailRepository
+import com.isel.sensiflow.model.repository.UserRepository
 import com.isel.sensiflow.services.Role
 import com.isel.sensiflow.services.UserService
 import jakarta.annotation.PostConstruct
@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component
 @Component
 class DbInit(
     private val userService: UserService,
-    private val emailRepository: EmailRepository,
+    private val userRepository: UserRepository,
 ) {
 
     /**
@@ -18,7 +18,7 @@ class DbInit(
      */
     @PostConstruct
     private fun init() {
-        val exists = emailRepository
+        val exists = userRepository
             .findByEmail("admin@gmail.com")
             .isPresent
 
