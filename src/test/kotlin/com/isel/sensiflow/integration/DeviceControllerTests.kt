@@ -1023,7 +1023,7 @@ class DeviceControllerTests {
             }
         )
 
-        val x = mockMvc.request<Unit, PageDTO<DeviceOutputDTO>>(
+        mockMvc.request<Unit, PageDTO<DeviceOutputDTO>>(
             method = HTTPMethod.GET,
             uri = RequestPaths.Root.ROOT + "/devices?search=In&page=2&pageSize=1",
             authorization = cookie,

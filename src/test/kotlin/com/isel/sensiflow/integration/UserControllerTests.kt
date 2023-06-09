@@ -537,7 +537,7 @@ class UserControllerTests {
             password = "Password1_.2"
         )
 
-        val user = mockMvc.request<UserLoginInput, UserOutput>(
+        mockMvc.request<UserLoginInput, UserOutput>(
             method = GET,
             uri = RequestPaths.Root.ROOT + "/users/$id",
             authorization = cookie,
