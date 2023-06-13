@@ -28,7 +28,7 @@ interface DeviceRepository : JpaRepository<Device, Int> {
     fun findAll(@Param("search") search: String?, pageable: Pageable): Page<Device>
 
     @Query("SELECT d FROM Device d WHERE d.scheduledForDeletion = false")
-    override fun findAll(): List<Device>
+    override fun findAll(pageable: Pageable): Page<Device>
 
     @Modifying
     @Query("UPDATE Device d SET d.scheduledForDeletion = true WHERE d IN :device")
