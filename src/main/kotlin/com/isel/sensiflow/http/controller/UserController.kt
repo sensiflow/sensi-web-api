@@ -50,6 +50,14 @@ class UserController(private val userService: UserService) {
     ): IDOutput =
         userService.createUser(userInput).toIDOutput()
 
+    @Authentication(authorization = USER)
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping(Users.MYINFO)
+    fun getMyInfo(
+        userID: UserID
+    ) =
+        userService.getUser(userID).toOutput()
+
     @ResponseStatus(HttpStatus.OK)
     @GetMapping(Users.GET_USER)
     fun getUser(
@@ -118,15 +126,12 @@ class UserController(private val userService: UserService) {
     }
 
     @Authentication(authorization = ADMIN)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @PutMapping(Users.ROLE)
     fun updateRole(
         @PathVariable id: UserID,
         @RequestBody @Valid inputDTO: UserRoleInput,
-    ): ResponseEntity<Unit> {
+    ) {
         userService.updateRole(id, inputDTO)
-
-        return ResponseEntity
-            .noContent()
-            .build()
     }
 }

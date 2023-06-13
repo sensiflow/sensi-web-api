@@ -13,7 +13,7 @@ object Constants {
         const val STREAM_URL_MAX_LENGTH = 200
         const val NAME_MIN_LENGTH = 3
         const val STREAM_URL_REGEX =
-            "rtsp://(?:([^\\s@/]+?)[@])?([^\\s/:]+)(?:[:]([0-9]+))?(?:(/[^\\s?#]+)([?][^\\s#]+)?)?([#]\\S*)?"
+            "(rtsp|rtsps):\\/\\/(?:([^\\s@\\/]+?)[@])?([^\\s\\/:]+)(?:[:]([0-9]+))?(?:(\\/[^\\s?#]+)?(?<!\\/)([?][^\\s#]+)?)"
     }
 
     object User {
