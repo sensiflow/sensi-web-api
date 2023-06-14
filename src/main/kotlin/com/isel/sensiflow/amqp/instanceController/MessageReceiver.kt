@@ -2,6 +2,10 @@ package com.isel.sensiflow.amqp.instanceController
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.isel.sensiflow.amqp.DeviceStateResponseMessage
+import com.isel.sensiflow.amqp.isError
+import com.isel.sensiflow.amqp.isNotFound
+import com.isel.sensiflow.amqp.isSuccessful
+import com.isel.sensiflow.model.entities.DeviceProcessingState
 import com.isel.sensiflow.services.DeviceService
 import com.isel.sensiflow.services.ServiceException
 import com.rabbitmq.client.Channel
@@ -29,15 +33,21 @@ class MessageReceiver(
             val instanceResponseMessage = mapper.readValue(String(message.body), DeviceStateResponseMessage::class.java)
             logger.info("Received message from ack_device_state_queue: $instanceResponseMessage")
 
-            val newState = instanceResponseMessage.newState
-                .takeIf { (instanceResponseMessage.code % 1000) != 4 }
+
+            val newState = when{
+                instanceResponseMessage.isSuccessful() -> instanceResponseMessage.newState
+                instanceResponseMessage.isNotFound() -> DeviceProcessingState.INACTIVE
+                instanceResponseMessage.isError() -> null
+                else -> throw InternalError("Invalid response code: ${instanceResponseMessage.code}")
+            }
 
             deviceService.completeUpdateState(instanceResponseMessage.device_id, newState)
         } catch (e: ServiceException) {
             logger.warn("Error while processing message from ack_device_state_queue: ${e.message}")
         }
     }
-// TODO: change to just 1 queue
+
+    // TODO: change to just 1 queue
     /**
      * Listener that receives messages from the queue and acts accordingly.
      */

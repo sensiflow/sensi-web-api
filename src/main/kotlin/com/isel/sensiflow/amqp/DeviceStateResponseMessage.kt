@@ -18,3 +18,10 @@ data class DeviceStateResponseMessage(
     val newState = Action.fromString(action)?.state
         ?: throw ServiceInternalException("Invalid received from instance manager: $action")
 }
+
+
+fun DeviceStateResponseMessage.isSuccessful(): Boolean = code / 1000 == 2
+
+fun DeviceStateResponseMessage.isError(): Boolean = code / 1000 == 4
+
+fun DeviceStateResponseMessage.isNotFound(): Boolean = code == 4004

@@ -12,6 +12,10 @@ import java.util.Optional
 
 @Repository
 interface MetricRepository : JpaRepository<Metric, MetricID> {
+
+    @Query("SELECT m FROM Metric m " +
+            "WHERE m.device.id = :deviceID " +
+            "ORDER BY m.id.startTime ASC")
     fun findAllByDeviceId(deviceID: Int, pageable: Pageable): Page<Metric>
 
     fun deleteAllByDevice(device: Device)

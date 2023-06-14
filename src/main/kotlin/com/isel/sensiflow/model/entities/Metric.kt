@@ -16,8 +16,8 @@ class Metric(
     @EmbeddedId
     val id: MetricID,
 
-    @Column(name = "end_time", nullable = false)
-    val endTime: Timestamp,
+    @Column(name = "end_time", nullable = true)
+    val endTime: Timestamp? = null,
 
     @Column(name = "peoplecount", nullable = false)
     val peopleCount: Int,
