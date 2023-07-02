@@ -16,7 +16,7 @@ import java.net.URI
 @RequestMapping()
 class RedirectController : ErrorController {
 
-    //Shows an error to every request beginning with the api root that does not belong to the api
+    // Shows an error to every request beginning with the api root that does not belong to the api
     @RequestMapping(RequestPaths.Root.ROOT + "/*")
     @ResponseBody
     fun fallbackNotFound(request: HttpServletRequest): ResponseEntity<ProblemDetail> {
@@ -31,7 +31,7 @@ class RedirectController : ErrorController {
             .body(problemDetail)
     }
 
-    //From every request with an uri that does not belong to the api redirects to the index.html
+    // From every request with an uri that does not belong to the api redirects to the index.html
     @GetMapping("/error")
     fun redirectToIndex(): String {
         return "forward:/index.html"

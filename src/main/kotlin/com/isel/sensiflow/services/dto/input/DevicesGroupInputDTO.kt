@@ -13,16 +13,16 @@ data class DevicesGroupInputDTO(
 data class DevicesGroupUpdateDTO(
     @field:NotBlankNullable
     @field:Size(
-        min = Constants.Device.NAME_MIN_LENGTH,
-        max = Constants.Device.NAME_MAX_LENGTH,
-        message = Constants.Error.DEVICE_NAME_INVALID_LENGTH
+        min = Constants.Group.NAME_MIN_LENGTH,
+        max = Constants.Group.NAME_MAX_LENGTH,
+        message = Constants.Error.GROUP_NAME_INVALID_LENGTH
     )
     val name: String? = null,
 
     @field:Size(
         min = 0,
-        max = Constants.Device.DESCRIPTION_MAX_LENGTH,
-        message = Constants.Error.DEVICE_DESCRIPTION_INVALID_LENGTH
+        max = Constants.Group.DESCRIPTION_MAX_LENGTH,
+        message = Constants.Error.GROUP_DESCRIPTION_INVALID_LENGTH
     )
     val description: String? = null
 )
@@ -30,16 +30,16 @@ data class DevicesGroupUpdateDTO(
 data class DevicesGroupCreateDTO(
     @field:NotBlank
     @field:Size(
-        min = Constants.Device.NAME_MIN_LENGTH,
-        max = Constants.Device.NAME_MAX_LENGTH,
-        message = Constants.Error.DEVICE_NAME_INVALID_LENGTH
+        min = Constants.Group.NAME_MIN_LENGTH,
+        max = Constants.Group.NAME_MAX_LENGTH,
+        message = Constants.Error.GROUP_NAME_INVALID_LENGTH
     )
     val name: String,
 
     @field:Size(
         min = 0,
         max = Constants.Device.DESCRIPTION_MAX_LENGTH,
-        message = Constants.Error.DEVICE_DESCRIPTION_INVALID_LENGTH
+        message = Constants.Error.GROUP_DESCRIPTION_INVALID_LENGTH
     )
     @field:NotBlankNullable
     val description: String? = null
