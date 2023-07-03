@@ -33,8 +33,7 @@ class MessageReceiver(
             val instanceResponseMessage = mapper.readValue(String(message.body), DeviceStateResponseMessage::class.java)
             logger.info("Received message from ack_device_state_queue: $instanceResponseMessage")
 
-
-            val newState = when{
+            val newState = when {
                 instanceResponseMessage.isSuccessful() -> instanceResponseMessage.newState
                 instanceResponseMessage.isNotFound() -> DeviceProcessingState.INACTIVE
                 instanceResponseMessage.isError() -> null

@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import java.util.concurrent.atomic.AtomicBoolean
 
-
 private val sseLogger: Logger = LoggerFactory.getLogger("sse-coroutines")
 
 /**
@@ -46,7 +45,7 @@ fun emitterScope(emitter: SseEmitter): CoroutineScope {
     val isComplete = AtomicBoolean(false)
 
     val cancelScope: () -> Unit = {
-        if (isComplete.compareAndSet(false, true)){
+        if (isComplete.compareAndSet(false, true)) {
             sseLogger.info("Cancelling SSE scope")
             scope.cancel()
         } else {
@@ -58,7 +57,7 @@ fun emitterScope(emitter: SseEmitter): CoroutineScope {
 
     emitter.onCompletion(cancelScope)
     emitter.onTimeout(cancelScope)
-    emitter.onError{
+    emitter.onError {
         sseLogger.warn("Error in SSE emitter", it)
         cancelScope()
     }

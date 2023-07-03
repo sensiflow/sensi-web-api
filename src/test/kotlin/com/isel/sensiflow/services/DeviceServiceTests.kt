@@ -1,5 +1,7 @@
 package com.isel.sensiflow.services
 
+import com.isel.sensiflow.amqp.Action
+import com.isel.sensiflow.amqp.InstanceMessage
 import com.isel.sensiflow.amqp.instanceController.MessageSender
 import com.isel.sensiflow.model.entities.Device
 import com.isel.sensiflow.model.entities.DeviceGroup
@@ -25,7 +27,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.runner.RunWith
-import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.ArgumentMatchers.anyList
 import org.mockito.InjectMocks
@@ -42,7 +43,6 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import java.sql.Timestamp
 import java.util.Optional
-import com.isel.sensiflow.services.any as kotlinAny
 
 @RunWith(MockitoJUnitRunner::class)
 class DeviceServiceTests {
@@ -113,13 +113,13 @@ class DeviceServiceTests {
     fun `creating a device with an existing user`() {
         val userId = 1
 
-        `when`(deviceRepository.save(any(Device::class.java))).thenReturn(fakeDevice)
+        `when`(deviceRepository.save(kAny(Device::class.java))).thenReturn(fakeDevice)
 
         val createdDevice = deviceService.createDevice(fakeDeviceInput, userId)
 
         assertEquals(fakeDevice.toDeviceOutputDTO(expanded = false), createdDevice)
 
-        verify(deviceRepository, times(1)).save(any(Device::class.java))
+        verify(deviceRepository, times(1)).save(kAny(Device::class.java))
     }
 
     @Test
@@ -134,13 +134,13 @@ class DeviceServiceTests {
             processedStreamURL = null
         )
 
-        `when`(deviceRepository.save(any(Device::class.java))).thenReturn(device)
+        `when`(deviceRepository.save(kAny(Device::class.java))).thenReturn(device)
 
         val createdDevice = deviceService.createDevice(deviceInputNoDescription, userId)
 
         assertEquals(device.toDeviceOutputDTO(expanded = false), createdDevice)
 
-        verify(deviceRepository, times(1)).save(any(Device::class.java))
+        verify(deviceRepository, times(1)).save(kAny(Device::class.java))
     }
 
     @Test
@@ -217,14 +217,16 @@ class DeviceServiceTests {
             description = updatedDevice.description
         )
 
-        `when`(deviceRepository.save(any(Device::class.java))).thenReturn(updatedDevice)
+        `when`(deviceRepository.save(kAny(Device::class.java))).thenReturn(updatedDevice)
 
         // Act
         deviceService.updateDevice(deviceId, deviceDto)
 
         // Assert
         verify(deviceRepository, times(1)).findById(deviceId)
-        verify(deviceRepository, times(1)).save(any(Device::class.java))
+        verify(deviceRepository, times(1)).save(kAny(Device::class.java))
+        verify(instanceControllerMessageSender, times(0))
+            .sendMessage(kAny(InstanceMessage::class.java))
     }
 
     @Test
@@ -246,7 +248,67 @@ class DeviceServiceTests {
 
         // Assert
         verify(deviceRepository, times(1)).findById(deviceId)
-        verify(deviceRepository, times(0)).save(any(Device::class.java))
+        verify(deviceRepository, times(0)).save(kAny(Device::class.java))
+        verify(instanceControllerMessageSender, times(0))
+            .sendMessage(kAny(InstanceMessage::class.java))
+    }
+
+    @Test
+    fun `update the streamUrl of an active device stops it`() {
+        // Arrange
+        val deviceId = 1
+        val storedDevice = Device(
+            id = deviceId,
+            name = "Device",
+            streamURL = "rtsp://myurl.com/test",
+            description = "What a description!",
+            processingState = DeviceProcessingState.ACTIVE,
+            processedStreamURL = null
+        )
+        `when`(deviceRepository.findById(deviceId)).thenReturn(Optional.of(storedDevice))
+
+        val deviceDto = DeviceUpdateDTO(
+            name = "Updated Test Device",
+            streamURL = "https://example.com/device1/stream",
+            description = "description"
+        )
+
+        deviceService.updateDevice(deviceId, deviceDto)
+
+        // Assert
+        verify(deviceRepository, times(1)).findById(deviceId)
+        verify(deviceRepository, times(1)).save(kAny(Device::class.java))
+        verify(instanceControllerMessageSender, times(1))
+            .sendMessage(kAny(InstanceMessage::class.java))
+    }
+
+    @Test
+    fun `update the streamUrl of a paused device stops it`() {
+        // Arrange
+        val deviceId = 1
+        val storedDevice = Device(
+            id = deviceId,
+            name = "Device",
+            streamURL = "rtsp://myurl.com/test",
+            description = "What a description!",
+            processingState = DeviceProcessingState.PAUSED,
+            processedStreamURL = null
+        )
+        `when`(deviceRepository.findById(deviceId)).thenReturn(Optional.of(storedDevice))
+
+        val deviceDto = DeviceUpdateDTO(
+            name = "Updated Test Device",
+            streamURL = "https://example.com/device1/stream",
+            description = "description"
+        )
+
+        deviceService.updateDevice(deviceId, deviceDto)
+
+        // Assert
+        verify(deviceRepository, times(1)).findById(deviceId)
+        verify(deviceRepository, times(1)).save(kAny(Device::class.java))
+        verify(instanceControllerMessageSender, times(1))
+            .sendMessage(kAny(InstanceMessage::class.java))
     }
 
     @Test
@@ -293,7 +355,7 @@ class DeviceServiceTests {
             description = null
         )
 
-        `when`(deviceGroupRepository.save(any(DeviceGroup::class.java))).thenReturn(fakeDeviceGroup)
+        `when`(deviceGroupRepository.save(kAny(DeviceGroup::class.java))).thenReturn(fakeDeviceGroup)
         `when`(deviceRepository.findAllById(anyList())).thenReturn(listOf(fakeDevice))
         `when`(deviceRepository.findById(anyInt())).thenReturn(Optional.of(fakeDevice))
         `when`(deviceGroupRepository.findById(anyInt())).thenReturn(Optional.of(fakeDeviceGroup))
@@ -304,7 +366,7 @@ class DeviceServiceTests {
         // Assert
         assertEquals(fakeDeviceGroup, result)
 
-        verify(deviceGroupRepository, times(1)).save(any(DeviceGroup::class.java))
+        verify(deviceGroupRepository, times(1)).save(kAny(DeviceGroup::class.java))
         val devicesToDelete = listOf(fakeDevice)
         val deviceIds = listOf(fakeDevice.id)
         deviceService.deleteDevices(deviceIds)
@@ -345,7 +407,9 @@ class DeviceServiceTests {
 
         updateStateTransition(DeviceProcessingState.INACTIVE, DeviceProcessingState.ACTIVE)
 
-        verify(deviceRepository, times(1)).save(any(Device::class.java))
+        verify(deviceRepository, times(1)).save(kAny(Device::class.java))
+        verify(instanceControllerMessageSender, times(1))
+            .sendMessage(kAny(InstanceMessage::class.java))
     }
 
     @Test
@@ -358,7 +422,9 @@ class DeviceServiceTests {
         }
 
         verify(deviceRepository, times(1)).findById(nonExistantDevice)
-        verify(deviceRepository, times(0)).save(any(Device::class.java))
+        verify(deviceRepository, times(0)).save(kAny(Device::class.java))
+        verify(instanceControllerMessageSender, times(0))
+            .sendMessage(kAny(InstanceMessage::class.java))
     }
 
     @Test
@@ -370,7 +436,9 @@ class DeviceServiceTests {
         }
 
         verify(deviceRepository, times(0)).findById(fakeDevice.id)
-        verify(deviceRepository, times(0)).save(any(Device::class.java))
+        verify(deviceRepository, times(0)).save(kAny(Device::class.java))
+        verify(instanceControllerMessageSender, times(0))
+            .sendMessage(kAny(InstanceMessage::class.java))
     }
 
     @Test
@@ -400,10 +468,13 @@ class DeviceServiceTests {
             val expectedSaveCalls = if (isSameStateTransition) 0 else 1
 
             // Save is only called when the state has actually changed
-            verify(deviceRepository, times(expectedSaveCalls)).save(any(Device::class.java))
+            verify(deviceRepository, times(expectedSaveCalls)).save(kAny(Device::class.java))
+            verify(instanceControllerMessageSender, times(expectedSaveCalls))
+                .sendMessage(kAny(InstanceMessage::class.java))
 
             // Reset mock
             reset(deviceRepository)
+            reset(instanceControllerMessageSender)
         }
 
         invalidTransitions.forEach { (fromState, toState) ->
@@ -412,10 +483,11 @@ class DeviceServiceTests {
                 updateStateTransition(fromState, toState)
             }
 
-            verify(deviceRepository, times(0)).save(any(Device::class.java))
+            verify(deviceRepository, times(0)).save(kAny(Device::class.java))
+            verify(instanceControllerMessageSender, times(0))
+                .sendMessage(kAny(InstanceMessage::class.java))
 
-            // Reset mock
-            reset(deviceRepository)
+            // Reset not needed because mocks are never called
         }
     }
 
@@ -463,7 +535,7 @@ class DeviceServiceTests {
         val pageableDTO = PageableDTO(page = 1, size = 10)
 
         `when`(deviceRepository.findById(deviceId)).thenReturn(Optional.empty())
-        `when`(metricRepository.findAllByDeviceId(kotlinAny(Int::class.java), kotlinAny(Pageable::class.java)))
+        `when`(metricRepository.findAllByDeviceId(kAny(Int::class.java), kAny(Pageable::class.java)))
             .thenReturn(null)
 
         // Act
@@ -473,7 +545,7 @@ class DeviceServiceTests {
 
         // Assert
         verify(metricRepository, times(0))
-            .findAllByDeviceId(kotlinAny(Int::class.java), kotlinAny(Pageable::class.java))
+            .findAllByDeviceId(kAny(Int::class.java), kAny(Pageable::class.java))
     }
 
     @Test
@@ -492,7 +564,7 @@ class DeviceServiceTests {
 
         deviceService.completeUpdateState(deviceID, DeviceProcessingState.ACTIVE)
 
-        verify(deviceRepository, times(1)).save(any(Device::class.java))
+        verify(deviceRepository, times(1)).save(kAny(Device::class.java))
     }
 
     @Test
@@ -504,7 +576,7 @@ class DeviceServiceTests {
             deviceService.completeUpdateState(deviceID, DeviceProcessingState.ACTIVE)
         }
 
-        verify(deviceRepository, times(0)).save(any(Device::class.java))
+        verify(deviceRepository, times(0)).save(kAny(Device::class.java))
     }
 
     @Test
@@ -516,7 +588,7 @@ class DeviceServiceTests {
             deviceService.completeUpdateState(deviceID, DeviceProcessingState.INACTIVE)
         }
 
-        verify(deviceRepository, times(0)).save(any(Device::class.java))
+        verify(deviceRepository, times(0)).save(kAny(Device::class.java))
     }
 
     @Test
