@@ -8,12 +8,18 @@ object Constants {
     object Device {
         const val PEOPLE_COUNT_RETRIEVAL_DELAY: Long = 1000 // 1 second
         const val DEVICE_PROCESSING_STATE_RETRIEVAL_DELAY: Long = 3000 // 1 second
-        const val NAME_MAX_LENGTH = 20
+        const val NAME_MAX_LENGTH = 35
+        const val NAME_MIN_LENGTH = 3
         const val DESCRIPTION_MAX_LENGTH = 100
         const val STREAM_URL_MAX_LENGTH = 200
-        const val NAME_MIN_LENGTH = 3
         const val STREAM_URL_REGEX =
             "(rtsp|rtsps):\\/\\/(?:([^\\s@\\/]+?)[@])?([^\\s\\/:]+)(?:[:]([0-9]+))?(?:(\\/[^\\s?#]+)?(?<!\\/)([?][^\\s#]+)?)"
+    }
+
+    object Group {
+        const val NAME_MAX_LENGTH = 35
+        const val NAME_MIN_LENGTH = 3
+        const val DESCRIPTION_MAX_LENGTH = 100
     }
 
     object User {
@@ -38,7 +44,8 @@ object Constants {
         const val NAME_MAX_LENGTH = 20
         const val PASSWORD_MIN_SIZE = 5
         const val PASSWORD_MAX_SIZE = 20
-        const val PASSWORD_REGEX = """^(?=.*[a-z])(?=.*[A-Z])(?=.*[*.!@$%^&(){}\[\]:;<>,.?/~_+-=|]).{$PASSWORD_MIN_SIZE,$PASSWORD_MAX_SIZE}$"""
+        const val PASSWORD_REGEX =
+            """^(?=.*[a-z])(?=.*[A-Z])(?=.*[*.!@$%^&(){}\[\]:;<>,.?/~_+-=|]).{$PASSWORD_MIN_SIZE,$PASSWORD_MAX_SIZE}$"""
     }
 
     object Pagination {
@@ -56,14 +63,24 @@ object Constants {
         const val EMAIL_NOT_FOUND = "User with email %s not found"
         const val DEVICE_NAME_EMPTY = "Name cannot be empty"
         const val DEVICE_STREAM_URL_EMPTY = "Stream URL cannot be empty"
-        const val USER_ROLE_NAME_INVALID_LENGTH = "Role name must be between ${Roles.ROLE_NAME_MIN_LENGTH} and ${Roles.ROLE_NAME_MAX_LENGTH} characters"
-        const val DEVICE_NAME_INVALID_LENGTH = "Name must be between 1 and ${Device.NAME_MAX_LENGTH} characters"
+        const val USER_ROLE_NAME_INVALID_LENGTH =
+            "Role name must be between ${Roles.ROLE_NAME_MIN_LENGTH} and ${Roles.ROLE_NAME_MAX_LENGTH} characters"
+        const val DEVICE_NAME_INVALID_LENGTH =
+            "name must be between ${Device.NAME_MIN_LENGTH} and ${Device.NAME_MAX_LENGTH} characters"
+        const val GROUP_NAME_INVALID_LENGTH =
+            "must be between ${Group.NAME_MIN_LENGTH} and ${Group.NAME_MAX_LENGTH} characters"
         const val DEVICE_DESCRIPTION_INVALID_LENGTH =
             "Description must be between 1 and ${Device.DESCRIPTION_MAX_LENGTH} characters"
+        const val GROUP_DESCRIPTION_INVALID_LENGTH =
+            "Description must be between 1 and ${Group.DESCRIPTION_MAX_LENGTH} characters"
         const val DEVICE_STREAM_URL_INVALID_LENGTH =
             "Stream URL must be between 1 and ${Device.STREAM_URL_MAX_LENGTH} characters"
-        const val PASSWORD_REGEX_MISMATCH = "Password must contain at least one uppercase letter, one lowercase letter, one digit and one special character"
-        const val PASSWORD_INVALID_LENGTH = "Password must be between ${InputValidation.PASSWORD_MIN_SIZE} and ${InputValidation.PASSWORD_MAX_SIZE} characters"
+        const val PASSWORD_REGEX_MISMATCH =
+            "Password must contain at least one uppercase letter, " +
+                "one lowercase letter, one digit and one special character"
+        const val PASSWORD_INVALID_LENGTH =
+            "Password must be between ${InputValidation.PASSWORD_MIN_SIZE}" +
+                " and ${InputValidation.PASSWORD_MAX_SIZE} characters"
         const val EMAIL_INVALID_LENGTH = "Email must be between 1 and ${InputValidation.EMAIL_MAX_LENGTH} characters"
         const val PASSWORD_EMPTY = "Password cannot be empty"
         const val EMAIL_EMPTY = "Email cannot be empty"
@@ -74,7 +91,8 @@ object Constants {
         const val DEVICE_STATE_REQUIRED = "Processing state is required"
         const val DEVICE_STREAM_URL_INVALID = "Stream URL does not match the required format"
         const val DEVICE_ID_MUST_BE_POSITVE = "Device id must be positive"
-        const val DEVICE_ALREADY_UPDATING = "A request to update this device has already been made, please wait for it to finish"
+        const val DEVICE_ALREADY_UPDATING =
+            "A request to update this device has already been made, please wait for it to finish"
     }
 
     object Problem {

@@ -1,7 +1,7 @@
 package com.isel.sensiflow.services
 
 import com.isel.sensiflow.Constants
-import com.isel.sensiflow.amqp.Action
+import com.isel.sensiflow.amqp.ProcessingAction
 import com.isel.sensiflow.amqp.InstanceMessage
 import com.isel.sensiflow.amqp.action
 import com.isel.sensiflow.amqp.instanceController.MessageSender
@@ -168,7 +168,7 @@ class DeviceService(
 
         devicesToDelete.map { device ->
             InstanceMessage(
-                action = Action.REMOVE,
+                action = ProcessingAction.REMOVE,
                 device_id = device.id,
                 device_stream_url = null
             )

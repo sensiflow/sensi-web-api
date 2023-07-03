@@ -2,6 +2,8 @@ package com.isel.sensiflow.amqp.instanceController
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.isel.sensiflow.amqp.DeviceStateResponseMessage
+import com.isel.sensiflow.amqp.ProcessingAction
+import com.isel.sensiflow.amqp.SchedulerNotificationResponseMessage
 import com.isel.sensiflow.amqp.isError
 import com.isel.sensiflow.amqp.isNotFound
 import com.isel.sensiflow.amqp.isSuccessful
@@ -33,7 +35,12 @@ class MessageReceiver(
             val instanceResponseMessage = mapper.readValue(String(message.body), DeviceStateResponseMessage::class.java)
             logger.info("Received message from ack_device_state_queue: $instanceResponseMessage")
 
-            val newState = when {
+            if(instanceResponseMessage.action == ProcessingAction.REMOVE.name){
+                deviceService.completeDeviceDeletion(instanceResponseMessage.device_id)
+                return
+            }
+
+            val newState = when{
                 instanceResponseMessage.isSuccessful() -> instanceResponseMessage.newState
                 instanceResponseMessage.isNotFound() -> DeviceProcessingState.INACTIVE
                 instanceResponseMessage.isError() -> null
@@ -46,21 +53,25 @@ class MessageReceiver(
         }
     }
 
-    // TODO: change to just 1 queue
     /**
      * Listener that receives messages from the queue and acts accordingly.
      */
-    @RabbitListener(queues = ["\${rabbit.mq.ack_device_delete_queue}"])
-    fun receiveMessageFromAckDeviceDeleteQueue(message: Message, channel: Channel) {
+    @RabbitListener(queues = ["\${rabbit.mq.instance_scheduler_notification}"])
+    fun receiveMessageFromAckSchedulerNotificationQueue(message: Message, channel: Channel) {
         try {
-            val deleteDeviceResponseMessage = mapper.readValue(String(message.body), DeviceStateResponseMessage::class.java)
-            logger.info("Received message from ack_device_delete_queue: $deleteDeviceResponseMessage")
-
-            deviceService.completeDeviceDeletion(
-                deviceID = deleteDeviceResponseMessage.device_id
+            val schedulerNotificationMessage = mapper.readValue(
+                String(message.body),
+                SchedulerNotificationResponseMessage::class.java
             )
+            logger.info("Received message from instance_scheduler_notification: $schedulerNotificationMessage")
+
+            schedulerNotificationMessage.device_ids.forEach { deviceId ->
+                deviceService.completeUpdateState(deviceId, DeviceProcessingState.INACTIVE)
+            }
+            logger.info("Updated devices state with ids ${schedulerNotificationMessage.device_ids} to INACTIVE")
+
         } catch (e: ServiceException) {
-            logger.warn("Error while processing message from ack_device_delete_queue: ${e.message}")
+            logger.warn("Error while processing message from instance_scheduler_notification: ${e.message}")
         }
     }
 }
