@@ -41,6 +41,8 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.6.2")
     implementation("junit:junit:4.13.1")
 
+    implementation("org.springframework.boot:spring-boot-starter-security")
+
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
