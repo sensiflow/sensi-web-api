@@ -37,7 +37,7 @@
           }
         },
         {
-          "name": "instance_ack_device_delete_test",
+          "name": "instance_scheduler_notification_test",
           "vhost": "/",
           "durable": true,
           "auto_delete": false,
@@ -46,7 +46,7 @@
           }
         },
         {
-          "name": "instance_ack_device_delete",
+          "name": "instance_scheduler_notification",
           "vhost": "/",
           "durable": true,
           "auto_delete": false,
@@ -93,7 +93,7 @@
           "arguments": {}
         },
         {
-          "name": "instance_ack_device_delete_test_exchange",
+          "name": "instance_scheduler_notification_test_exchange",
           "vhost": "/",
           "type": "direct",
           "durable": true,
@@ -102,7 +102,7 @@
           "arguments": {}
         },
         {
-          "name": "instance_ack_device_delete_exchange",
+          "name": "instance_scheduler_notification_exchange",
           "vhost": "/",
           "type": "direct",
           "durable": true,
@@ -145,19 +145,19 @@
           "arguments": {}
         },
         {
-          "source": "instance_ack_device_delete_test_exchange",
+          "source": "instance_scheduler_notification_test_exchange",
           "vhost": "/",
-          "destination": "instance_ack_device_delete_test",
+          "destination": "instance_scheduler_notification_test",
           "destination_type": "queue",
-          "routing_key": "instance_ack_device_delete_test",
+          "routing_key": "instance_scheduler_notification_test",
           "arguments": {}
         },
         {
-          "source": "instance_ack_device_delete_exchange",
+          "source": "instance_scheduler_notification_exchange",
           "vhost": "/",
-          "destination": "instance_ack_device_delete",
+          "destination": "instance_scheduler_notification",
           "destination_type": "queue",
-          "routing_key": "instance_ack_device_delete",
+          "routing_key": "instance_scheduler_notification",
           "arguments": {}
         }
       ],

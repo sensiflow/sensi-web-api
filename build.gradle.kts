@@ -63,6 +63,6 @@ tasks.withType<Test> {
         "RABBITMQ_HOST" to "localhost",
         "INSTANCE_CTL_QUEUE" to "instance_ctl_test",
         "INSTANCE_ACK_QUEUE_DEVICE_STATE" to "instance_ack_device_state_test",
-        "INSTANCE_ACK_QUEUE_DEVICE_DELETE" to "instance_ack_device_delete_test"
+        "INSTANCE_ACK_QUEUE_DEVICE_DELETE" to "instance_scheduler_notification_test",
     )
 }
