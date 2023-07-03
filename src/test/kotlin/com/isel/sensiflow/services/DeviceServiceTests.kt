@@ -1,6 +1,5 @@
 package com.isel.sensiflow.services
 
-import com.isel.sensiflow.amqp.Action
 import com.isel.sensiflow.amqp.InstanceMessage
 import com.isel.sensiflow.amqp.instanceController.MessageSender
 import com.isel.sensiflow.model.entities.Device
@@ -489,6 +488,29 @@ class DeviceServiceTests {
 
             // Reset not needed because mocks are never called
         }
+    }
+
+    @Test
+    fun `updating a device's processing state when this is already updating fails`(){
+
+        val storedDevice = Device(
+            id=1,
+            name="teste",
+            description="teste",
+            streamURL = "https://streamUrl.com/assert",
+            pendingUpdate = true,
+            processedStreamURL = null
+        )
+
+        `when`(deviceRepository.findById(1)).thenReturn(Optional.of(storedDevice))
+
+        assertThrows<DeviceAlreadyUpdatingException> {
+            deviceService.startUpdateProcessingState(1, "ACTIVE")
+        }
+
+        verify(deviceRepository, times(0)).save(kAny(Device::class.java))
+        verify(instanceControllerMessageSender, times(0))
+            .sendMessage(kAny(InstanceMessage::class.java))
     }
 
     @Test

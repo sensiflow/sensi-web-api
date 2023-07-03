@@ -137,7 +137,7 @@ class DeviceService(
         if (stopDeviceCondition) {
             instanceControllerMessageSender.sendMessage(
                 InstanceMessage(
-                    action = Action.STOP,
+                    action = ProcessingAction.STOP,
                     deviceID,
                     null
                 )
@@ -164,6 +164,7 @@ class DeviceService(
         deviceGroups.forEach { group ->
             group.devices.removeAll(devicesToDelete.toSet())
         }
+
         deviceGroupRepository.saveAll(deviceGroups)
 
         devicesToDelete.map { device ->
