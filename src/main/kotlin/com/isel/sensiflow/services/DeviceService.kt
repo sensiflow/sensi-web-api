@@ -121,13 +121,28 @@ class DeviceService(
         if (deviceUpdateInput.fieldsAreEmpty() || storedDevice.isTheSameAs(deviceUpdateInput))
             return
 
+        val stopDeviceCondition =
+            deviceUpdateInput.streamURL != storedDevice.streamURL &&
+                storedDevice.processingState != DeviceProcessingState.INACTIVE
+
         val updatedDevice = Device(
             id = storedDevice.id,
             name = deviceUpdateInput.name ?: storedDevice.name,
             streamURL = deviceUpdateInput.streamURL ?: storedDevice.streamURL,
             description = deviceUpdateInput.description ?: storedDevice.description,
-            processedStreamURL = storedDevice.processedStreamURL
+            processedStreamURL = storedDevice.processedStreamURL,
+            pendingUpdate = stopDeviceCondition
         )
+
+        if (stopDeviceCondition) {
+            instanceControllerMessageSender.sendMessage(
+                InstanceMessage(
+                    action = ProcessingAction.STOP,
+                    deviceID,
+                    null
+                )
+            )
+        }
 
         deviceRepository.save(updatedDevice)
     } // TODO: message to queue that url was updated if it changed
@@ -149,6 +164,7 @@ class DeviceService(
         deviceGroups.forEach { group ->
             group.devices.removeAll(devicesToDelete.toSet())
         }
+
         deviceGroupRepository.saveAll(deviceGroups)
 
         devicesToDelete.map { device ->
