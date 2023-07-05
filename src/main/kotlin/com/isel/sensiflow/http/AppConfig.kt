@@ -28,11 +28,11 @@ class AppConfig(
     override fun addInterceptors(registry: org.springframework.web.servlet.config.annotation.InterceptorRegistry) {
         registry.addInterceptor(authenticationInterceptor)
     }
-// TODO: remover cors since it is no longer necessary
+
     override fun addCorsMappings(registry: CorsRegistry) {
         registry
             .addMapping("/**")
-            .allowedOriginPatterns("http://localhost:[*]")
+            .allowedOriginPatterns("http://sensiflow.net:[*]", "https://sensiflow.net:[*]", "http://localhost:[*]", "https://localhost:[*]")
             .allowedMethods("GET", "POST", "OPTIONS", "PUT", "DELETE")
             .allowedHeaders("*")
             .allowCredentials(true)

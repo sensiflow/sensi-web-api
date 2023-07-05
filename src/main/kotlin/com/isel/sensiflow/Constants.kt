@@ -2,8 +2,7 @@ package com.isel.sensiflow
 
 object Constants {
 
-    const val API_VERSION = "v1"
-    const val CONTEXT_PATH = "/api/$API_VERSION"
+    const val API_PATH = "/api"
 
     object Device {
         const val PEOPLE_COUNT_RETRIEVAL_DELAY: Long = 1000 // 1 second
@@ -98,7 +97,7 @@ object Constants {
     object Problem {
 
         object URI {
-            private const val BASE_URI = "https://docs.sensiflow.org/api/errors/general/"
+            private const val BASE_URI = "https://docs.sensiflow.net/api/errors/general/"
 
             const val DEVICE_NOT_FOUND = "$BASE_URI#device-not-found"
             const val USER_NOT_FOUND = "$BASE_URI#user-not-found"

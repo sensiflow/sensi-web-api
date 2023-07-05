@@ -7,7 +7,6 @@ import org.springframework.http.MediaType
 import org.springframework.http.ProblemDetail
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
-import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseBody
 import java.net.URI
@@ -29,11 +28,5 @@ class RedirectController : ErrorController {
             .status(problemDetail.status)
             .contentType(MediaType.APPLICATION_PROBLEM_JSON)
             .body(problemDetail)
-    }
-
-    // From every request with an uri that does not belong to the api redirects to the index.html
-    @GetMapping("/error")
-    fun redirectToIndex(): String {
-        return "forward:/index.html"
     }
 }

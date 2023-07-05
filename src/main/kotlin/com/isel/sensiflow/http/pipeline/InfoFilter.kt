@@ -36,17 +36,18 @@ class LoggingFilter : OncePerRequestFilter() {
             requestWrapper.contentAsByteArray,
             request.characterEncoding
         )
+        val cookiesSize = if(request.cookies == null) 0 else request.cookies.size
 
         val logMessage = "Request ${request.method} on ${request.requestURI} took $timeTaken millis with params: " +
-                "|$paramsString| and cookies: | ${request.cookies}|"
+                "[$paramsString] and with ${cookiesSize} cookies."
 
-        if(request.requestURI == RequestPaths.Users.USERS + RequestPaths.Users.LOGIN ||
+        if(request.method == "POST" && request.requestURI == RequestPaths.Users.USERS + RequestPaths.Users.LOGIN ||
             request.method == "POST" && request.requestURI == RequestPaths.Users.USERS){
             LOGGER.info(logMessage)
             return
         }
 
-        LOGGER.info("$logMessage body: |$requestBody|")
+        LOGGER.info("$logMessage body: [$requestBody]")
     }
 
     private fun getStringValue(contentAsByteArray: ByteArray, characterEncoding: String): String {

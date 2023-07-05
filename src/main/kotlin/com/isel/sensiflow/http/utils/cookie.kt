@@ -64,7 +64,7 @@ fun Cookie.sameSite(sameSite: SameSite): Cookie {
 fun createAuthCookie(token: String, timeUntilExpire: Long): Cookie {
     return Cookie(Constants.User.AUTH_COOKIE_NAME, token)
         .apply {
-            path(Constants.CONTEXT_PATH)
+            path(Constants.API_PATH)
             maxAge(timeUntilExpire)
             httpOnly(true)
         }
