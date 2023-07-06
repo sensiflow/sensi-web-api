@@ -16,7 +16,7 @@ import com.isel.sensiflow.services.Role.ADMIN
 import com.isel.sensiflow.services.Role.MODERATOR
 import com.isel.sensiflow.services.Role.USER
 import com.isel.sensiflow.services.UserID
-import com.isel.sensiflow.services.UserService
+import com.isel.sensiflow.services.beans.UserService
 import com.isel.sensiflow.services.dto.PageableDTO
 import com.isel.sensiflow.services.dto.input.UserRoleInput
 import com.isel.sensiflow.services.dto.output.PageDTO

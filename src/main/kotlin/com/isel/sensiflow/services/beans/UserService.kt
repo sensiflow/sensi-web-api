@@ -1,4 +1,4 @@
-package com.isel.sensiflow.services
+package com.isel.sensiflow.services.beans
 
 import com.isel.sensiflow.Constants.User.SESSION_EXPIRATION_TIME
 import com.isel.sensiflow.http.entities.input.UserLoginInput
@@ -15,6 +15,15 @@ import com.isel.sensiflow.model.entities.toRole
 import com.isel.sensiflow.model.repository.SessionTokenRepository
 import com.isel.sensiflow.model.repository.UserRepository
 import com.isel.sensiflow.model.repository.UserRoleRepository
+import com.isel.sensiflow.services.ActionForbiddenException
+import com.isel.sensiflow.services.EmailAlreadyExistsException
+import com.isel.sensiflow.services.EmailNotFoundException
+import com.isel.sensiflow.services.InvalidCredentialsException
+import com.isel.sensiflow.services.InvalidTokenException
+import com.isel.sensiflow.services.Role
+import com.isel.sensiflow.services.RoleNotFoundException
+import com.isel.sensiflow.services.UserID
+import com.isel.sensiflow.services.UserNotFoundException
 import com.isel.sensiflow.services.dto.AuthInformationDTO
 import com.isel.sensiflow.services.dto.PageableDTO
 import com.isel.sensiflow.services.dto.UserDTO
@@ -22,6 +31,12 @@ import com.isel.sensiflow.services.dto.input.UserRoleInput
 import com.isel.sensiflow.services.dto.output.PageDTO
 import com.isel.sensiflow.services.dto.output.toPageDTO
 import com.isel.sensiflow.services.dto.toOutput
+import com.isel.sensiflow.services.generateExpirationDate
+import com.isel.sensiflow.services.generateSalt
+import com.isel.sensiflow.services.generateUUID
+import com.isel.sensiflow.services.hashPassword
+import com.isel.sensiflow.services.isHigherThan
+import com.isel.sensiflow.services.toTimeStamp
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
