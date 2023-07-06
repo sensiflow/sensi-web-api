@@ -16,16 +16,12 @@ class SecurityConfig {
     @Bean
     @Throws(Exception::class)
     fun filterChain(http: HttpSecurity): SecurityFilterChain? {
-
-        return http
-            .requiresChannel { channel ->
-                if (sslEnabled) {
-                    channel.anyRequest().requiresSecure()
-                } else {
-                    channel.anyRequest().requiresInsecure()
-                }
-
-            }
-            .build()
+        return if (sslEnabled) {
+            http.requiresChannel { channel ->
+                channel.anyRequest().requiresSecure()
+            }.build()
+        } else
+            // Disable security for http
+            http.csrf().disable().build()
     }
 }

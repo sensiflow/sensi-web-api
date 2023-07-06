@@ -59,6 +59,7 @@ class UserController(private val userService: UserService) {
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping(Users.GET_USER)
+    @Authentication(authorization = USER)
     fun getUser(
         @PathVariable id: UserID
     ): UserOutput =
@@ -107,7 +108,7 @@ class UserController(private val userService: UserService) {
         response.addCookie(authCookie)
 
         return AuthOutput(authInfo.userID, authInfo.timeUntilExpire)
-    } // TODO: change documentation
+    }
 
     @Authentication(authorization = USER)
     @ResponseStatus(HttpStatus.NO_CONTENT)
