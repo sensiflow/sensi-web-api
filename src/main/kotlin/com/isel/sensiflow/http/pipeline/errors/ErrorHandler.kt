@@ -41,7 +41,7 @@ class ErrorHandler : ResponseEntityExceptionHandler() {
             detail = ex.message
             instance = URI(request.requestURI)
         }
-        ex.printStackTrace()
+        logger.error(problemDetail.toString())
         return problemDetail
     }
 
@@ -61,6 +61,7 @@ class ErrorHandler : ResponseEntityExceptionHandler() {
             detail = errors[0]
             instance = URI(request.contextPath)
         }
+        logger.error(problemDetail.toString())
         return problemDetail.toResponseEntity()
     }
 
@@ -79,6 +80,7 @@ class ErrorHandler : ResponseEntityExceptionHandler() {
             detail = ex.message
             instance = URI(request.contextPath)
         }
+        logger.error(problemDetail.toString())
         return problemDetail.toResponseEntity()
     }
 
@@ -97,6 +99,7 @@ class ErrorHandler : ResponseEntityExceptionHandler() {
             detail = ex.message
             instance = URI(request.contextPath)
         }
+        logger.error(problemDetail.toString())
         return problemDetail.toResponseEntity()
     }
 
@@ -115,6 +118,7 @@ class ErrorHandler : ResponseEntityExceptionHandler() {
             detail = ex.message
             instance = URI(request.contextPath)
         }
+        logger.error(problemDetail.toString())
         return problemDetail.toResponseEntity()
     }
 
@@ -126,6 +130,7 @@ class ErrorHandler : ResponseEntityExceptionHandler() {
             detail = ex.message
             instance = URI(request.requestURI)
         }
+        logger.error(problemDetail.toString())
         return problemDetail
     }
 
@@ -144,6 +149,7 @@ class ErrorHandler : ResponseEntityExceptionHandler() {
             detail = ex.message
             instance = URI(request.contextPath)
         }
+        logger.error(problemDetail.toString())
         return problemDetail.toResponseEntity()
     }
 
@@ -162,6 +168,7 @@ class ErrorHandler : ResponseEntityExceptionHandler() {
             detail = ex.message
             instance = URI(request.contextPath)
         }
+        logger.error(problemDetail.toString())
         return problemDetail.toResponseEntity()
     }
 }
