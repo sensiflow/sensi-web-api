@@ -1,7 +1,7 @@
 package com.isel.sensiflow.amqp.instanceController
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.isel.sensiflow.amqp.InstanceMessage
+import com.isel.sensiflow.amqp.message.output.InstanceMessage
 import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component

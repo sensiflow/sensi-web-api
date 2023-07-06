@@ -1,5 +1,7 @@
-package com.isel.sensiflow.amqp
+package com.isel.sensiflow.amqp.message.input
 
+import com.isel.sensiflow.amqp.ProcessingAction
+import com.isel.sensiflow.amqp.state
 import com.isel.sensiflow.services.ServiceInternalException
 
 /**
@@ -9,7 +11,7 @@ import com.isel.sensiflow.services.ServiceInternalException
  * @property code the response code.
  * @property message the response message.
  */
-data class DeviceStateResponseMessage(
+data class InstanceCtlAcknowledgeMessage(
     val device_id: Int,
     val action: String,
     val code: Int,
@@ -19,8 +21,8 @@ data class DeviceStateResponseMessage(
         ?: throw ServiceInternalException("Invalid received from instance manager: $action")
 }
 
-fun DeviceStateResponseMessage.isSuccessful(): Boolean = code / 1000 == 2
+fun InstanceCtlAcknowledgeMessage.isSuccessful(): Boolean = code / 1000 == 2
 
-fun DeviceStateResponseMessage.isError(): Boolean = code / 1000 == 4
+fun InstanceCtlAcknowledgeMessage.isError(): Boolean = code / 1000 == 4
 
-fun DeviceStateResponseMessage.isNotFound(): Boolean = code == 4004
+fun InstanceCtlAcknowledgeMessage.isNotFound(): Boolean = code == 4004

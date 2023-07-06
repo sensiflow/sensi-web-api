@@ -1,3 +1,5 @@
+package com.isel.sensiflow.http.utils
+
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

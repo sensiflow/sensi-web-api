@@ -1,6 +1,4 @@
-package com.isel.sensiflow.amqp
-
-import com.isel.sensiflow.services.ServiceInternalException
+package com.isel.sensiflow.amqp.message.input
 
 /**
  * Response received from the instance manager.

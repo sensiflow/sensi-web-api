@@ -1,7 +1,7 @@
 package com.isel.sensiflow.services
 
-import com.isel.sensiflow.amqp.InstanceMessage
 import com.isel.sensiflow.amqp.instanceController.MessageSender
+import com.isel.sensiflow.amqp.message.output.InstanceMessage
 import com.isel.sensiflow.model.entities.Device
 import com.isel.sensiflow.model.entities.DeviceGroup
 import com.isel.sensiflow.model.entities.DeviceProcessingState
@@ -13,6 +13,9 @@ import com.isel.sensiflow.model.repository.DeviceGroupRepository
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.model.repository.MetricRepository
 import com.isel.sensiflow.model.repository.UserRepository
+import com.isel.sensiflow.services.beans.DeviceGroupService
+import com.isel.sensiflow.services.beans.DeviceProcessingStateService
+import com.isel.sensiflow.services.beans.DeviceService
 import com.isel.sensiflow.services.dto.PageableDTO
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
 import com.isel.sensiflow.services.dto.input.DeviceUpdateDTO
@@ -30,8 +33,8 @@ import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.ArgumentMatchers.anyList
 import org.mockito.InjectMocks
 import org.mockito.Mock
+import org.mockito.Mockito
 import org.mockito.Mockito.doNothing
-import org.mockito.Mockito.reset
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
@@ -48,6 +51,9 @@ class DeviceServiceTests {
 
     @InjectMocks
     private lateinit var deviceService: DeviceService
+
+    @InjectMocks
+    private lateinit var deviceProcessingStateService: DeviceProcessingStateService
 
     @InjectMocks
     private lateinit var deviceGroupService: DeviceGroupService
@@ -372,146 +378,46 @@ class DeviceServiceTests {
 
         verify(deviceRepository, times(1)).flagForDeletion(devicesToDelete)
         verify(deviceGroupRepository, times(1)).saveAll(anyList())
-        verify(metricRepository, times(1)).deleteAllByDeviceIn(devicesToDelete)
-    }
-
-    /* State transition tests */
-
-    /**
-     * Helper function to test valid and invalid state transitions. This function just performs the transition
-     * and verifies the things that should happen when a transition is made with valid processing states.
-     */
-    private fun updateStateTransition(from: DeviceProcessingState, to: DeviceProcessingState) {
-
-        val existingDevice = Device(
-            id = fakeDevice.id,
-            name = fakeDevice.name,
-            streamURL = fakeDevice.streamURL,
-            description = fakeDevice.description,
-            processingState = from,
-            processedStreamURL = null
-        )
-
-        `when`(deviceRepository.findById(existingDevice.id)).thenReturn(Optional.of(existingDevice))
-
-        deviceService.startUpdateProcessingState(fakeDevice.id, to.name)
-
-        verify(deviceRepository, times(1)).findById(existingDevice.id)
     }
 
     @Test
-    fun `simple update state for a device`() {
-        val device = fakeDevice.id
-        `when`(deviceRepository.findById(device)).thenReturn(Optional.of(fakeDevice))
+    fun `delete a device after receiving a message from the rabbit queue successfully`() {
+        val deviceID = fakeDevice.id
+        `when`(deviceRepository.findById(deviceID)).thenReturn(Optional.of(fakeDevice))
+        fakeDevice.scheduledForDeletion = true
+        deviceService.completeDeviceDeletion(deviceID)
 
-        updateStateTransition(DeviceProcessingState.INACTIVE, DeviceProcessingState.ACTIVE)
-
-        verify(deviceRepository, times(1)).save(kAny(Device::class.java))
-        verify(instanceControllerMessageSender, times(1))
-            .sendMessage(kAny(InstanceMessage::class.java))
+        verify(deviceRepository, times(1)).delete(fakeDevice)
+        verify(metricRepository, times(1)).deleteAllByDevice(fakeDevice)
     }
 
     @Test
-    fun `update state for a device that does not exist`() {
-        val nonExistantDevice = fakeDevice.id + 1
-        `when`(deviceRepository.findById(nonExistantDevice)).thenReturn(Optional.empty())
+    fun `delete a device after receiving a message from the rabbit queue when the device does not exist throws DeviceNotFoundException`() {
+        val deviceID = fakeDevice.id
+        `when`(deviceRepository.findById(deviceID)).thenReturn(Optional.empty())
 
         assertThrows<DeviceNotFoundException> {
-            deviceService.startUpdateProcessingState(nonExistantDevice, DeviceProcessingState.ACTIVE.name)
+            deviceService.completeDeviceDeletion(deviceID)
         }
 
-        verify(deviceRepository, times(1)).findById(nonExistantDevice)
-        verify(deviceRepository, times(0)).save(kAny(Device::class.java))
-        verify(instanceControllerMessageSender, times(0))
-            .sendMessage(kAny(InstanceMessage::class.java))
+        Mockito.verify(deviceRepository, times(0)).delete(fakeDevice)
+        Mockito.verify(metricRepository, times(0)).deleteAllByDevice(fakeDevice)
     }
 
     @Test
-    fun `update a state with a processing state that doesn't exist fails`() {
-        val nonExistantState = "nonExistantState"
+    fun `delete a device after receiving a message from the rabbit queue when the device is not scheduled for deletion throws ServiceInternalException`() {
+        val deviceID = fakeDevice.id
+        `when`(deviceRepository.findById(deviceID)).thenReturn(Optional.of(fakeDevice))
 
-        assertThrows<InvalidProcessingStateException> {
-            deviceService.startUpdateProcessingState(fakeDevice.id, nonExistantState)
+        assertThrows<ServiceInternalException> {
+            deviceService.completeDeviceDeletion(deviceID)
         }
 
-        verify(deviceRepository, times(0)).findById(fakeDevice.id)
-        verify(deviceRepository, times(0)).save(kAny(Device::class.java))
-        verify(instanceControllerMessageSender, times(0))
-            .sendMessage(kAny(InstanceMessage::class.java))
+        Mockito.verify(deviceRepository, times(0)).delete(fakeDevice)
+        Mockito.verify(metricRepository, times(0)).deleteAllByDevice(fakeDevice)
     }
 
-    @Test
-    fun `valid transitions test`() {
-
-        val possibleStates = DeviceProcessingState.values().toList()
-
-        // Every single enum value list combination
-        val allPossibleTransitions = possibleStates.map { state ->
-            state to possibleStates
-        }.flatMap { (state, possibleStates) ->
-            possibleStates.map {
-                state to it
-            }
-        }
-
-        val (validTransitions, invalidTransitions) = allPossibleTransitions.partition { (from, to) ->
-            from.isValidTransition(to) || from == to
-        }
-
-        validTransitions.forEach { (fromState, toState) ->
-
-            val isSameStateTransition = fromState == toState
-
-            updateStateTransition(fromState, toState)
-
-            val expectedSaveCalls = if (isSameStateTransition) 0 else 1
-
-            // Save is only called when the state has actually changed
-            verify(deviceRepository, times(expectedSaveCalls)).save(kAny(Device::class.java))
-            verify(instanceControllerMessageSender, times(expectedSaveCalls))
-                .sendMessage(kAny(InstanceMessage::class.java))
-
-            // Reset mock
-            reset(deviceRepository)
-            reset(instanceControllerMessageSender)
-        }
-
-        invalidTransitions.forEach { (fromState, toState) ->
-
-            assertThrows<InvalidProcessingStateTransitionException> {
-                updateStateTransition(fromState, toState)
-            }
-
-            verify(deviceRepository, times(0)).save(kAny(Device::class.java))
-            verify(instanceControllerMessageSender, times(0))
-                .sendMessage(kAny(InstanceMessage::class.java))
-
-            // Reset not needed because mocks are never called
-        }
-    }
-
-    @Test
-    fun `updating a device's processing state when this is already updating fails`(){
-
-        val storedDevice = Device(
-            id=1,
-            name="teste",
-            description="teste",
-            streamURL = "https://streamUrl.com/assert",
-            pendingUpdate = true,
-            processedStreamURL = null
-        )
-
-        `when`(deviceRepository.findById(1)).thenReturn(Optional.of(storedDevice))
-
-        assertThrows<DeviceAlreadyUpdatingException> {
-            deviceService.startUpdateProcessingState(1, "ACTIVE")
-        }
-
-        verify(deviceRepository, times(0)).save(kAny(Device::class.java))
-        verify(instanceControllerMessageSender, times(0))
-            .sendMessage(kAny(InstanceMessage::class.java))
-    }
+    // Metric Retrieval Tests
 
     @Test
     fun `get device stats successfully`() {
@@ -534,7 +440,7 @@ class DeviceServiceTests {
             expectedPageItems.size.toLong()
         )
 
-        `when`(deviceRepository.findById(deviceId)).thenReturn(Optional.of(fakeDevice))
+        `when`(deviceRepository.existsById(deviceId)).thenReturn(true)
         `when`(metricRepository.findAllByDeviceId(fakeDevice.id, PageRequest.of(pageableDTO.page, pageableDTO.size)))
             .thenReturn(page)
 
@@ -542,10 +448,11 @@ class DeviceServiceTests {
 
         // Act
 
-        val retrievedStats = deviceService.getDeviceStats(pageableDTO, deviceId)
+        val retrievedStats = deviceService.getDeviceStats(deviceId, pageableDTO)
 
         // Assert
         assertEquals(expected, retrievedStats.items)
+        verify(deviceRepository, times(1)).existsById(deviceId)
         verify(metricRepository, times(1))
             .findAllByDeviceId(fakeDevice.id, PageRequest.of(pageableDTO.page, pageableDTO.size))
     }
@@ -556,94 +463,26 @@ class DeviceServiceTests {
         val deviceId = 1
         val pageableDTO = PageableDTO(page = 1, size = 10)
 
-        `when`(deviceRepository.findById(deviceId)).thenReturn(Optional.empty())
+        `when`(deviceRepository.existsById(deviceId)).thenReturn(false)
         `when`(metricRepository.findAllByDeviceId(kAny(Int::class.java), kAny(Pageable::class.java)))
             .thenReturn(null)
 
         // Act
         assertThrows<DeviceNotFoundException> {
-            deviceService.getDeviceStats(pageableDTO, deviceId)
+            deviceService.getDeviceStats(deviceId, pageableDTO)
         }
 
         // Assert
+        verify(deviceRepository, times(1)).existsById(deviceId)
         verify(metricRepository, times(0))
             .findAllByDeviceId(kAny(Int::class.java), kAny(Pageable::class.java))
     }
 
     @Test
-    fun `update device's state successfully after receiving a message from the rabbit queue`() {
-        val deviceID = fakeDevice.id + 1
-        val device = Device(
-            id = deviceID,
-            name = fakeDevice.name,
-            streamURL = fakeDevice.streamURL,
-            description = fakeDevice.description,
-            processingState = DeviceProcessingState.INACTIVE,
-            pendingUpdate = true,
-            processedStreamURL = null
-        )
-        `when`(deviceRepository.findById(deviceID)).thenReturn(Optional.of(device))
-
-        deviceService.completeUpdateState(deviceID, DeviceProcessingState.ACTIVE)
-
-        verify(deviceRepository, times(1)).save(kAny(Device::class.java))
+    fun `get device stats from a specific time interval`() {
     }
 
     @Test
-    fun `update device's state after receiving a message from the rabbit queue when the device does not exist throws DeviceNotFoundException`() {
-        val deviceID = fakeDevice.id
-        `when`(deviceRepository.findById(deviceID)).thenReturn(Optional.empty())
-
-        assertThrows<DeviceNotFoundException> {
-            deviceService.completeUpdateState(deviceID, DeviceProcessingState.ACTIVE)
-        }
-
-        verify(deviceRepository, times(0)).save(kAny(Device::class.java))
-    }
-
-    @Test
-    fun `update device's state after receiving a message from the rabbit queue when the device's state is not pending throws ServiceInternalException`() {
-        val deviceID = fakeDevice.id
-        `when`(deviceRepository.findById(deviceID)).thenReturn(Optional.of(fakeDevice))
-
-        assertThrows<ServiceInternalException> {
-            deviceService.completeUpdateState(deviceID, DeviceProcessingState.INACTIVE)
-        }
-
-        verify(deviceRepository, times(0)).save(kAny(Device::class.java))
-    }
-
-    @Test
-    fun `delete a device after receiving a message from the rabbit queue successfully`() {
-        val deviceID = fakeDevice.id
-        `when`(deviceRepository.findById(deviceID)).thenReturn(Optional.of(fakeDevice))
-        fakeDevice.scheduledForDeletion = true
-        deviceService.completeDeviceDeletion(deviceID)
-
-        verify(deviceRepository, times(1)).delete(fakeDevice)
-    }
-
-    @Test
-    fun `delete a device after receiving a message from the rabbit queue when the device does not exist throws DeviceNotFoundException`() {
-        val deviceID = fakeDevice.id
-        `when`(deviceRepository.findById(deviceID)).thenReturn(Optional.empty())
-
-        assertThrows<DeviceNotFoundException> {
-            deviceService.completeDeviceDeletion(deviceID)
-        }
-
-        verify(deviceRepository, times(0)).delete(fakeDevice)
-    }
-
-    @Test
-    fun `delete a device after receiving a message from the rabbit queue when the device is not scheduled for deletion throws ServiceInternalException`() {
-        val deviceID = fakeDevice.id
-        `when`(deviceRepository.findById(deviceID)).thenReturn(Optional.of(fakeDevice))
-
-        assertThrows<ServiceInternalException> {
-            deviceService.completeDeviceDeletion(deviceID)
-        }
-
-        verify(deviceRepository, times(0)).delete(fakeDevice)
+    fun `get device stats from a specific time interval when a device does not exist`() {
     }
 }

@@ -3,7 +3,7 @@ package com.isel.sensiflow.http.pipeline.authentication
 import com.isel.sensiflow.Constants.User.AUTH_COOKIE_NAME
 import com.isel.sensiflow.services.UnauthenticatedException
 import com.isel.sensiflow.services.UserID
-import com.isel.sensiflow.services.UserService
+import com.isel.sensiflow.services.beans.UserService
 import jakarta.servlet.http.Cookie
 import org.springframework.stereotype.Component
 

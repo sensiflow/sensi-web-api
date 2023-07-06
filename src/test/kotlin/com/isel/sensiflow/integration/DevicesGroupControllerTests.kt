@@ -8,7 +8,7 @@ import com.isel.sensiflow.http.entities.output.IDOutput
 import com.isel.sensiflow.services.Role
 import com.isel.sensiflow.services.Role.ADMIN
 import com.isel.sensiflow.services.Role.USER
-import com.isel.sensiflow.services.UserService
+import com.isel.sensiflow.services.beans.UserService
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupCreateDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupInputDTO

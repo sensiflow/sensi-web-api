@@ -7,6 +7,7 @@ import com.isel.sensiflow.model.entities.User
 import com.isel.sensiflow.model.entities.UserRole
 import com.isel.sensiflow.model.repository.DeviceGroupRepository
 import com.isel.sensiflow.model.repository.DeviceRepository
+import com.isel.sensiflow.services.beans.DeviceGroupService
 import com.isel.sensiflow.services.dto.PageableDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupCreateDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupInputDTO

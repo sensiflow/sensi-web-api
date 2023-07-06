@@ -3,7 +3,7 @@ package com.isel.sensiflow.http.pipeline.authentication
 import com.isel.sensiflow.services.ActionForbiddenException
 import com.isel.sensiflow.services.Role
 import com.isel.sensiflow.services.UserID
-import com.isel.sensiflow.services.UserService
+import com.isel.sensiflow.services.beans.UserService
 import com.isel.sensiflow.services.hasAccessTo
 import org.springframework.stereotype.Component
 

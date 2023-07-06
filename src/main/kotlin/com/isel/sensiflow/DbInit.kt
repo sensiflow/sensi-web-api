@@ -3,7 +3,7 @@ package com.isel.sensiflow
 import com.isel.sensiflow.http.entities.input.UserRegisterInput
 import com.isel.sensiflow.model.repository.UserRepository
 import com.isel.sensiflow.services.Role
-import com.isel.sensiflow.services.UserService
+import com.isel.sensiflow.services.beans.UserService
 import jakarta.annotation.PostConstruct
 import org.springframework.stereotype.Component
 

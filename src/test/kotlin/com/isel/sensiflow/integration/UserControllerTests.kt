@@ -14,7 +14,7 @@ import com.isel.sensiflow.integration.HTTPMethod.GET
 import com.isel.sensiflow.integration.HTTPMethod.POST
 import com.isel.sensiflow.services.ID
 import com.isel.sensiflow.services.Role.ADMIN
-import com.isel.sensiflow.services.UserService
+import com.isel.sensiflow.services.beans.UserService
 import com.isel.sensiflow.services.dto.input.UserRoleInput
 import jakarta.servlet.http.Cookie
 import org.junit.jupiter.api.Test

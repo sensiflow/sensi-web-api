@@ -1,6 +1,7 @@
-package com.isel.sensiflow.amqp
+package com.isel.sensiflow.amqp.message.output
 
 import com.isel.sensiflow.Constants
+import com.isel.sensiflow.amqp.ProcessingAction
 import com.isel.sensiflow.services.InvalidParameterException
 import jakarta.validation.Validation
 import jakarta.validation.constraints.Pattern

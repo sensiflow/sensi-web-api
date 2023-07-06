@@ -10,7 +10,7 @@ import com.isel.sensiflow.integration.ensureCookieNotNull
 import com.isel.sensiflow.integration.request
 import com.isel.sensiflow.services.ID
 import com.isel.sensiflow.services.Role
-import com.isel.sensiflow.services.UserService
+import com.isel.sensiflow.services.beans.UserService
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
 import jakarta.servlet.http.Cookie
 import org.junit.jupiter.api.Test

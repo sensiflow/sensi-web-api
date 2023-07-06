@@ -9,7 +9,7 @@ import com.isel.sensiflow.model.entities.MetricID
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.model.repository.MetricRepository
 import com.isel.sensiflow.services.Role
-import com.isel.sensiflow.services.UserService
+import com.isel.sensiflow.services.beans.UserService
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
 import com.isel.sensiflow.services.dto.input.DeviceUpdateDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupCreateDTO
@@ -18,12 +18,10 @@ import com.isel.sensiflow.services.dto.output.DeviceSimpleOutputDTO
 import com.isel.sensiflow.services.dto.output.MetricOutputDTO
 import com.isel.sensiflow.services.dto.output.PageDTO
 import jakarta.servlet.http.Cookie
-import java.sql.Timestamp
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.security.SecurityProperties.*
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
@@ -31,9 +29,8 @@ import org.springframework.http.ProblemDetail
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
-import org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup
 import org.springframework.transaction.annotation.Transactional
-
+import java.sql.Timestamp
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @RunWith(org.springframework.test.context.junit4.SpringRunner::class)
@@ -833,8 +830,8 @@ class DeviceControllerTests {
             assertions = {
                 andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.items[0].name").value("Indoor Camera"))
-                    .andExpect(MockMvcResultMatchers.jsonPath(".items[1].name").value("Outdoor Camera"))
-                    .andExpect(MockMvcResultMatchers.jsonPath(".items[2].name").value("Security Camera"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.items[1].name").value("Outdoor Camera"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.items[2].name").value("Security Camera"))
             }
         )
     }
@@ -875,9 +872,9 @@ class DeviceControllerTests {
             assertions = {
                 andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.items[0].name").value("Indoor Camera"))
-                    .andExpect(MockMvcResultMatchers.jsonPath(".items[1].name").value("Outdoor Camera"))
-                    .andExpect(MockMvcResultMatchers.jsonPath(".items[2].name").value("Security Camera"))
-                    .andExpect(MockMvcResultMatchers.jsonPath(".items[3]").doesNotExist())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.items[1].name").value("Outdoor Camera"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.items[2].name").value("Security Camera"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.items[3]").doesNotExist())
             }
         )
 
