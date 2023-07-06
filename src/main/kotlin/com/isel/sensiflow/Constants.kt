@@ -5,8 +5,8 @@ object Constants {
     const val API_PATH = "/api"
 
     object Device {
-        const val PEOPLE_COUNT_RETRIEVAL_DELAY: Long = 1000 // 1 second
-        const val DEVICE_PROCESSING_STATE_RETRIEVAL_DELAY: Long = 3000 // 1 second
+        const val PEOPLE_COUNT_RETRIEVAL_DELAY: Long = 1000 // 1 seconds
+        const val DEVICE_PROCESSING_STATE_RETRIEVAL_DELAY: Long = 3000 // 3 seconds
         const val NAME_MAX_LENGTH = 35
         const val NAME_MIN_LENGTH = 3
         const val DESCRIPTION_MAX_LENGTH = 100

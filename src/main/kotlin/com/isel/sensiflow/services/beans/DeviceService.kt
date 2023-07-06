@@ -15,6 +15,7 @@ import com.isel.sensiflow.services.DeviceNotFoundException
 import com.isel.sensiflow.services.ID
 import com.isel.sensiflow.services.ServiceInternalException
 import com.isel.sensiflow.services.dto.PageableDTO
+import com.isel.sensiflow.services.dto.TimeIntervalDTO
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
 import com.isel.sensiflow.services.dto.input.DeviceUpdateDTO
 import com.isel.sensiflow.services.dto.input.fieldsAreEmpty
@@ -195,20 +196,47 @@ class DeviceService(
 
     /**
      * Gets the stats of a device.
-     * @param pageableDTO The pagination information.
+     *
      * @param deviceId The id of the device.
+     * @param pageableDTO The pagination information.
+     * @param interval The interval of time to retrieve the metrics.
+     *
      * @throws DeviceNotFoundException If the device does not exist.
      * @return A [PageDTO] of [MetricOutputDTO].
+     * If an interval is provided, the page will only contain the metrics of that interval.
      */
     @Transactional(isolation = Isolation.READ_COMMITTED, readOnly = true)
-    fun getDeviceStats(deviceId: Int, pageableDTO: PageableDTO): PageDTO<MetricOutputDTO> {
+    fun getDeviceStats(
+        deviceId: Int,
+        pageableDTO: PageableDTO,
+        interval: TimeIntervalDTO = TimeIntervalDTO()
+    ): PageDTO<MetricOutputDTO> {
         val pageable: Pageable = PageRequest.of(pageableDTO.page, pageableDTO.size)
 
-        val storedDevice = deviceRepository.findById(deviceId)
-            .orElseThrow { DeviceNotFoundException(deviceId) }
+        if (!deviceRepository.existsById(deviceId))
+            throw DeviceNotFoundException(deviceId)
 
-        return metricRepository
-            .findAllByDeviceId(storedDevice.id, pageable)
+        val metricsPage = when {
+            interval.startTime != null && interval.endTime != null -> metricRepository.findAllBetween(
+                interval.startTime,
+                interval.endTime,
+                deviceId,
+                pageable
+            )
+            interval.startTime != null -> metricRepository.findAllAfter(
+                interval.startTime,
+                deviceId,
+                pageable
+            )
+            interval.endTime != null -> metricRepository.findAllBefore(
+                interval.endTime,
+                deviceId,
+                pageable
+            )
+            else -> metricRepository.findAllByDeviceId(deviceId, pageable)
+        }
+
+        return metricsPage
             .map { metric -> metric.toMetricOutputDTO() }
             .toPageDTO()
     }
