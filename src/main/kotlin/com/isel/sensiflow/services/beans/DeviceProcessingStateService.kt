@@ -81,11 +81,11 @@ class DeviceProcessingStateService(
      * @param deviceID The id of the device.
      * @param newProcessingState The new state of the device (null if no update).
      */
-    fun completeUpdateState(deviceID: Int, newProcessingState: DeviceProcessingState?) {
+    fun completeUpdateState(deviceID: Int, newProcessingState: DeviceProcessingState?, forceUpdate : Boolean = false) {
         val storedDevice = deviceRepository.findById(deviceID)
             .orElseThrow { DeviceNotFoundException(deviceID) }
 
-        if (!storedDevice.pendingUpdate)
+        if (!forceUpdate && !storedDevice.pendingUpdate)
             throw ServiceInternalException("The device is not pending an update.")
 
         val deviceWithUpdatedState = Device(
