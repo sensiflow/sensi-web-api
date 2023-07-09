@@ -51,7 +51,7 @@ class MessageReceiver(
             logger.info("Received message from instance_scheduler_notification: $schedulerNotificationMessage")
 
             schedulerNotificationMessage.device_ids.forEach { deviceId ->
-                completionService.completeUpdateState(deviceId, DeviceProcessingState.INACTIVE)
+                completionService.completeUpdateState(deviceId, DeviceProcessingState.INACTIVE, true)
             }
             logger.info("Updated devices state with ids ${schedulerNotificationMessage.device_ids} to INACTIVE")
         } catch (e: ServiceException) {
