@@ -1,5 +1,6 @@
 package com.isel.sensiflow.http.utils
 
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -48,7 +49,7 @@ fun emitterScope(emitter: SseEmitter): CoroutineScope {
 
     val cancelScope: () -> Unit = {
         if (isComplete.compareAndSet(false, true)) {
-            sseLogger.info("Cancelling SSE scope")
+            sseLogger.info("Cancelling SSE scope: ${scope.coroutineContext[CoroutineName]})}")
             scope.cancel()
         } else {
             sseLogger.warn("SSE scope already cancelled")

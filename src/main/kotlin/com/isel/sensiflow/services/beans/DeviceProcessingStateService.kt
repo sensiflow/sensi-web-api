@@ -81,7 +81,7 @@ class DeviceProcessingStateService(
      * @param deviceID The id of the device.
      * @param newProcessingState The new state of the device (null if no update).
      */
-    fun completeUpdateState(deviceID: Int, newProcessingState: DeviceProcessingState?, forceUpdate : Boolean = false) {
+    fun completeUpdateState(deviceID: Int, newProcessingState: DeviceProcessingState?, forceUpdate: Boolean = false) {
         val storedDevice = deviceRepository.findById(deviceID)
             .orElseThrow { DeviceNotFoundException(deviceID) }
 
