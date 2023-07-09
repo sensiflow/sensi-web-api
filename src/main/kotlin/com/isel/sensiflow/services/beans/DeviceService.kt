@@ -2,7 +2,6 @@ package com.isel.sensiflow.services.beans
 
 import com.isel.sensiflow.Constants
 import com.isel.sensiflow.amqp.ProcessingAction
-import com.isel.sensiflow.amqp.action
 import com.isel.sensiflow.amqp.instanceController.MessageSender
 import com.isel.sensiflow.amqp.message.output.InstanceMessage
 import com.isel.sensiflow.model.entities.Device
@@ -14,8 +13,9 @@ import com.isel.sensiflow.model.repository.requireFindAllById
 import com.isel.sensiflow.services.DeviceNotFoundException
 import com.isel.sensiflow.services.ID
 import com.isel.sensiflow.services.ServiceInternalException
+import com.isel.sensiflow.services.dto.MetricRequestDTO
+import com.isel.sensiflow.services.dto.MetricRequestDTO.RequestType
 import com.isel.sensiflow.services.dto.PageableDTO
-import com.isel.sensiflow.services.dto.TimeIntervalDTO
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
 import com.isel.sensiflow.services.dto.input.DeviceUpdateDTO
 import com.isel.sensiflow.services.dto.input.fieldsAreEmpty
@@ -199,7 +199,7 @@ class DeviceService(
      *
      * @param deviceId The id of the device.
      * @param pageableDTO The pagination information.
-     * @param interval The interval of time to retrieve the metrics.
+     * @param metricRequest The interval of time to retrieve the metrics.
      *
      * @throws DeviceNotFoundException If the device does not exist.
      * @return A [PageDTO] of [MetricOutputDTO].
@@ -208,32 +208,29 @@ class DeviceService(
     @Transactional(isolation = Isolation.READ_COMMITTED, readOnly = true)
     fun getDeviceStats(
         deviceId: Int,
-        pageableDTO: PageableDTO,
-        interval: TimeIntervalDTO = TimeIntervalDTO()
+        pageableDTO: PageableDTO = PageableDTO(),
+        metricRequest: MetricRequestDTO = MetricRequestDTO()
     ): PageDTO<MetricOutputDTO> {
         val pageable: Pageable = PageRequest.of(pageableDTO.page, pageableDTO.size)
 
         if (!deviceRepository.existsById(deviceId))
             throw DeviceNotFoundException(deviceId)
 
-        val metricsPage = when {
-            interval.startTime != null && interval.endTime != null -> metricRepository.findAllBetween(
-                interval.startTime,
-                interval.endTime,
-                deviceId,
-                pageable
-            )
-            interval.startTime != null -> metricRepository.findAllAfter(
-                interval.startTime,
-                deviceId,
-                pageable
-            )
-            interval.endTime != null -> metricRepository.findAllBefore(
-                interval.endTime,
-                deviceId,
-                pageable
-            )
-            else -> metricRepository.findAllByDeviceId(deviceId, pageable)
+        val metricsPage = when (metricRequest.requestType) {
+            RequestType.BETWEEN -> {
+                checkNotNull(metricRequest.startTime)
+                checkNotNull(metricRequest.endTime)
+                metricRepository.findAllBetween(metricRequest.startTime, metricRequest.endTime, deviceId, pageable)
+            }
+            RequestType.AFTER -> {
+                checkNotNull(metricRequest.startTime)
+                metricRepository.findAllAfter(metricRequest.startTime, deviceId, pageable)
+            }
+            RequestType.BEFORE -> {
+                checkNotNull(metricRequest.endTime)
+                metricRepository.findAllBefore(metricRequest.endTime, deviceId, pageable)
+            }
+            RequestType.ALL -> metricRepository.findAllByDeviceId(deviceId, pageable)
         }
 
         return metricsPage
@@ -245,7 +242,8 @@ class DeviceService(
      * Gets the people count of a device.
      *
      * This method will continuously retrieve
-     * the latest people count of a device until the device is no longer active.
+     * the latest people count of a device until the device is no longer active
+     * or the flow is cancelled.
      *
      */
     fun getPeopleCountFlow(deviceID: ID): Flow<Int> {

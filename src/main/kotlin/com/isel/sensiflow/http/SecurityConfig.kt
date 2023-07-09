@@ -20,7 +20,7 @@ class SecurityConfig {
                 channel.anyRequest().requiresSecure()
             }.build()
         } else
-            // Disable security for http
+        // Disable security for http
             http.csrf().disable().build()
     }
 }

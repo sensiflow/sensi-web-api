@@ -10,8 +10,8 @@ import com.isel.sensiflow.services.Role.MODERATOR
 import com.isel.sensiflow.services.Role.USER
 import com.isel.sensiflow.services.UserID
 import com.isel.sensiflow.services.beans.DeviceService
+import com.isel.sensiflow.services.dto.MetricRequestDTO
 import com.isel.sensiflow.services.dto.PageableDTO
-import com.isel.sensiflow.services.dto.TimeIntervalDTO
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
 import com.isel.sensiflow.services.dto.input.DeviceUpdateDTO
 import com.isel.sensiflow.services.dto.output.DeviceOutputDTO
@@ -32,7 +32,6 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
-import java.sql.Timestamp
 
 @RestController
 @RequestMapping(RequestPaths.Device.DEVICE)
@@ -103,11 +102,12 @@ class DeviceController(
         @PathVariable id: Int,
         @RequestParam page: Int? = null,
         @RequestParam size: Int? = null,
-        @RequestParam from: Timestamp? = null,
-        @RequestParam to: Timestamp? = null,
+        @RequestParam from: String? = null,
+        @RequestParam to: String? = null,
     ): PageDTO<MetricOutputDTO> {
+
         return deviceService
-            .getDeviceStats(id, PageableDTO(page, size), TimeIntervalDTO(from, to))
+            .getDeviceStats(id, PageableDTO(page, size), MetricRequestDTO(from, to))
     }
 
     @GetMapping(

@@ -17,7 +17,7 @@ interface MetricRepository : JpaRepository<Metric, MetricID> {
     @Query(
         "SELECT m FROM Metric m " +
             "WHERE m.device.id = :deviceID " +
-            "ORDER BY m.id.startTime ASC"
+            "ORDER BY m.id.startTime DESC"
     )
     fun findAllByDeviceId(deviceID: Int, pageable: Pageable): Page<Metric>
 
@@ -29,7 +29,7 @@ interface MetricRepository : JpaRepository<Metric, MetricID> {
             "WHERE m.device.id = :deviceID " +
             "AND m.id.startTime >= :startTime " +
             "AND m.id.startTime <= :endTime " +
-            "ORDER BY m.id.startTime ASC"
+            "ORDER BY m.id.startTime DESC"
     )
     fun findAllBetween(startTime: Timestamp, endTime: Timestamp, deviceID: Int, pageable: Pageable): Page<Metric>
 
@@ -39,8 +39,8 @@ interface MetricRepository : JpaRepository<Metric, MetricID> {
     @Query(
         "SELECT m FROM Metric m " +
             "WHERE m.device.id = :deviceID " +
-            "AND m.id.startTime >= :startTime " +
-            "ORDER BY m.id.startTime ASC"
+            "AND m.id.startTime > :startTime " +
+            "ORDER BY m.id.startTime DESC"
     )
     fun findAllAfter(startTime: Timestamp, deviceID: Int, pageable: Pageable): Page<Metric>
 
@@ -50,15 +50,10 @@ interface MetricRepository : JpaRepository<Metric, MetricID> {
     @Query(
         "SELECT m FROM Metric m " +
             "WHERE m.device.id = :deviceID " +
-            "AND m.id.startTime <= :endTime " +
-            "ORDER BY m.id.startTime ASC"
+            "AND m.id.startTime < :endTime " +
+            "ORDER BY m.id.startTime DESC"
     )
     fun findAllBefore(endTime: Timestamp, deviceID: Int, pageable: Pageable): Page<Metric>
-
-    /**
-     * Deletes all metrics associated with the given device.
-     */
-    fun deleteAllByDevice(device: Device)
 
     /**
      * Finds the metric with the maximum start time associated with the given device.
@@ -69,4 +64,9 @@ interface MetricRepository : JpaRepository<Metric, MetricID> {
             "AND m.id.startTime = (SELECT MAX(m.id.startTime) FROM Metric m)"
     )
     fun findByMaxStartTime(deviceID: Int): Optional<Metric>
+
+    /**
+     * Deletes all metrics associated with the given device.
+     */
+    fun deleteAllByDevice(device: Device)
 }

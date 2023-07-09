@@ -1,5 +1,6 @@
 package com.isel.sensiflow.services
 
+import com.isel.sensiflow.Constants
 import com.isel.sensiflow.amqp.instanceController.MessageSender
 import com.isel.sensiflow.amqp.message.output.InstanceMessage
 import com.isel.sensiflow.model.entities.Device
@@ -16,6 +17,7 @@ import com.isel.sensiflow.model.repository.UserRepository
 import com.isel.sensiflow.services.beans.DeviceGroupService
 import com.isel.sensiflow.services.beans.DeviceProcessingStateService
 import com.isel.sensiflow.services.beans.DeviceService
+import com.isel.sensiflow.services.dto.MetricRequestDTO
 import com.isel.sensiflow.services.dto.PageableDTO
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
 import com.isel.sensiflow.services.dto.input.DeviceUpdateDTO
@@ -475,14 +477,214 @@ class DeviceServiceTests {
         // Assert
         verify(deviceRepository, times(1)).existsById(deviceId)
         verify(metricRepository, times(0))
-            .findAllByDeviceId(kAny(Int::class.java), kAny(Pageable::class.java))
+            .findAllBetween(
+                kAny(Timestamp::class.java),
+                kAny(Timestamp::class.java),
+                kAny(Int::class.java),
+                kAny(Pageable::class.java)
+            )
+        verify(metricRepository, times(0))
+            .findAllBefore(
+                kAny(Timestamp::class.java),
+                kAny(Int::class.java),
+                kAny(Pageable::class.java)
+            )
+        verify(metricRepository, times(0))
+            .findAllAfter(
+                kAny(Timestamp::class.java),
+                kAny(Int::class.java),
+                kAny(Pageable::class.java)
+            )
+        verify(metricRepository, times(0))
+            .findAllByDeviceId(
+                kAny(Int::class.java),
+                kAny(Pageable::class.java)
+            )
     }
 
     @Test
     fun `get device stats from a specific time interval`() {
+
+        val metrics = listOf(
+            Metric(
+                id = fakeDeviceStats.id,
+                endTime = Timestamp.valueOf("2020-12-30 01:00:00"),
+                peopleCount = 4,
+                device = fakeDevice
+            ),
+            Metric(
+                id = fakeDeviceStats.id,
+                endTime = Timestamp.valueOf("2021-01-01 00:00:00"),
+                peopleCount = 10,
+                device = fakeDevice
+            ),
+        ).reversed()
+
+        `when`(deviceRepository.existsById(fakeDevice.id)).thenReturn(true)
+        `when`(
+            metricRepository.findAllBetween(
+                Timestamp.valueOf("2020-12-30 00:00:00"),
+                Timestamp.valueOf("2020-12-31 00:00:00"),
+                fakeDevice.id,
+                PageRequest.of(0, 10)
+            )
+        ).thenReturn(PageImpl(metrics, PageRequest.of(0, 10), metrics.size.toLong()))
+
+        deviceService.getDeviceStats(
+            fakeDevice.id,
+            metricRequest = MetricRequestDTO(
+                startTimeInput = "2020-12-30 00:00:00",
+                endTimeInput = "2020-12-31 00:00:00"
+            )
+        )
+
+        verify(deviceRepository, times(1))
+            .existsById(fakeDevice.id)
+
+        verify(metricRepository, times(0))
+            .findAllBefore(kAny(Timestamp::class.java), kAny(Int::class.java), kAny(Pageable::class.java))
+        verify(metricRepository, times(1))
+            .findAllBetween(
+                kAny(Timestamp::class.java),
+                kAny(Timestamp::class.java),
+                kAny(Int::class.java),
+                kAny(Pageable::class.java)
+            )
+        verify(metricRepository, times(0))
+            .findAllAfter(
+                kAny(Timestamp::class.java),
+                kAny(Int::class.java),
+                kAny(Pageable::class.java)
+            )
+        verify(metricRepository, times(0))
+            .findAllByDeviceId(kAny(Int::class.java), kAny(Pageable::class.java))
+    }
+
+    @Test
+    fun `get device metrics after a specified timestamp`() {
+        `when`(deviceRepository.existsById(fakeDevice.id)).thenReturn(true)
+
+        val metrics = listOf(
+            fakeDeviceStats
+        )
+
+        `when`(
+            metricRepository.findAllAfter(
+                Timestamp.valueOf("2020-12-30 00:00:00"),
+                fakeDevice.id,
+                PageRequest.of(Constants.Pagination.DEFAULT_PAGE, Constants.Pagination.DEFAULT_PAGE_SIZE)
+            )
+        ).thenReturn(PageImpl(metrics, PageRequest.of(0, 10), metrics.size.toLong()))
+
+        deviceService.getDeviceStats(
+            fakeDevice.id,
+            metricRequest = MetricRequestDTO(startTimeInput = "2020-12-30 00:00:00")
+        )
+
+        verify(deviceRepository, times(1))
+            .existsById(fakeDevice.id)
+
+        verify(metricRepository, times(0))
+            .findAllBefore(kAny(Timestamp::class.java), kAny(Int::class.java), kAny(Pageable::class.java))
+        verify(metricRepository, times(0))
+            .findAllBetween(
+                kAny(Timestamp::class.java),
+                kAny(Timestamp::class.java),
+                kAny(Int::class.java),
+                kAny(Pageable::class.java)
+            )
+        verify(metricRepository, times(1))
+            .findAllAfter(
+                kAny(Timestamp::class.java),
+                kAny(Int::class.java),
+                kAny(Pageable::class.java)
+            )
+        verify(metricRepository, times(0))
+            .findAllByDeviceId(kAny(Int::class.java), kAny(Pageable::class.java))
+    }
+
+    @Test
+    fun `get device metrics before a specified timestamp`() {
+
+        `when`(deviceRepository.existsById(fakeDevice.id)).thenReturn(true)
+
+        val metrics = listOf(
+            fakeDeviceStats
+        )
+
+        `when`(
+            metricRepository.findAllBefore(
+                Timestamp.valueOf("2020-12-30 00:00:00"),
+                fakeDevice.id,
+                PageRequest.of(0, 10)
+            )
+        ).thenReturn(PageImpl(metrics, PageRequest.of(0, 10), metrics.size.toLong()))
+
+        deviceService.getDeviceStats(
+            fakeDevice.id,
+            metricRequest = MetricRequestDTO(endTimeInput = "2020-12-30 00:00:00")
+        )
+
+        verify(deviceRepository, times(1))
+            .existsById(fakeDevice.id)
+
+        verify(metricRepository, times(1))
+            .findAllBefore(kAny(Timestamp::class.java), Mockito.anyInt(), kAny(Pageable::class.java))
+        verify(metricRepository, times(0))
+            .findAllBetween(
+                kAny(Timestamp::class.java),
+                kAny(Timestamp::class.java),
+                kAny(Int::class.java),
+                kAny(Pageable::class.java)
+            )
+        verify(metricRepository, times(0))
+            .findAllAfter(
+                kAny(Timestamp::class.java),
+                kAny(Int::class.java),
+                kAny(Pageable::class.java)
+            )
+        verify(metricRepository, times(0))
+            .findAllByDeviceId(Mockito.anyInt(), kAny(Pageable::class.java))
     }
 
     @Test
     fun `get device stats from a specific time interval when a device does not exist`() {
+
+        `when`(deviceRepository.existsById(fakeDevice.id)).thenReturn(false)
+
+        assertThrows<DeviceNotFoundException> {
+            deviceService.getDeviceStats(
+                fakeDevice.id,
+                metricRequest = MetricRequestDTO(endTimeInput = "2020-12-30 00:00:00")
+            )
+        }
+
+        verify(deviceRepository, times(1))
+            .existsById(fakeDevice.id)
+
+        verify(metricRepository, times(0))
+            .findAllBetween(
+                kAny(Timestamp::class.java),
+                kAny(Timestamp::class.java),
+                kAny(Int::class.java),
+                kAny(Pageable::class.java)
+            )
+        verify(metricRepository, times(0))
+            .findAllBefore(
+                kAny(Timestamp::class.java),
+                kAny(Int::class.java),
+                kAny(Pageable::class.java)
+            )
+        verify(metricRepository, times(0))
+            .findAllAfter(
+                kAny(Timestamp::class.java),
+                kAny(Int::class.java),
+                kAny(Pageable::class.java)
+            )
+        verify(metricRepository, times(0))
+            .findAllByDeviceId(
+                kAny(Int::class.java),
+                kAny(Pageable::class.java)
+            )
     }
 }

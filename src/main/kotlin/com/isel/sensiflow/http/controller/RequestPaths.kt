@@ -1,6 +1,11 @@
 package com.isel.sensiflow.http.controller
 
 object RequestPaths {
+
+    object Root {
+        const val ROOT = "/api/v1"
+    }
+
     object Device {
         const val DEVICE = "/devices"
         const val DEVICE_ID = "/{id}"

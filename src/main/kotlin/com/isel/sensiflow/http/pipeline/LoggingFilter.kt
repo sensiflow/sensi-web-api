@@ -4,11 +4,11 @@ import com.isel.sensiflow.http.controller.RequestPaths
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import java.io.UnsupportedEncodingException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 import org.springframework.web.util.ContentCachingRequestWrapper
+import java.io.UnsupportedEncodingException
 
 @Component
 class LoggingFilter : OncePerRequestFilter() {
@@ -36,13 +36,14 @@ class LoggingFilter : OncePerRequestFilter() {
             requestWrapper.contentAsByteArray,
             request.characterEncoding
         )
-        val cookiesSize = if(request.cookies == null) 0 else request.cookies.size
+        val cookiesSize = if (request.cookies == null) 0 else request.cookies.size
 
         val logMessage = "Request ${request.method} on ${request.requestURI} took $timeTaken millis with params: " +
-                "[$paramsString] and with ${cookiesSize} cookies."
+            "[$paramsString] and with $cookiesSize cookies."
 
-        if(request.method == "POST" && request.requestURI == RequestPaths.Users.USERS + RequestPaths.Users.LOGIN ||
-            request.method == "POST" && request.requestURI == RequestPaths.Users.USERS){
+        if (request.method == "POST" && request.requestURI == RequestPaths.Users.USERS + RequestPaths.Users.LOGIN ||
+            request.method == "POST" && request.requestURI == RequestPaths.Users.USERS
+        ) {
             LOGGER.info(logMessage)
             return
         }
@@ -63,4 +64,3 @@ class LoggingFilter : OncePerRequestFilter() {
         private val LOGGER = LoggerFactory.getLogger(LoggingFilter::class.java)
     }
 }
-
