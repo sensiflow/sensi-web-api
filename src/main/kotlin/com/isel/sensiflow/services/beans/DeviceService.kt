@@ -139,7 +139,7 @@ class DeviceService(
         if (stopDeviceCondition) {
             instanceControllerMessageSender.sendMessage(
                 InstanceMessage(
-                    action = ProcessingAction.STOP,
+                    action = ProcessingAction.REMOVE,
                     deviceID,
                     null
                 )
