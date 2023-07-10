@@ -7,6 +7,7 @@ import com.isel.sensiflow.model.entities.DeviceProcessingState
  */
 enum class ProcessingAction {
     START,
+    RESUME,
     STOP,
     REMOVE,
     PAUSE;
@@ -33,11 +34,12 @@ val DeviceProcessingState.action: ProcessingAction get() = when (this) {
 }
 
 /**
- * Returns the action that should be performed on the device to transition to the receiver state.
+ * Returns the state that the device should be in after performing the receiver action.
  */
 val ProcessingAction.state: DeviceProcessingState get() = when (this) {
     ProcessingAction.START -> DeviceProcessingState.ACTIVE
     ProcessingAction.PAUSE -> DeviceProcessingState.PAUSED
     ProcessingAction.STOP -> DeviceProcessingState.INACTIVE
     ProcessingAction.REMOVE -> DeviceProcessingState.INACTIVE
+    ProcessingAction.RESUME -> DeviceProcessingState.ACTIVE
 }

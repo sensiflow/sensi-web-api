@@ -28,7 +28,7 @@ fun launchServerSentEvent(
             try {
                 block(emitter)
             } catch (e: Throwable) {
-                sseLogger.error("Error in SSE coroutine", e)
+                sseLogger.error("Error in SSE coroutine")
             }
         }
     }

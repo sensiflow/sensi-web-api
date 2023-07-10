@@ -1,11 +1,11 @@
 package com.isel.sensiflow.services.beans
 
 import com.isel.sensiflow.Constants
-import com.isel.sensiflow.amqp.action
 import com.isel.sensiflow.amqp.instanceController.MessageSender
 import com.isel.sensiflow.amqp.message.output.InstanceMessage
 import com.isel.sensiflow.model.entities.Device
 import com.isel.sensiflow.model.entities.DeviceProcessingState
+import com.isel.sensiflow.model.entities.getNextProcessingState
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.services.DeviceAlreadyUpdatingException
 import com.isel.sensiflow.services.DeviceNotFoundException
@@ -68,7 +68,7 @@ class DeviceProcessingStateService(
         deviceRepository.save(deviceWithUpdatedState)
 
         val queueMessage = InstanceMessage(
-            action = newProcessingState.action,
+            action = getNextProcessingState(storedDevice.processingState, newProcessingState),
             device_id = deviceID,
             device_stream_url = storedDevice.streamURL
         )
