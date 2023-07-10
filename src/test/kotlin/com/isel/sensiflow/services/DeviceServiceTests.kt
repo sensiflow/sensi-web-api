@@ -232,7 +232,7 @@ class DeviceServiceTests {
         // Assert
         verify(deviceRepository, times(1)).findById(deviceId)
         verify(deviceRepository, times(1)).save(kAny(Device::class.java))
-        verify(instanceControllerMessageSender, times(1))
+        verify(instanceControllerMessageSender, times(0))
             .sendMessage(kAny(InstanceMessage::class.java))
     }
 
