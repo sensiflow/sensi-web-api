@@ -1,4 +1,4 @@
-package com.isel.sensiflow.services
+package com.isel.sensiflow.services.beans
 
 import com.isel.sensiflow.Constants.Pagination.DEFAULT_PAGE
 import com.isel.sensiflow.Constants.Pagination.DEFAULT_PAGE_SIZE
@@ -6,6 +6,9 @@ import com.isel.sensiflow.model.entities.DeviceGroup
 import com.isel.sensiflow.model.repository.DeviceGroupRepository
 import com.isel.sensiflow.model.repository.DeviceRepository
 import com.isel.sensiflow.model.repository.requireFindAllById
+import com.isel.sensiflow.services.DeviceGroupNotFoundException
+import com.isel.sensiflow.services.ID
+import com.isel.sensiflow.services.InvalidParameterException
 import com.isel.sensiflow.services.dto.PageableDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupCreateDTO
 import com.isel.sensiflow.services.dto.input.DevicesGroupInputDTO

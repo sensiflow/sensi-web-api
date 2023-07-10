@@ -5,7 +5,7 @@ import com.isel.sensiflow.http.entities.input.UserLoginInput
 import com.isel.sensiflow.http.entities.input.UserRegisterInput
 import com.isel.sensiflow.model.entities.Device
 import com.isel.sensiflow.services.Role
-import com.isel.sensiflow.services.UserService
+import com.isel.sensiflow.services.beans.UserService
 import com.isel.sensiflow.services.dto.output.PageDTO
 import jakarta.servlet.http.Cookie
 import org.springframework.http.MediaType

@@ -38,7 +38,7 @@ class Device(
     val pendingUpdate: Boolean = false,
 
     @Column(name = "processedstreamurl", nullable = true, length = 200)
-    val processedStreamURL: String?,
+    val processedStreamURL: String? = null
 ) {
 
     @OneToMany(mappedBy = "device")

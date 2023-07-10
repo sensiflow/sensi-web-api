@@ -41,6 +41,8 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.6.2")
     implementation("junit:junit:4.13.1")
 
+    implementation("org.springframework.boot:spring-boot-starter-security")
+
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
@@ -61,6 +63,6 @@ tasks.withType<Test> {
         "RABBITMQ_HOST" to "localhost",
         "INSTANCE_CTL_QUEUE" to "instance_ctl_test",
         "INSTANCE_ACK_QUEUE_DEVICE_STATE" to "instance_ack_device_state_test",
-        "INSTANCE_ACK_QUEUE_DEVICE_DELETE" to "instance_ack_device_delete_test"
+        "INSTANCE_ACK_QUEUE_DEVICE_DELETE" to "instance_scheduler_notification_test",
     )
 }

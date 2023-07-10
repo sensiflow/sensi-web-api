@@ -16,7 +16,7 @@ import com.isel.sensiflow.services.Role.ADMIN
 import com.isel.sensiflow.services.Role.MODERATOR
 import com.isel.sensiflow.services.Role.USER
 import com.isel.sensiflow.services.UserID
-import com.isel.sensiflow.services.UserService
+import com.isel.sensiflow.services.beans.UserService
 import com.isel.sensiflow.services.dto.PageableDTO
 import com.isel.sensiflow.services.dto.input.UserRoleInput
 import com.isel.sensiflow.services.dto.output.PageDTO
@@ -25,7 +25,6 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -60,6 +59,7 @@ class UserController(private val userService: UserService) {
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping(Users.GET_USER)
+    @Authentication(authorization = USER)
     fun getUser(
         @PathVariable id: UserID
     ): UserOutput =
@@ -108,7 +108,7 @@ class UserController(private val userService: UserService) {
         response.addCookie(authCookie)
 
         return AuthOutput(authInfo.userID, authInfo.timeUntilExpire)
-    } // TODO: change documentation
+    }
 
     @Authentication(authorization = USER)
     @ResponseStatus(HttpStatus.NO_CONTENT)

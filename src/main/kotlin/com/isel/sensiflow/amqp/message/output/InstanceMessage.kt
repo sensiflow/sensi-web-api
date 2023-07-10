@@ -1,6 +1,7 @@
-package com.isel.sensiflow.amqp
+package com.isel.sensiflow.amqp.message.output
 
 import com.isel.sensiflow.Constants
+import com.isel.sensiflow.amqp.ProcessingAction
 import com.isel.sensiflow.services.InvalidParameterException
 import jakarta.validation.Validation
 import jakarta.validation.constraints.Pattern
@@ -9,13 +10,13 @@ import jakarta.validation.constraints.Size
 /**
  * Represents a message sent to the AMQP queue.
  * Validates itself using a [jakarta.validation.Validator], @throws [InvalidParameterException] if this InstanceMessage is invalid.
- * @param action The [Action] to be performed.
+ * @param action The [ProcessingAction] to be performed.
  * @param device_id The ID of the device to be acted upon.
  * @param device_stream_url The stream URL of the device to be acted upon, this url must be a valid RTSP stream.
  */
 data class InstanceMessage(
 
-    val action: Action,
+    val action: ProcessingAction,
 
     @Size(
         min = 0,

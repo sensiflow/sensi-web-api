@@ -2,7 +2,6 @@ package com.isel.sensiflow.authorization
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.isel.sensiflow.Constants
-import com.isel.sensiflow.http.controller.RequestPaths
 import com.isel.sensiflow.http.entities.output.IDOutput
 import com.isel.sensiflow.integration.HTTPMethod
 import com.isel.sensiflow.integration.createTestUser
@@ -10,7 +9,7 @@ import com.isel.sensiflow.integration.ensureCookieNotNull
 import com.isel.sensiflow.integration.request
 import com.isel.sensiflow.services.ID
 import com.isel.sensiflow.services.Role
-import com.isel.sensiflow.services.UserService
+import com.isel.sensiflow.services.beans.UserService
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
 import jakarta.servlet.http.Cookie
 import org.junit.jupiter.api.Test
@@ -30,7 +29,7 @@ import org.springframework.transaction.annotation.Transactional
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @RunWith(org.springframework.test.context.junit4.SpringRunner::class)
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(addFilters = false)
 @Transactional
 class AuthorizationTests {
 
@@ -87,7 +86,7 @@ class AuthorizationTests {
         roles.forEach { role ->
             val cookie = ensureCookieNotNull(cookie = getCookie(role))
             mockMvc.perform(
-                MockMvcRequestBuilders.get(RequestPaths.Root.ROOT + "/devices")
+                MockMvcRequestBuilders.get("/devices")
                     .cookie(cookie)
             ).andExpect(MockMvcResultMatchers.status().isOk)
         }
@@ -96,7 +95,7 @@ class AuthorizationTests {
     fun createDevice(cookie: Cookie, input: DeviceInputDTO): IDOutput {
         val inputJson = mapper.writeValueAsString(input)
         val result = mockMvc.perform(
-            MockMvcRequestBuilders.post(RequestPaths.Root.ROOT + "/devices")
+            MockMvcRequestBuilders.post("/devices")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(inputJson)
                 .cookie(cookie)
@@ -109,7 +108,7 @@ class AuthorizationTests {
     fun deleteDevice(cookie: Cookie, id: ID) {
         mockMvc.request<DeviceInputDTO, ProblemDetail>(
             method = HTTPMethod.DELETE,
-            uri = RequestPaths.Root.ROOT + "/devices?deviceIDs=$id",
+            uri = "/devices?deviceIDs=$id",
             authorization = cookie,
             mapper = mapper,
             assertions = {
@@ -123,7 +122,7 @@ class AuthorizationTests {
         val loginJson = mapper.writeValueAsString(inputLogin)
 
         val loginResult = mockMvc.perform(
-            MockMvcRequestBuilders.post(RequestPaths.Root.ROOT + "/users/login")
+            MockMvcRequestBuilders.post("/users/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(loginJson)
         ).andExpect(MockMvcResultMatchers.status().isOk)

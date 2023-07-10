@@ -9,4 +9,4 @@ import org.mockito.Mockito
  * @see <a href="https://stackoverflow.com/questions/59230041/argumentmatchers-any-must-not-be-null">Stack Overflow 59230041</a>
  * @see <a href="https://discuss.kotlinlang.org/t/how-to-use-mockito-with-kotlin/324">Kotlin Forum 324</a>
  */
-fun <T> any(type: Class<T>): T = Mockito.any<T>(type)
+fun <T> kAny(type: Class<T>): T = Mockito.any<T>(type)

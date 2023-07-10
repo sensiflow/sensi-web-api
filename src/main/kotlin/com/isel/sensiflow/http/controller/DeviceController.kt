@@ -3,22 +3,22 @@ package com.isel.sensiflow.http.controller
 import com.isel.sensiflow.http.entities.output.IDOutput
 import com.isel.sensiflow.http.entities.output.toIDOutput
 import com.isel.sensiflow.http.pipeline.authentication.Authentication
-import com.isel.sensiflow.services.DeviceService
+import com.isel.sensiflow.http.utils.launchServerSentEvent
 import com.isel.sensiflow.services.ID
 import com.isel.sensiflow.services.Role.ADMIN
 import com.isel.sensiflow.services.Role.MODERATOR
 import com.isel.sensiflow.services.Role.USER
 import com.isel.sensiflow.services.UserID
+import com.isel.sensiflow.services.beans.DeviceService
+import com.isel.sensiflow.services.dto.MetricRequestDTO
 import com.isel.sensiflow.services.dto.PageableDTO
 import com.isel.sensiflow.services.dto.input.DeviceInputDTO
-import com.isel.sensiflow.services.dto.input.DeviceStateInputDTO
 import com.isel.sensiflow.services.dto.input.DeviceUpdateDTO
 import com.isel.sensiflow.services.dto.output.DeviceOutputDTO
 import com.isel.sensiflow.services.dto.output.MetricOutputDTO
 import com.isel.sensiflow.services.dto.output.PageDTO
 import jakarta.validation.Valid
 import kotlinx.coroutines.flow.onCompletion
-import launchServerSentEvent
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -36,7 +36,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 @RestController
 @RequestMapping(RequestPaths.Device.DEVICE)
 class DeviceController(
-    val deviceService: DeviceService
+    val deviceService: DeviceService,
 ) {
     @Authentication(authorization = USER)
     @GetMapping
@@ -95,52 +95,19 @@ class DeviceController(
         deviceService.deleteDevices(deviceIDs)
     }
 
-    @Authentication(authorization = MODERATOR)
-    @PutMapping(RequestPaths.Device.PROCESSING_STATE)
-    @ResponseStatus(HttpStatus.ACCEPTED)
-    fun updateProcessingState(
-        @PathVariable id: Int,
-        @RequestBody @Valid deviceStateInputDTO: DeviceStateInputDTO,
-    ) {
-        deviceService.startUpdateProcessingState(id, deviceStateInputDTO.state)
-    }
-
     @ResponseStatus(HttpStatus.OK)
     @GetMapping(RequestPaths.Device.DEVICE_STATS)
     @Authentication(authorization = USER)
     fun getDeviceStats(
         @PathVariable id: Int,
         @RequestParam page: Int? = null,
-        @RequestParam size: Int? = null
+        @RequestParam size: Int? = null,
+        @RequestParam from: String? = null,
+        @RequestParam to: String? = null,
     ): PageDTO<MetricOutputDTO> {
+
         return deviceService
-            .getDeviceStats(PageableDTO(page, size), id)
-    }
-
-    @RequestMapping(
-        RequestPaths.Device.DEVICE_ID + RequestPaths.SSE.SSE_DEVICE_STATE,
-        produces = [MediaType.TEXT_EVENT_STREAM_VALUE]
-    )
-    @Authentication(USER)
-    fun subscribeToChangeOfDeviceState(@PathVariable("id") id: ID): SseEmitter {
-        return launchServerSentEvent { sseEmitter ->
-            deviceService.getDeviceStateFlow(id)
-                .onCompletion { cause ->
-                    if (cause != null) {
-                        sseEmitter.completeWithError(cause)
-                    } else
-                        sseEmitter.complete()
-                }
-                .collect { value ->
-                    val event = SseEmitter.event()
-                        .name("device-state")
-                        .data(value)
-
-                    sseEmitter.send(
-                        event
-                    )
-                }
-        }
+            .getDeviceStats(id, PageableDTO(page, size), MetricRequestDTO(from, to))
     }
 
     @GetMapping(

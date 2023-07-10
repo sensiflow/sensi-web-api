@@ -10,6 +10,7 @@ import com.isel.sensiflow.model.entities.UserRole
 import com.isel.sensiflow.model.repository.SessionTokenRepository
 import com.isel.sensiflow.model.repository.UserRepository
 import com.isel.sensiflow.model.repository.UserRoleRepository
+import com.isel.sensiflow.services.beans.UserService
 import com.isel.sensiflow.services.dto.input.UserRoleInput
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue

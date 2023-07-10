@@ -3,7 +3,6 @@ package com.isel.sensiflow.integration
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.isel.sensiflow.Constants
 import com.isel.sensiflow.Constants.Problem.URI.URI_VALIDATION_ERROR
-import com.isel.sensiflow.http.controller.RequestPaths
 import com.isel.sensiflow.http.entities.input.UserLoginInput
 import com.isel.sensiflow.http.entities.input.UserRegisterInput
 import com.isel.sensiflow.http.entities.input.UserUpdateInput
@@ -14,7 +13,7 @@ import com.isel.sensiflow.integration.HTTPMethod.GET
 import com.isel.sensiflow.integration.HTTPMethod.POST
 import com.isel.sensiflow.services.ID
 import com.isel.sensiflow.services.Role.ADMIN
-import com.isel.sensiflow.services.UserService
+import com.isel.sensiflow.services.beans.UserService
 import com.isel.sensiflow.services.dto.input.UserRoleInput
 import jakarta.servlet.http.Cookie
 import org.junit.jupiter.api.Test
@@ -34,7 +33,7 @@ import org.springframework.transaction.annotation.Transactional
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @RunWith(org.springframework.test.context.junit4.SpringRunner::class)
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(addFilters = false)
 @Transactional
 class UserControllerTests {
 
@@ -62,7 +61,7 @@ class UserControllerTests {
 
         mockMvc.request<UserRegisterInput, IDOutput>(
             method = POST,
-            uri = RequestPaths.Root.ROOT + "/users",
+            uri = "/users",
             body = userRegisterInput,
             authorization = cookie,
             mapper = mapper,
@@ -88,7 +87,7 @@ class UserControllerTests {
 
         mockMvc.request<UserRegisterInput, ProblemDetail>(
             method = POST,
-            uri = RequestPaths.Root.ROOT + "/users",
+            uri = "/users",
             body = userRegisterInput,
             authorization = cookie,
             mapper = mapper,
@@ -113,7 +112,7 @@ class UserControllerTests {
 
         mockMvc.request<UserRegisterInput, ProblemDetail>(
             method = POST,
-            uri = RequestPaths.Root.ROOT + "/users",
+            uri = "/users",
             body = userRegisterInput,
             authorization = cookie,
             mapper = mapper,
@@ -138,7 +137,7 @@ class UserControllerTests {
 
         mockMvc.request<UserRegisterInput, ProblemDetail>(
             method = POST,
-            uri = RequestPaths.Root.ROOT + "/users",
+            uri = "/users",
             body = userRegisterInput,
             authorization = cookie,
             mapper = mapper,
@@ -163,7 +162,7 @@ class UserControllerTests {
 
         mockMvc.request<UserRegisterInput, ProblemDetail>(
             method = POST,
-            uri = RequestPaths.Root.ROOT + "/users",
+            uri = "/users",
             body = userRegisterInput,
             authorization = cookie,
             mapper = mapper,
@@ -188,7 +187,7 @@ class UserControllerTests {
 
         mockMvc.request<UserRegisterInput, ProblemDetail>(
             method = POST,
-            uri = RequestPaths.Root.ROOT + "/users",
+            uri = "/users",
             body = userRegisterInput,
             authorization = cookie,
             mapper = mapper,
@@ -213,7 +212,7 @@ class UserControllerTests {
 
         mockMvc.request<UserRegisterInput, ProblemDetail>(
             method = POST,
-            uri = RequestPaths.Root.ROOT + "/users",
+            uri = "/users",
             body = userRegisterInput,
             authorization = cookie,
             mapper = mapper,
@@ -234,7 +233,7 @@ class UserControllerTests {
 
         mockMvc.request<InvalidRegisterInput, ProblemDetail>(
             method = POST,
-            uri = RequestPaths.Root.ROOT + "/users",
+            uri = "/users",
             body = body,
             authorization = cookie,
             mapper = mapper,
@@ -253,7 +252,7 @@ class UserControllerTests {
         val body = UserRegisterInput(email = "test@email.com", firstName = "Test", lastName = "Test", password = "Password1_.")
         val createUserResponse = mockMvc.request<UserRegisterInput, IDOutput>(
             method = POST,
-            uri = RequestPaths.Root.ROOT + "/users",
+            uri = "/users",
             body = body,
             authorization = cookie,
             mapper = mapper,
@@ -271,7 +270,7 @@ class UserControllerTests {
 
         mockMvc.request<UserLoginInput, AuthOutput>(
             method = POST,
-            uri = RequestPaths.Root.ROOT + "/users/login",
+            uri = "/users/login",
             body = userLogin,
             mapper = mapper,
             assertions = {
@@ -290,7 +289,7 @@ class UserControllerTests {
         val body = UserRegisterInput(email = "test@email.com", firstName = "Test", lastName = "Test", password = "Password1_.")
         mockMvc.request<UserRegisterInput, AuthOutput>(
             method = POST,
-            uri = RequestPaths.Root.ROOT + "/users",
+            uri = "/users",
             body = body,
             authorization = cookie,
             mapper = mapper,
@@ -308,7 +307,7 @@ class UserControllerTests {
 
         mockMvc.request<UserLoginInput, ProblemDetail>(
             method = POST,
-            uri = RequestPaths.Root.ROOT + "/users/login",
+            uri = "/users/login",
             body = userLogin,
             mapper = mapper,
             assertions = {
@@ -328,7 +327,7 @@ class UserControllerTests {
 
         mockMvc.request<UserLoginInput, ProblemDetail>(
             method = POST,
-            uri = RequestPaths.Root.ROOT + "/users/login",
+            uri = "/users/login",
             body = userLogin,
             mapper = mapper,
             assertions = {
@@ -347,7 +346,7 @@ class UserControllerTests {
 
         mockMvc.request<InvalidLoginInput, ProblemDetail>(
             method = POST,
-            uri = RequestPaths.Root.ROOT + "/users/login",
+            uri = "/users/login",
             body = body,
             mapper = mapper,
             assertions = {
@@ -365,7 +364,7 @@ class UserControllerTests {
         val body = UserRegisterInput(email = "test@email.com", firstName = "Test", lastName = "Test", password = "Password1_.")
         val userCreationResponse = mockMvc.request<UserRegisterInput, IDOutput>(
             method = POST,
-            uri = RequestPaths.Root.ROOT + "/users",
+            uri = "/users",
             body = body,
             authorization = cookie,
             mapper = mapper,
@@ -378,7 +377,7 @@ class UserControllerTests {
 
         mockMvc.request<Unit, UserOutput>(
             method = GET,
-            uri = RequestPaths.Root.ROOT + "/users/${userCreationResponse?.id}",
+            uri = "/users/${userCreationResponse?.id}",
             authorization = cookie,
             mapper = mapper,
             assertions = {
@@ -393,10 +392,12 @@ class UserControllerTests {
 
     @Test
     fun `get a user with non existent id`() {
+        val cookie = ensureCookieNotNull(cookie = getCookie())
         mockMvc.request<Unit, ProblemDetail>(
             method = GET,
-            uri = RequestPaths.Root.ROOT + "/users/1000",
+            uri = "/users/1000",
             mapper = mapper,
+            authorization = cookie,
             assertions = {
                 andExpect(status().isNotFound)
                     .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
@@ -407,10 +408,13 @@ class UserControllerTests {
 
     @Test
     fun `get a user with invalid id`() {
+        val cookie = ensureCookieNotNull(cookie = getCookie())
+
         mockMvc.request<Unit, ProblemDetail>(
             method = GET,
-            uri = RequestPaths.Root.ROOT + "/users/invalidId",
+            uri = "/users/invalidId",
             mapper = mapper,
+            authorization = cookie,
             assertions = {
                 andExpect(status().isBadRequest)
                     .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
@@ -427,7 +431,7 @@ class UserControllerTests {
 
         val userCreationResponse = mockMvc.request<UserRegisterInput, IDOutput>(
             method = POST,
-            uri = RequestPaths.Root.ROOT + "/users",
+            uri = "/users",
             body = body,
             authorization = cookie,
             mapper = mapper,
@@ -440,7 +444,7 @@ class UserControllerTests {
 
         mockMvc.request<UserLoginInput, IDOutput>(
             method = HTTPMethod.DELETE,
-            uri = RequestPaths.Root.ROOT + "/users/${userCreationResponse?.id}",
+            uri = "/users/${userCreationResponse?.id}",
             authorization = cookie,
             mapper = mapper,
             assertions = {
@@ -454,7 +458,7 @@ class UserControllerTests {
         val cookie = ensureCookieNotNull(cookie = getCookie())
         mockMvc.request<UserLoginInput, ProblemDetail>(
             method = HTTPMethod.DELETE,
-            uri = RequestPaths.Root.ROOT + "/users/1000",
+            uri = "/users/1000",
             authorization = cookie,
             mapper = mapper,
             assertions = {
@@ -471,7 +475,7 @@ class UserControllerTests {
 
         mockMvc.request<UserLoginInput, ProblemDetail>(
             method = HTTPMethod.DELETE,
-            uri = RequestPaths.Root.ROOT + "/users/${testUserInfo.id}",
+            uri = "/users/${testUserInfo.id}",
             authorization = testUserInfo.cookie,
             mapper = mapper,
             assertions = {
@@ -489,7 +493,7 @@ class UserControllerTests {
         val body = UserRegisterInput(email = "test@email.com", firstName = "Test", lastName = "Test", password = "Password1_.")
         mockMvc.request<UserRegisterInput, IDOutput>(
             method = POST,
-            uri = RequestPaths.Root.ROOT + "/users",
+            uri = "/users",
             body = body,
             authorization = cookie,
             mapper = mapper,
@@ -502,7 +506,7 @@ class UserControllerTests {
 
         mockMvc.request<UserRegisterInput, IDOutput>(
             method = POST,
-            uri = RequestPaths.Root.ROOT + "/users/logout",
+            uri = "/users/logout",
             authorization = cookie,
             mapper = mapper,
             assertions = {
@@ -517,7 +521,7 @@ class UserControllerTests {
 
         mockMvc.request<UserRegisterInput, ProblemDetail>(
             method = POST,
-            uri = RequestPaths.Root.ROOT + "/users/logout",
+            uri = "/users/logout",
             mapper = mapper,
             assertions = {
                 andExpect(status().isUnauthorized)
@@ -539,7 +543,7 @@ class UserControllerTests {
 
         mockMvc.request<UserLoginInput, UserOutput>(
             method = GET,
-            uri = RequestPaths.Root.ROOT + "/users/$id",
+            uri = "/users/$id",
             authorization = cookie,
             mapper = mapper,
             assertions = {
@@ -553,7 +557,7 @@ class UserControllerTests {
 
         mockMvc.request<UserUpdateInput, ProblemDetail>(
             method = HTTPMethod.PUT,
-            uri = RequestPaths.Root.ROOT + "/users/$id",
+            uri = "/users/$id",
             body = updateBody,
             authorization = cookie,
             mapper = mapper,
@@ -562,24 +566,9 @@ class UserControllerTests {
             }
         )
 
-        // Can log in with the new password
-        mockMvc.request<UserLoginInput, AuthOutput>(
-            method = POST,
-            uri = RequestPaths.Root.ROOT + "/users/login",
-            authorization = cookie,
-            body = UserLoginInput(email = loginInput.email, password = updateBody.password!!),
-            mapper = mapper,
-            assertions = {
-                andExpect(status().isOk)
-                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(jsonPath("$.id").value(id))
-                    .andExpect(jsonPath("$.expiresIn").isNotEmpty)
-            }
-        )
-
         mockMvc.request<NoBody, UserOutput>(
             method = GET,
-            uri = RequestPaths.Root.ROOT + "/users/$id",
+            uri = "/users/$id",
             authorization = cookie,
             mapper = mapper,
             assertions = {
@@ -588,6 +577,21 @@ class UserControllerTests {
                     .andExpect(jsonPath("$.firstName").value(updateBody.firstName))
                     .andExpect(jsonPath("$.lastName").value(updateBody.lastName))
                     .andExpect(jsonPath("$.role").value("ADMIN"))
+            }
+        )
+
+        // Can log in with the new password
+        mockMvc.request<UserLoginInput, AuthOutput>(
+            method = POST,
+            uri = "/users/login",
+            authorization = cookie,
+            body = UserLoginInput(email = loginInput.email, password = updateBody.password!!),
+            mapper = mapper,
+            assertions = {
+                andExpect(status().isOk)
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.id").value(id))
+                    .andExpect(jsonPath("$.expiresIn").isNotEmpty)
             }
         )
     }
@@ -602,7 +606,7 @@ class UserControllerTests {
 
         mockMvc.request<UserRoleInput, ProblemDetail>(
             method = HTTPMethod.PUT,
-            uri = RequestPaths.Root.ROOT + "/users/$id/role",
+            uri = "/users/$id/role",
             body = updateBody,
             authorization = cookie,
             mapper = mapper,
@@ -624,7 +628,7 @@ class UserControllerTests {
 
         mockMvc.request<UserRoleInput, ProblemDetail>(
             method = HTTPMethod.PUT,
-            uri = RequestPaths.Root.ROOT + "/users/765434565/role",
+            uri = "/users/765434565/role",
             body = updateBody,
             authorization = cookie,
             mapper = mapper,
@@ -646,7 +650,7 @@ class UserControllerTests {
 
         mockMvc.request<UserRoleInput, Unit>(
             method = HTTPMethod.PUT,
-            uri = RequestPaths.Root.ROOT + "/users/$id/role",
+            uri = "/users/$id/role",
             body = updateBody,
             authorization = cookie,
             mapper = mapper,
@@ -657,7 +661,7 @@ class UserControllerTests {
 
         mockMvc.request<Unit, UserOutput>(
             method = GET,
-            uri = RequestPaths.Root.ROOT + "/users/$id",
+            uri = "/users/$id",
             authorization = cookie,
             mapper = mapper,
             assertions = {
@@ -673,7 +677,7 @@ class UserControllerTests {
         val loginJson = mapper.writeValueAsString(loginInput)
 
         val loginResult = mockMvc.perform(
-            post(RequestPaths.Root.ROOT + "/users/login")
+            post("/users/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(loginJson)
         ).andExpect(status().isOk)
@@ -706,7 +710,7 @@ class UserControllerTests {
         val loginJson = mapper.writeValueAsString(loginInput)
 
         val loginResult = mockMvc.perform(
-            post(RequestPaths.Root.ROOT + "/users/login")
+            post("/users/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(loginJson)
         ).andExpect(status().isOk)

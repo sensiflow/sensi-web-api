@@ -7,14 +7,14 @@ import java.sql.Timestamp
 interface MetricDTO {
     val deviceID: ID
     val startTime: Timestamp
-    val endTime: Timestamp
+    val endTime: Timestamp?
     val peopleCount: Int
 }
 
 data class MetricOutputDTO(
     override val deviceID: ID,
     override val startTime: Timestamp,
-    override val endTime: Timestamp,
+    override val endTime: Timestamp?,
     override val peopleCount: Int
 ) : MetricDTO
 

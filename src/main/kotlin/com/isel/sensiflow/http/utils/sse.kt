@@ -1,10 +1,17 @@
+package com.isel.sensiflow.http.utils
+
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import java.util.concurrent.atomic.AtomicBoolean
+
+private val sseLogger: Logger = LoggerFactory.getLogger("sse-coroutines")
 
 /**
  * Launches a coroutine that is cancelled when the [SseEmitter] is completed or cancelled.
@@ -18,7 +25,11 @@ fun launchServerSentEvent(
 ): SseEmitter {
     return SseEmitter().also { emitter ->
         emitterScope(emitter).launch {
-            block(emitter)
+            try {
+                block(emitter)
+            } catch (e: Throwable) {
+                sseLogger.error("Error in SSE coroutine")
+            }
         }
     }
 }
@@ -36,9 +47,22 @@ fun emitterScope(emitter: SseEmitter): CoroutineScope {
 
     val isComplete = AtomicBoolean(false)
 
-    emitter.onCompletion {
-        if (isComplete.compareAndSet(false, true))
+    val cancelScope: () -> Unit = {
+        if (isComplete.compareAndSet(false, true)) {
+            sseLogger.info("Cancelling SSE scope: ${scope.coroutineContext[CoroutineName]})}")
             scope.cancel()
+        } else {
+            sseLogger.warn("SSE scope already cancelled")
+        }
+    }
+
+    sseLogger.info("Creating SSE scope")
+
+    emitter.onCompletion(cancelScope)
+    emitter.onTimeout(cancelScope)
+    emitter.onError {
+        sseLogger.warn("Error in SSE emitter", it)
+        cancelScope()
     }
 
     return scope
